@@ -1,5 +1,5 @@
 // src/app/layouts/sidebar/sidebar.component.ts
-import { Component, OnInit, Output, EventEmitter, Inject } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Inject, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -21,8 +21,9 @@ export class SidebarComponent implements OnInit {
   isCollapsed = false;
   openSubmenus: Set<number> = new Set();
 
-  private menuService = Inject(MenuService)
-     authService = Inject(AuthService)
+  private menuService = inject(MenuService)
+     authService = inject(AuthService)
+   private  changeDet = inject(ChangeDetectorRef)
   constructor(
     public router: Router
 
@@ -31,17 +32,24 @@ export class SidebarComponent implements OnInit {
   ngOnInit(): void {
     // Load collapsed state from localStorage
     const savedState = localStorage.getItem('sidebar_collapsed');
+
+   // console.log('Saved sidebar:', savedState);
     this.isCollapsed = savedState === 'true';
+   // console.log('Initial sidebar collapsed:', this.isCollapsed);
     this.sidebarToggled.emit(this.isCollapsed);
 
     this.loadMenus();
+
   }
 
   loadMenus(): void {
     this.menuService.loadUserMenus().subscribe({
       next: (userMenu:any) => {
-        this.menus = userMenu.menus;
-        this.pinnedMenus = userMenu.pinnedMenus;
+       console.log('User menus loaded:', userMenu.data.menus);
+        this.menus = userMenu.data.menus;
+       // console.log('Menus set in component:', this.menus);
+        this.pinnedMenus = userMenu.data.pinnedMenus;
+         this.changeDet.detectChanges();
       },
       error: (error:any) => {
         console.error('Error loading menus:', error);

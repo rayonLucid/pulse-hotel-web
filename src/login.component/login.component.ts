@@ -24,7 +24,7 @@ export class LoginComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute,
-    private toastr: ToastrService
+    private toaStr: ToastrService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -37,7 +37,7 @@ export class LoginComponent implements OnInit {
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
   // Load saved credentials if Remember Me was checked
     this.loadSavedCredentials();
-    
+
     if (this.authService.isAuthenticated()) {
       this.router.navigate([this.returnUrl]);
     }
@@ -60,15 +60,15 @@ export class LoginComponent implements OnInit {
       next: (response) => {
         this.isLoading = false;
         if (response.success) {
-          this.toastr.success('Welcome back!', 'Login Successful');
+          this.toaStr.success('Welcome back!', 'Login Successful');
           this.router.navigate([this.returnUrl]);
         } else {
-          this.toastr.error(response.message || 'Login failed', 'Error');
+          this.toaStr.error(response.message || 'Login failed', 'Error');
         }
       },
       error: (error) => {
         this.isLoading = false;
-        this.toastr.error(error.message || 'Invalid email or password', 'Login Failed');
+        this.toaStr.error(error.message || 'Invalid email or password', 'Login Failed');
       }
     });
   }

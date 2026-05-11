@@ -18,6 +18,8 @@ export class MainLayoutComponent {
   isSidebarCollapsed = false;
 
   onSidebarToggle(collapsed: boolean): void {
+   console.log('collapse:', collapsed);
     this.isSidebarCollapsed = collapsed;
+    localStorage.setItem('sidebar_collapsed', String(collapsed));
   }
 }

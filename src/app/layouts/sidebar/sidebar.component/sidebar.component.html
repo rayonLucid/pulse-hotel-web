@@ -23,7 +23,7 @@
             [class.open]="isSubmenuOpen(menu)"
             (click)="toggleSubmenu(menu)"
           >
-            <i [class]="menu.menuIcon"></i>
+            <i class="fa" [class]="menu.menuIcon" [title]="menu.menuTitle"></i>
             <span class="menu-title" *ngIf="!isCollapsed">{{ menu.menuTitle }}</span>
             <i *ngIf="!isCollapsed" class="chevron fas fa-chevron-down" [class.rotated]="isSubmenuOpen(menu)"></i>
           </div>
@@ -37,7 +37,7 @@
                 class="submenu-link"
                 [class.active]="router.url === child.routerLink"
               >
-                <i [class]="child.menuIcon"></i>
+                <i class="fa" [class]="child.menuIcon" [title]="child.menuTitle"></i>
                 <span>{{ child.menuTitle }}</span>
               </a>
             }
@@ -50,7 +50,7 @@
             class="menu-link"
             [class.active]="isMenuActive(menu)"
           >
-            <i [class]="menu.menuIcon"></i>
+            <i class="fa" [class]="menu.menuIcon" [title]="menu.menuTitle"></i>
             <span class="menu-title" *ngIf="!isCollapsed">{{ menu.menuTitle }}</span>
           </a>
         }
@@ -63,7 +63,7 @@
     <div class="pinned-menus">
       <div class="divider"></div>
       <div class="pinned-header">
-        <i class="fas fa-thumbtack"></i>
+        <i class="fa fa-thumbtack"></i>
         <span>Pinned</span>
       </div>
       @for (menu of pinnedMenus; track menu.menuItemId) {
@@ -73,7 +73,7 @@
           class="pinned-link"
           [class.active]="router.url === menu.routerLink"
         >
-          <i [class]="menu.menuIcon"></i>
+          <i class="fa" [class]="menu.menuIcon" [title]="menu.menuTitle"></i>
           <span>{{ menu.menuTitle }}</span>
           <i class="fas fa-thumbtack unpin-icon" (click)="unpinMenu(menu, $event)"></i>
         </a>

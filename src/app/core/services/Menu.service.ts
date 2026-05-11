@@ -40,11 +40,12 @@ export class MenuService {
   /**
    * Load user menus from API
    */
-  loadUserMenus(): Observable<UserMenu> {
-    return this.http.get<UserMenu>(`${this.apiUrl}/menus/user`).pipe(
-      tap(userMenu => {
-        this.menusSubject.next(this.buildMenuHierarchy(userMenu.menus));
-        this.pinnedMenusSubject.next(userMenu.pinnedMenus);
+public  loadUserMenus(): Observable<UserMenu> {
+    return this.http.get<UserMenu>(`${this.apiUrl}/menu/user`).pipe(
+      tap((userMenu:any) => {
+        console.log(userMenu.data)
+        this.menusSubject.next(this.buildMenuHierarchy(userMenu.data.menus));
+        this.pinnedMenusSubject.next(userMenu.data.pinnedMenus);
       })
     );
   }
@@ -55,12 +56,12 @@ export class MenuService {
   private buildMenuHierarchy(menus: MenuItem[]): MenuItem[] {
     const menuMap = new Map<number, MenuItem>();
     const rootMenus: MenuItem[] = [];
-
+console.log(menus)
     // First, create a map of all menus
     menus.forEach(menu => {
       menuMap.set(menu.menuItemId, { ...menu, children: [] });
     });
-
+     console.log('Menu map created:', menuMap);
     // Then, build the hierarchy
     menus.forEach(menu => {
       const menuWithChildren = menuMap.get(menu.menuItemId)!;
@@ -75,6 +76,7 @@ export class MenuService {
 
     // Sort by menu order
     this.sortMenus(rootMenus);
+    console.log('Hierarchical menus built:', rootMenus);
     return rootMenus;
   }
 
