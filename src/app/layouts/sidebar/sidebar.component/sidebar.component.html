@@ -1,0 +1,96 @@
+<!-- src/app/layouts/sidebar/sidebar.component.html -->
+<div class="sidebar" [class.collapsed]="isCollapsed">
+  <!-- Sidebar Header -->
+  <div class="sidebar-header">
+    <div class="logo">
+      <span class="logo-icon">🏨</span>
+      <span class="logo-text" *ngIf="!isCollapsed">Pulse Hotel</span>
+    </div>
+    <button class="toggle-btn" (click)="toggleSidebar()">
+      <i [class]="isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'"></i>
+    </button>
+  </div>
+
+  <!-- Main Menu -->
+  <div class="sidebar-menu">
+    @for (menu of menus; track menu.menuItemId) {
+      <div class="menu-item">
+        @if (menu.children && menu.children.length) {
+          <!-- Parent menu with children -->
+          <div
+            class="menu-link has-children"
+            [class.active]="isMenuActive(menu) || isChildActive(menu)"
+            [class.open]="isSubmenuOpen(menu)"
+            (click)="toggleSubmenu(menu)"
+          >
+            <i [class]="menu.menuIcon"></i>
+            <span class="menu-title" *ngIf="!isCollapsed">{{ menu.menuTitle }}</span>
+            <i *ngIf="!isCollapsed" class="chevron fas fa-chevron-down" [class.rotated]="isSubmenuOpen(menu)"></i>
+          </div>
+
+          <!-- Submenu -->
+          <div class="submenu" *ngIf="!isCollapsed && isSubmenuOpen(menu)">
+            @for (child of menu.children; track child.menuItemId) {
+              <a
+                [routerLink]="child.routerLink"
+                (click)="logMenuClick(child)"
+                class="submenu-link"
+                [class.active]="router.url === child.routerLink"
+              >
+                <i [class]="child.menuIcon"></i>
+                <span>{{ child.menuTitle }}</span>
+              </a>
+            }
+          </div>
+        } @else {
+          <!-- Leaf menu item -->
+          <a
+            [routerLink]="menu.routerLink"
+            (click)="logMenuClick(menu)"
+            class="menu-link"
+            [class.active]="isMenuActive(menu)"
+          >
+            <i [class]="menu.menuIcon"></i>
+            <span class="menu-title" *ngIf="!isCollapsed">{{ menu.menuTitle }}</span>
+          </a>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Pinned Menus Section -->
+  @if (pinnedMenus.length && !isCollapsed) {
+    <div class="pinned-menus">
+      <div class="divider"></div>
+      <div class="pinned-header">
+        <i class="fas fa-thumbtack"></i>
+        <span>Pinned</span>
+      </div>
+      @for (menu of pinnedMenus; track menu.menuItemId) {
+        <a
+          [routerLink]="menu.routerLink"
+          (click)="logMenuClick(menu)"
+          class="pinned-link"
+          [class.active]="router.url === menu.routerLink"
+        >
+          <i [class]="menu.menuIcon"></i>
+          <span>{{ menu.menuTitle }}</span>
+          <i class="fas fa-thumbtack unpin-icon" (click)="unpinMenu(menu, $event)"></i>
+        </a>
+      }
+    </div>
+  }
+
+  <!-- User Info Footer -->
+  <div class="sidebar-footer" *ngIf="!isCollapsed">
+    <div class="user-info">
+      <div class="user-avatar">
+        <i class="fas fa-user-circle"></i>
+      </div>
+      <div class="user-details">
+        <span class="user-name">{{ authService.getUserFullName() || 'Guest' }}</span>
+        <span class="user-role">{{ getUserRole() }}</span>
+      </div>
+    </div>
+  </div>
+</div>

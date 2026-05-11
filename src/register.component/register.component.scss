@@ -1,7 +1,6 @@
-@use 'ngx-toastr/toastr';
-@import '@fortawesome/fontawesome-free/css/all.min.css';
+// src/app/modules/auth/components/register/register.component.scss
 
-// Color Variables
+// Color Variables (same as login)
 $primary-50: #fdf8f2;
 $primary-100: #f9ede0;
 $primary-200: #f2d6b8;
@@ -46,6 +45,7 @@ $green-700: #047857;
 $green-800: #065f46;
 $green-900: #064e3b;
 
+$green-500: #10b981;
 $red-500: #ef4444;
 $white: #ffffff;
 
@@ -55,7 +55,7 @@ $tablet: 768px;
 $desktop: 1024px;
 $large-desktop: 1280px;
 
-// Mixins for responsive design
+// Mixins
 @mixin mobile {
   @media (max-width: #{$tablet - 1px}) {
     @content;
@@ -80,7 +80,7 @@ $large-desktop: 1280px;
   }
 }
 
-// Animation Keyframes
+// Animations
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -102,19 +102,25 @@ $large-desktop: 1280px;
 }
 
 @keyframes shake {
-  0%, 100% {
-    transform: translateX(0);
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+@keyframes checkBounce {
+  0% {
+    transform: scale(0);
   }
-  10%, 30%, 50%, 70%, 90% {
-    transform: translateX(-5px);
+  50% {
+    transform: scale(1.2);
   }
-  20%, 40%, 60%, 80% {
-    transform: translateX(5px);
+  100% {
+    transform: scale(1);
   }
 }
 
-// Main Container - Mobile First
-.login-container {
+// Main Container
+.register-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -131,13 +137,16 @@ $large-desktop: 1280px;
   }
 }
 
-// Login Card - Mobile First
-.login-card {
+// Register Card
+.register-card {
   background: $white;
   border-radius: 16px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   width: 100%;
   max-width: 95%;
+  max-height: 90vh;
+  overflow-y:auto;
+  scrollbar-color: transparent transparent; // Hide scrollbar for Firefox
   padding: 20px;
   animation: fadeInUp 0.5s ease-out;
 
@@ -145,6 +154,7 @@ $large-desktop: 1280px;
     max-width: 100%;
     padding: 16px;
     border-radius: 12px;
+    max-height: 95vh;
   }
 
   @include tablet {
@@ -154,14 +164,29 @@ $large-desktop: 1280px;
   }
 
   @include desktop {
-    max-width: 28rem;
+    max-width: 32rem;
     padding: 32px;
     border-radius: 24px;
   }
+
+  // Custom scrollbar
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $gray-100;
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $primary-400;
+    border-radius: 10px;
+  }
 }
 
-// Header Section - Mobile First
-.login-header {
+// Header Section
+.register-header {
   text-align: center;
   margin-bottom: 24px;
 
@@ -173,10 +198,6 @@ $large-desktop: 1280px;
     margin-bottom: 28px;
   }
 
-  @include desktop {
-    margin-bottom: 32px;
-  }
-
   .logo-wrapper {
     margin-bottom: 12px;
     display: flex;
@@ -184,10 +205,6 @@ $large-desktop: 1280px;
 
     @include mobile-only {
       margin-bottom: 8px;
-    }
-
-    @include tablet {
-      margin-bottom: 16px;
     }
 
     .logo-icon {
@@ -205,13 +222,8 @@ $large-desktop: 1280px;
       }
 
       @include tablet {
-        width: 72px;
-        height: 72px;
-      }
-
-      @include desktop {
-        width: 80px;
-        height: 80px;
+        width: 70px;
+        height: 70px;
       }
 
       span {
@@ -222,11 +234,7 @@ $large-desktop: 1280px;
         }
 
         @include tablet {
-          font-size: 36px;
-        }
-
-        @include desktop {
-          font-size: 40px;
+          font-size: 32px;
         }
       }
     }
@@ -240,17 +248,10 @@ $large-desktop: 1280px;
 
     @include mobile-only {
       font-size: 18px;
-      margin-bottom: 4px;
     }
 
     @include tablet {
-      font-size: 26px;
-      margin-bottom: 8px;
-    }
-
-    @include desktop {
-      font-size: 28px;
-      margin-bottom: 8px;
+      font-size: 24px;
     }
   }
 
@@ -265,15 +266,11 @@ $large-desktop: 1280px;
     @include tablet {
       font-size: 14px;
     }
-
-    @include desktop {
-      font-size: 14px;
-    }
   }
 }
 
 // Form Styles
-.login-form {
+.register-form {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -281,17 +278,9 @@ $large-desktop: 1280px;
   @include mobile-only {
     gap: 12px;
   }
-
-  @include tablet {
-    gap: 20px;
-  }
-
-  @include desktop {
-    gap: 20px;
-  }
 }
 
-// Form Group - Mobile First
+// Form Group
 .form-group {
   display: flex;
   flex-direction: column;
@@ -302,14 +291,9 @@ $large-desktop: 1280px;
     font-size: 13px;
     font-weight: 500;
     color: $gray-700;
-    margin-bottom: 2px;
 
     @include mobile-only {
       font-size: 12px;
-    }
-
-    @include tablet {
-      font-size: 14px;
     }
   }
 
@@ -345,17 +329,11 @@ $large-desktop: 1280px;
       transition: all 0.2s ease;
       font-size: 14px;
       -webkit-appearance: none;
-      appearance: none;
 
       @include mobile-only {
         padding: 8px 10px 8px 32px;
         font-size: 13px;
         border-radius: 10px;
-      }
-
-      @include tablet {
-        padding: 12px 14px 12px 40px;
-        font-size: 14px;
       }
 
       &:focus {
@@ -407,105 +385,141 @@ $large-desktop: 1280px;
     margin-top: 4px;
     font-size: 11px;
     color: $red-500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 
     @include mobile-only {
       font-size: 10px;
     }
 
-    @include tablet {
-      font-size: 12px;
+    i {
+      font-size: 10px;
     }
   }
 }
 
-// Form Options - Mobile First
-.form-options {
+// Password Requirements
+.password-requirements {
+  margin-top: 6px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 
   @include mobile-only {
-    gap: 8px;
+    gap: 6px;
   }
 
-  .checkbox-label {
+  .requirement {
+    font-size: 10px;
+    color: $gray-500;
     display: flex;
     align-items: center;
-    cursor: pointer;
-    min-height: 44px; // Better touch target on mobile
+    gap: 4px;
+    transition: color 0.2s ease;
+
+     // Invalid state (default)
+  &.invalid {
+    color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.2);
+  }
+
+
+
+  // Hover effect
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
 
     @include mobile-only {
-      min-height: 40px;
+      font-size: 9px;
     }
 
-    .checkbox-input {
+    i {
+      font-size: 16px;
+      transition: all 0.2s ease;
+
+        &.fa-circle {
+      opacity: 0.6;
+    }
+
+    &.fa-check-circle {
+      color: inherit;
+    }
+    }
+
+    &.valid {
+        color: $green-500;
+    background-color: rgba(40, 167, 69, 0.1);
+    border: 1px solid rgba(40, 167, 69, 0.2);
+
+      i {
+        animation: checkBounce 0.3s ease;
+      }
+    }
+  }
+}
+
+// Terms Group
+.terms-group {
+  margin: 4px 0;
+
+  .terms-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    cursor: pointer;
+
+    @include mobile-only {
+      gap: 6px;
+    }
+
+    .terms-checkbox {
+      margin-top: 2px;
       width: 16px;
       height: 16px;
-      color: $primary-600;
-      border-color: $gray-300;
-      border-radius: 4px;
       cursor: pointer;
-      margin-right: 8px;
+      flex-shrink: 0;
 
       @include mobile-only {
         width: 18px;
         height: 18px;
       }
-
-      &:focus {
-        outline: none;
-        box-shadow: 0 0 0 2px rgba($primary-500, 0.2);
-      }
     }
 
-    .checkbox-text {
-      font-size: 13px;
+    .terms-text {
+      font-size: 12px;
       color: $gray-600;
+      line-height: 1.4;
 
       @include mobile-only {
-        font-size: 12px;
+        font-size: 11px;
       }
 
-      @include tablet {
-        font-size: 14px;
+      a {
+        color: $primary-600;
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
       }
     }
   }
 
-  .forgot-link {
-    font-size: 13px;
-    color: $primary-600;
-    font-weight: 500;
-    text-decoration: none;
-    transition: color 0.2s ease;
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-
-    @include mobile-only {
-      font-size: 12px;
-      min-height: 40px;
-    }
-
-    @include tablet {
-      font-size: 14px;
-    }
-
-    &:hover {
-      color: $primary-700;
-      text-decoration: underline;
-    }
-
-    &:active {
-      transform: scale(0.98);
-    }
+  .error-message {
+    margin-top: 6px;
+    font-size: 11px;
+    color: $red-500;
+    padding-left: 24px;
   }
 }
 
-// Login Button - Mobile First
-.btn-login {
+// Register Button
+.btn-register {
   width: 100%;
   background-color: $primary-500;
   color: $white;
@@ -518,18 +532,13 @@ $large-desktop: 1280px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   font-size: 15px;
   min-height: 48px;
+  margin-top: 8px;
 
   @include mobile-only {
     padding: 10px 14px;
     font-size: 14px;
     min-height: 44px;
     border-radius: 10px;
-  }
-
-  @include tablet {
-    padding: 14px 20px;
-    font-size: 16px;
-    min-height: 52px;
   }
 
   &:hover:not(:disabled) {
@@ -545,10 +554,6 @@ $large-desktop: 1280px;
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-
-    &:hover {
-      transform: none;
-    }
   }
 }
 
@@ -564,11 +569,6 @@ $large-desktop: 1280px;
     height: 18px;
     animation: spin 1s linear infinite;
 
-    @include mobile-only {
-      width: 16px;
-      height: 16px;
-    }
-
     .spinner-track {
       opacity: 0.25;
     }
@@ -579,21 +579,13 @@ $large-desktop: 1280px;
   }
 }
 
-// Divider - Mobile First
+// Divider
 .divider {
   position: relative;
-  margin: 16px 0;
+  margin: 16px 0 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  @include mobile-only {
-    margin: 12px 0;
-  }
-
-  @include tablet {
-    margin: 20px 0;
-  }
 
   .divider-line {
     flex: 1;
@@ -616,19 +608,15 @@ $large-desktop: 1280px;
         padding: 0 8px;
         font-size: 11px;
       }
-
-      @include tablet {
-        font-size: 13px;
-      }
     }
   }
 }
 
-// Register Link - Mobile First
-.register-link {
+// Login Link
+.login-link {
   text-align: center;
 
-  .register-link-text {
+  .login-link-text {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -636,35 +624,25 @@ $large-desktop: 1280px;
     font-weight: 500;
     text-decoration: none;
     transition: all 0.2s ease;
-    min-height: 44px;
     padding: 8px 16px;
 
     @include mobile-only {
       gap: 4px;
       font-size: 13px;
-      min-height: 40px;
       padding: 6px 12px;
-    }
-
-    @include tablet {
-      gap: 8px;
-      font-size: 14px;
     }
 
     i {
       font-size: 11px;
-
-      @include mobile-only {
-        font-size: 10px;
-      }
+      transition: transform 0.2s ease;
     }
 
     &:hover {
       color: $primary-700;
       gap: 8px;
 
-      @include mobile-only {
-        gap: 6px;
+      i {
+        transform: translateX(3px);
       }
     }
 
@@ -676,37 +654,37 @@ $large-desktop: 1280px;
 
 // Touch-friendly adjustments for mobile
 @media (hover: none) and (pointer: coarse) {
-  .btn-login,
+  .btn-register,
   .password-toggle,
-  .checkbox-label,
-  .forgot-link,
-  .register-link-text {
+  .terms-label,
+  .login-link-text {
     cursor: default;
   }
 
   .form-input {
-    font-size: 16px !important; // Prevents zoom on iOS
+    font-size: 16px !important;
   }
 
-  .checkbox-input {
+  .terms-checkbox {
     width: 20px !important;
     height: 20px !important;
   }
 }
 
-// Landscape mode optimization
+// Landscape mode for mobile
 @media (max-width: 768px) and (orientation: landscape) {
-  .login-container {
+  .register-container {
     padding: 8px;
   }
 
-  .login-card {
+  .register-card {
     padding: 16px;
     max-width: 90%;
+    max-height: 85vh;
   }
 
-  .login-header {
-    margin-bottom: 16px;
+  .register-header {
+    margin-bottom: 12px;
 
     .logo-icon {
       width: 40px;
@@ -722,95 +700,30 @@ $large-desktop: 1280px;
     }
   }
 
-  .login-form {
-    gap: 10px;
+  .register-form {
+    gap: 8px;
   }
 
-  .form-group {
-    gap: 4px;
-  }
-}
-
-// High-resolution screens optimization
-@media (min-resolution: 192dpi) {
-  .form-input,
-  .btn-login {
-    border-width: 0.5px;
+  .password-requirements {
+    margin-top: 2px;
   }
 }
 
 // Reduced motion preference
 @media (prefers-reduced-motion: reduce) {
-  .login-card {
+  .register-card {
     animation: none;
   }
 
-  .btn-login {
+  .btn-register {
     transition: none;
   }
 
   .spinner-icon {
     animation: none;
   }
-}
 
-
-
-
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #333;
-  background-color: #f5f5f5;
-  overflow-x: hidden;
-}
-
-// Prevent body scroll when mobile menu is open
-body.mobile-menu-open {
-  overflow: hidden;
-}
-
-// Custom scrollbar
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #c49a6c;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a87b4e;
-}
-
-// Toast customization
-.toast-success {
-  background-color: #10b981 !important;
-}
-
-.toast-error {
-  background-color: #ef4444 !important;
-}
-
-.toast-info {
-  background-color: #3b82f6 !important;
-}
-
-.toast-warning {
-  background-color: #f59e0b !important;
+  .requirement.valid i {
+    animation: none;
+  }
 }

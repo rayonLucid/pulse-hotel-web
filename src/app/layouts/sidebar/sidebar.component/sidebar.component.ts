@@ -1,0 +1,98 @@
+// src/app/layouts/sidebar/sidebar.component.ts
+import { Component, OnInit, Output, EventEmitter, Inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule, Router } from '@angular/router';
+import { AuthService } from '../../../core/auth/auth.service';
+import { MenuItem, MenuService } from '../../../core/services/Menu.service';
+
+
+@Component({
+  selector: 'app-sidebar',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
+  templateUrl: './sidebar.component.html',
+  styleUrls: ['./sidebar.component.scss']
+})
+export class SidebarComponent implements OnInit {
+  @Output() sidebarToggled = new EventEmitter<boolean>();
+
+  menus: MenuItem[] = [];
+  pinnedMenus: MenuItem[] = [];
+  isCollapsed = false;
+  openSubmenus: Set<number> = new Set();
+
+  private menuService = Inject(MenuService)
+     authService = Inject(AuthService)
+  constructor(
+    public router: Router
+
+  ) {}
+
+  ngOnInit(): void {
+    // Load collapsed state from localStorage
+    const savedState = localStorage.getItem('sidebar_collapsed');
+    this.isCollapsed = savedState === 'true';
+    this.sidebarToggled.emit(this.isCollapsed);
+
+    this.loadMenus();
+  }
+
+  loadMenus(): void {
+    this.menuService.loadUserMenus().subscribe({
+      next: (userMenu:any) => {
+        this.menus = userMenu.menus;
+        this.pinnedMenus = userMenu.pinnedMenus;
+      },
+      error: (error:any) => {
+        console.error('Error loading menus:', error);
+      }
+    });
+  }
+
+  toggleSidebar(): void {
+    this.isCollapsed = !this.isCollapsed;
+    localStorage.setItem('sidebar_collapsed', String(this.isCollapsed));
+    this.sidebarToggled.emit(this.isCollapsed);
+  }
+
+  toggleSubmenu(menu: MenuItem): void {
+    if (this.openSubmenus.has(menu.menuItemId)) {
+      this.openSubmenus.delete(menu.menuItemId);
+    } else {
+      this.openSubmenus.add(menu.menuItemId);
+    }
+  }
+
+  isSubmenuOpen(menu: MenuItem): boolean {
+    return this.openSubmenus.has(menu.menuItemId);
+  }
+
+  isMenuActive(menu: MenuItem): boolean {
+    if (menu.routerLink) {
+      return this.router.url === menu.routerLink || this.router.url.startsWith(menu.routerLink + '/');
+    }
+    return false;
+  }
+
+  isChildActive(menu: MenuItem): boolean {
+    if (menu.children) {
+      return menu.children.some((child:any) => this.isMenuActive(child));
+    }
+    return false;
+  }
+
+  logMenuClick(menu: MenuItem): void {
+    this.menuService.logMenuAccess(menu.menuItemId).subscribe();
+  }
+
+  unpinMenu(menu: MenuItem, event: Event): void {
+    event.stopPropagation();
+    this.menuService.unpinMenuItem(menu.menuItemId).subscribe(() => {
+      this.loadMenus();
+    });
+  }
+
+  getUserRole(): string {
+    return this.authService.getUserRole() || 'Guest';
+  }
+}

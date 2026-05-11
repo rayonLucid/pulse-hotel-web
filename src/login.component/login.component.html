@@ -1,0 +1,129 @@
+<!-- src/app/modules/auth/components/login/login.component.html -->
+<div class="login-container">
+  <div class="login-card">
+    <!-- Logo & Header -->
+    <div class="login-header">
+      <div class="logo-wrapper">
+        <div class="logo-icon">
+          <span>🏨</span>
+        </div>
+      </div>
+      <h1 class="hotel-title">Pulse Hotel</h1>
+      <p class="welcome-text">Welcome back! Please sign in to continue</p>
+    </div>
+
+    <!-- Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <div class="input-wrapper">
+          <div class="input-icon">
+            <i class="fas fa-envelope"></i>
+          </div>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            placeholder="Enter your email"
+            class="form-input"
+            [class.is-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          >
+        </div>
+        @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+          <div class="error-message">
+            @if (loginForm.get('email')?.errors?.['required']) {
+              <span>Email is required</span>
+            }
+            @if (loginForm.get('email')?.errors?.['email']) {
+              <span>Please enter a valid email address</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-wrapper">
+          <div class="input-icon">
+            <i class="fas fa-lock"></i>
+          </div>
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            formControlName="password"
+            placeholder="Enter your password"
+            class="form-input"
+            [class.is-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+          >
+          <button
+            type="button"
+            (click)="togglePasswordVisibility()"
+            class="password-toggle"
+          >
+            <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+          </button>
+        </div>
+        @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+          <div class="error-message">
+            @if (loginForm.get('password')?.errors?.['required']) {
+              <span>Password is required</span>
+            }
+            @if (loginForm.get('password')?.errors?.['minlength']) {
+              <span>Password must be at least 6 characters</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Remember Me & Forgot Password -->
+      <div class="form-options">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="rememberMe" class="checkbox-input">
+          <span class="checkbox-text">Remember me</span>
+        </label>
+        <a (click)="goToforgotPassword()" class="forgot-link">
+          Forgot Password?
+        </a>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        [disabled]="isLoading"
+        class="btn-login"
+      >
+        @if (!isLoading) {
+          <span>Sign In</span>
+        }
+        @if (isLoading) {
+          <span class="loading-spinner">
+            <svg class="spinner-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="spinner-track" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="spinner-head" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Processing...
+          </span>
+        }
+      </button>
+
+      <!-- Divider -->
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-text">
+          <span>New to our hotel?</span>
+        </div>
+        <div class="divider-line"></div>
+      </div>
+
+      <!-- Register Link -->
+      <div class="register-link">
+        <a (click)="goToRegister()"  class="register-link-text">
+          Create an account
+          <i class="fas fa-arrow-right"></i>
+        </a>
+      </div>
+    </form>
+  </div>
+</div>

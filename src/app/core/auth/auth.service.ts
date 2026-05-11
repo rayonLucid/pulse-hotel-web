@@ -1,0 +1,321 @@
+// src/app/core/auth/auth.service.ts
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError, BehaviorSubject } from 'rxjs';
+import { catchError, tap, map } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
+import { JwtHelperService } from '@auth0/angular-jwt';
+import { environment } from '../../../environments/environment';
+
+export interface User {
+  userId: number;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  role: string;
+  loyaltyPoints: number;
+  isActive: boolean;
+  profileImageUrl?: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  data: {
+    userId: number;
+    fullName: string;
+    email: string;
+    token: string;
+    role: string;
+    loyaltyPoints: number;
+    tokenExpiry: Date;
+  };
+  message: string;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+  private apiUrl = environment.apiUrl;
+  private tokenKey = 'access_token';
+  private userKey = 'user_data';
+  private jwtHelper = new JwtHelperService();
+
+  private currentUserSubject = new BehaviorSubject<User | null>(null);
+  public currentUser$ = this.currentUserSubject.asObservable();
+
+  private isLoggedInSubject = new BehaviorSubject<boolean>(this.hasToken());
+  public isLoggedIn$ = this.isLoggedInSubject.asObservable();
+
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private toastr: ToastrService
+  ) {
+    this.loadStoredUser();
+  }
+
+  // ==================== AUTHENTICATION METHODS ====================
+
+  login(credentials: { email: string; password: string }): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, credentials).pipe(
+      tap(response => {
+        if (response.success && response.data.token) {
+          this.setSession(response.data);
+          this.toastr.success(`Welcome back, ${response.data.fullName}!`, 'Login Successful');
+        }
+      }),
+      catchError(this.handleError.bind(this))
+    );
+  }
+
+  register(registerData: any): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, registerData).pipe(
+      tap(response => {
+        console.log('Registration response:', response);
+        if (response.success) {
+          this.toastr.success('Registration successful! Please login.', 'Success');
+        }
+      }),
+      catchError(this.handleError.bind(this))
+    );
+  }
+
+  logout(): void {
+    localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.userKey);
+    this.currentUserSubject.next(null);
+    this.isLoggedInSubject.next(false);
+    this.toastr.info('You have been logged out.', 'Goodbye!');
+    this.router.navigate(['/auth/login']);
+  }
+
+  // ==================== TOKEN METHODS ====================
+
+  getToken(): string | null {
+    return localStorage.getItem(this.tokenKey);
+  }
+
+  isAuthenticated(): boolean {
+    const token = this.getToken();
+    if (!token) return false;
+
+    try {
+      return !this.jwtHelper.isTokenExpired(token);
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // ==================== USER INFORMATION METHODS ====================
+
+  getCurrentUser(): User | null {
+    return this.currentUserSubject.value;
+  }
+
+  getUserFullName(): string | null {
+    const user = this.currentUserSubject.value;
+    if (user) return user.fullName;
+
+    // Try to get from token as fallback
+    const token = this.getToken();
+    if (token) {
+      try {
+        const decoded = this.jwtHelper.decodeToken(token);
+        return decoded['fullName'] || decoded['unique_name'] || null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  getUserEmail(): string | null {
+    const user = this.currentUserSubject.value;
+    if (user) return user.email;
+
+    const token = this.getToken();
+    if (token) {
+      try {
+        const decoded = this.jwtHelper.decodeToken(token);
+        return decoded['email'] || null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  getUserId(): number | null {
+    const user = this.currentUserSubject.value;
+    if (user) return user.userId;
+
+    const token = this.getToken();
+    if (token) {
+      try {
+        const decoded = this.jwtHelper.decodeToken(token);
+        return decoded['userId'] || decoded['nameid'] || null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  getUserRole(): string | null {
+    const user = this.currentUserSubject.value;
+    if (user) return user.role;
+
+    const token = this.getToken();
+    if (token) {
+      try {
+        const decoded = this.jwtHelper.decodeToken(token);
+        return decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+               decoded['role'] ||
+               null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  getUserLoyaltyPoints(): number {
+    const user = this.currentUserSubject.value;
+    return user?.loyaltyPoints || 0;
+  }
+
+  // ==================== ROLE CHECKING METHODS ====================
+
+  hasRole(role: string): boolean {
+    const userRole = this.getUserRole();
+    return userRole === role;
+  }
+
+  hasAnyRole(roles: string[]): boolean {
+    const userRole = this.getUserRole();
+    if (!userRole) return false;
+    return roles.includes(userRole);
+  }
+
+  hasAllRoles(roles: string[]): boolean {
+    const userRole = this.getUserRole();
+    if (!userRole) return false;
+    return roles.every(role => role === userRole);
+  }
+
+  // Convenience role check methods
+  isAdmin(): boolean {
+    return this.hasRole('Admin');
+  }
+
+  isManager(): boolean {
+    return this.hasAnyRole(['Admin', 'Manager']);
+  }
+
+  isSupervisor(): boolean {
+    return this.hasAnyRole(['Admin', 'Manager', 'Supervisor']);
+  }
+
+  isStaff(): boolean {
+    return this.hasAnyRole(['Admin', 'Manager', 'Supervisor', 'Staff']);
+  }
+
+  isGuest(): boolean {
+    return this.hasRole('Guest');
+  }
+
+  // ==================== PERMISSION CHECKING ====================
+
+  hasPermission(requiredRoles: string[]): boolean {
+    if (!requiredRoles || requiredRoles.length === 0) return true;
+    return this.hasAnyRole(requiredRoles);
+  }
+
+  // ==================== PRIVATE METHODS ====================
+
+  private setSession(authData: any): void {
+    const user: User = {
+      userId: authData.userId,
+      fullName: authData.fullName,
+      email: authData.email,
+      phoneNumber: '',
+      role: authData.role,
+      loyaltyPoints: authData.loyaltyPoints,
+      isActive: true
+    };
+
+    localStorage.setItem(this.tokenKey, authData.token);
+    localStorage.setItem(this.userKey, JSON.stringify(user));
+
+    this.currentUserSubject.next(user);
+    this.isLoggedInSubject.next(true);
+  }
+
+  private loadStoredUser(): void {
+    const storedUser = localStorage.getItem(this.userKey);
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        this.currentUserSubject.next(user);
+        this.isLoggedInSubject.next(true);
+      } catch (error) {
+        console.error('Error loading stored user:', error);
+        this.logout();
+      }
+    }
+  }
+
+  private hasToken(): boolean {
+    return !!localStorage.getItem(this.tokenKey);
+  }
+
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'An error occurred. Please try again.';
+    let errorTitle = 'Error';
+
+    console.error('API Error:', error);
+
+    switch (error.status) {
+      case 0:
+        errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+        errorTitle = 'Connection Error';
+        break;
+      case 400:
+        errorMessage = error.error?.message || 'Invalid request. Please check your input.';
+        break;
+      case 401:
+        errorMessage = 'Invalid email or password. Please try again.';
+        errorTitle = 'Login Failed';
+        break;
+      case 403:
+        errorMessage = 'You do not have permission to perform this action.';
+        errorTitle = 'Access Denied';
+        break;
+      case 404:
+        errorMessage = 'The requested resource was not found.';
+        errorTitle = 'Not Found';
+        break;
+      case 409:
+        errorMessage = 'User with this email already exists.';
+        errorTitle = 'Registration Failed';
+        break;
+      case 500:
+        errorMessage = 'Server error. Please try again later.';
+        errorTitle = 'Server Error';
+        break;
+      default:
+        errorMessage = error.error?.message || 'An unexpected error occurred.';
+        break;
+    }
+
+    this.toastr.error(errorMessage, errorTitle);
+
+    return throwError(() => ({
+      status: error.status,
+      message: errorMessage,
+      originalError: error
+    }));
+  }
+}
