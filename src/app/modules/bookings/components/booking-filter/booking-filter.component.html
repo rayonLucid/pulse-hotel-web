@@ -1,0 +1,104 @@
+<!-- src/app/modules/bookings/components/booking-filter/booking-filter.component.html -->
+<div class="booking-filter">
+  <!-- Basic Search Bar -->
+  <div class="search-bar">
+    <div class="search-input-wrapper">
+      <i class="fas fa-search"></i>
+      <input
+        type="text"
+        formControlName="guestName"
+        placeholder="Search by guest name, email, or booking ID..."
+        class="search-input"
+      >
+    </div>
+    <button class="filter-toggle" (click)="toggleExpand()">
+      <i class="fas fa-sliders-h"></i>
+      <span>Filters</span>
+      @if (getActiveFilterCount() > 0) {
+        <span class="filter-badge">{{ getActiveFilterCount() }}</span>
+      }
+    </button>
+    @if (getActiveFilterCount() > 0) {
+      <button class="clear-btn" (click)="onClearFilters()">
+        <i class="fas fa-times"></i>
+        Clear
+      </button>
+    }
+  </div>
+
+  <!-- Advanced Filters (Expandable) -->
+  @if (isExpanded) {
+    <div class="advanced-filters">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label>
+            <i class="fas fa-tag"></i>
+            Booking Status
+          </label>
+          <select formControlName="status" class="filter-select">
+            @for (option of statusOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>
+            <i class="fas fa-credit-card"></i>
+            Payment Status
+          </label>
+          <select formControlName="paymentStatus" class="filter-select">
+            @for (option of paymentStatusOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>
+            <i class="fas fa-door-open"></i>
+            Room Number
+          </label>
+          <input
+            type="text"
+            formControlName="roomNumber"
+            placeholder="Room number"
+            class="filter-input"
+          >
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <div class="filter-group">
+          <label>
+            <i class="fas fa-calendar-alt"></i>
+            Check-in From
+          </label>
+          <input
+            type="date"
+            formControlName="startDate"
+            class="filter-input date-input"
+          >
+        </div>
+
+        <div class="filter-group">
+          <label>
+            <i class="fas fa-calendar-alt"></i>
+            Check-in To
+          </label>
+          <input
+            type="date"
+            formControlName="endDate"
+            class="filter-input date-input"
+          >
+        </div>
+
+        <div class="filter-group filter-actions">
+          <button class="apply-btn" (click)="toggleExpand()">
+            Apply Filters
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

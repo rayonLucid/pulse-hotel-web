@@ -10,10 +10,82 @@
   </div>
 
   <div class="header-right">
-    <!-- Search -->
-    <div class="search-bar">
-      <i class="fas fa-search"></i>
-      <input type="text" placeholder="Search...">
+    <!-- Search Bar -->
+    <div class="search-container">
+      <div class="search-bar" [class.active]="showSearchResults">
+        <i class="fas fa-search"></i>
+        <input
+          #searchInput
+          type="text"
+          [formControl]="searchControl"
+          placeholder="Search... (Ctrl+K)"
+          (focus)="onSearchFocus()"
+          (blur)="onSearchBlur()"
+          autocomplete="off"
+        >
+        <button class="clear-search" *ngIf="searchControl.value" (click)="clearSearch()">
+          <i class="fas fa-times"></i>
+        </button>
+        <kbd class="search-shortcut">Ctrl+K</kbd>
+      </div>
+
+      <!-- Search Results Dropdown -->
+      <div class="search-results" *ngIf="showSearchResults">
+        <!-- Loading State -->
+        <div class="search-loading" *ngIf="isSearching">
+          <i class="fas fa-spinner fa-spin"></i>
+          <span>Searching...</span>
+        </div>
+
+        <!-- No Results -->
+        <div class="no-results" *ngIf="!isSearching && searchResults.length === 0 && searchControl.value">
+          <i class="fas fa-search"></i>
+          <p>No results found for "{{ searchControl.value }}"</p>
+        </div>
+
+        <!-- Results -->
+        <ng-container *ngIf="!isSearching && searchResults.length > 0">
+          <div class="results-header">
+            <span>Results</span>
+          </div>
+          <div
+            class="search-result-item"
+            *ngFor="let result of searchResults"
+            (click)="onSearchResultClick(result)"
+          >
+            <div class="result-icon" [style.background]="getResultColor(result.color)">
+              <i [class]="result.icon"></i>
+            </div>
+            <div class="result-info">
+              <div class="result-title">{{ result.title }}</div>
+              <div class="result-subtitle">{{ result.subtitle }}</div>
+            </div>
+            <div class="result-type">
+              <span class="type-badge">{{ result.type }}</span>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- Recent Searches -->
+      <div class="recent-searches" *ngIf="recentSearches.length > 0 && !searchControl.value && showSearchResults">
+        <div class="recent-header">
+          <i class="fas fa-history"></i>
+          <span>Recent Searches</span>
+        </div>
+        <div
+          class="recent-item"
+          *ngFor="let search of recentSearches"
+          (click)="searchControl.setValue(search); onSearchFocus()"
+        >
+          <i class="fas fa-clock"></i>
+          <span>{{ search }}</span>
+        </div>
+        <div class="clear-recent" (click)="clearRecentSearches()">
+          <i class="fas fa-trash-alt"></i>
+          <span>Clear Recent Searches</span>
+        </div>
+      </div>
     </div>
 
     <!-- Notifications -->
@@ -31,32 +103,28 @@
       <i class="fas fa-chevron-down"></i>
 
       <!-- Dropdown Menu -->
-      @if (showUserMenu) {
-        <div class="dropdown-menu">
-          <a routerLink="/settings/profile">
-            <i class="fas fa-user"></i>
-            <span>My Profile</span>
-          </a>
-          <a routerLink="/settings/security">
-            <i class="fas fa-shield-alt"></i>
-            <span>Security</span>
-          </a>
-          <a routerLink="/settings/preferences">
-            <i class="fas fa-sliders-h"></i>
-            <span>Preferences</span>
-          </a>
-          <div class="divider"></div>
-          <a (click)="logout()" class="logout-item">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-          </a>
-        </div>
-      }
+      <div class="dropdown-menu" *ngIf="showUserMenu">
+        <a routerLink="/settings/profile">
+          <i class="fas fa-user"></i>
+          <span>My Profile</span>
+        </a>
+        <a routerLink="/settings/security">
+          <i class="fas fa-shield-alt"></i>
+          <span>Security</span>
+        </a>
+        <a routerLink="/settings/preferences">
+          <i class="fas fa-sliders-h"></i>
+          <span>Preferences</span>
+        </a>
+        <div class="divider"></div>
+        <a (click)="logout()" class="logout-item">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
+      </div>
     </div>
   </div>
 </header>
 
 <!-- Mobile Menu Overlay -->
-@if (showMobileMenu) {
-  <div class="mobile-overlay" (click)="toggleMobileMenu()"></div>
-}
+<div class="mobile-overlay" *ngIf="showMobileMenu" (click)="toggleMobileMenu()"></div>

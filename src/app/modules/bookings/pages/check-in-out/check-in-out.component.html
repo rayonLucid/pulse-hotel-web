@@ -1,0 +1,385 @@
+<!-- src/app/modules/bookings/pages/check-in-out/check-in-out.component.html -->
+<div class="check-in-out-container">
+  <!-- Header -->
+  <div class="page-header">
+    <h1 class="page-title">Guest Check-in / Check-out</h1>
+    <p class="page-subtitle">Manage guest arrivals and departures</p>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-navigation">
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === 'checkin'"
+      (click)="switchTab('checkin')"
+    >
+      <i class="fas fa-sign-in-alt"></i>
+      Check-in
+      <span class="badge">{{ checkInBookings.length }}</span>
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === 'checkout'"
+      (click)="switchTab('checkout')"
+    >
+      <i class="fas fa-sign-out-alt"></i>
+      Check-out
+      <span class="badge">{{ checkOutBookings.length }}</span>
+    </button>
+  </div>
+
+  <!-- Check-in Section -->
+  @if (activeTab === 'checkin') {
+    <div class="checkin-section">
+      <div class="content-grid">
+        <!-- Left Panel - Today's Arrivals List -->
+        <div class="arrivals-panel">
+          <div class="panel-header">
+            <h3>
+              <i class="fas fa-calendar-day"></i>
+              Today's Arrivals
+            </h3>
+            <div class="search-box">
+              <i class="fas fa-search"></i>
+              <input
+                type="text"
+                placeholder="Search by name, booking #, or room..."
+                [(ngModel)]="checkInSearchTerm"
+                (input)="searchCheckInBookings()"
+              >
+            </div>
+          </div>
+
+          <div class="arrivals-list">
+            @if (isSearchingCheckIn) {
+              <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Loading arrivals...</span>
+              </div>
+            }
+
+            @if (!isSearchingCheckIn && checkInBookings.length === 0) {
+              <div class="empty-state">
+                <i class="fas fa-calendar-check"></i>
+                <p>No arrivals scheduled for today</p>
+              </div>
+            }
+
+            @for (booking of checkInBookings; track booking.bookingId) {
+              <div
+                class="arrival-card"
+                [class.selected]="selectedCheckInBooking?.bookingId === booking.bookingId"
+                (click)="selectCheckInBooking(booking)"
+              >
+                <div class="arrival-info">
+                  <div class="guest-name">
+                    <i class="fas fa-user-circle"></i>
+                    <span>{{ booking.guestName }}</span>
+                  </div>
+                  <div class="booking-details">
+                    <span class="booking-ref">#{{ booking.bookingReference }}</span>
+                    <span class="room-number">Room {{ booking.roomNumber }}</span>
+                  </div>
+                  <div class="stay-dates">
+                    <i class="fas fa-calendar-alt"></i>
+                    {{ formatDate(booking.checkInDate) }} - {{ formatDate(booking.checkOutDate) }}
+                  </div>
+                </div>
+                <div class="arrival-status">
+                  <span class="status-badge pending">Waiting</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Right Panel - Check-in Form -->
+        <div class="checkin-form-panel">
+          @if (!selectedCheckInBooking) {
+            <div class="placeholder-state">
+              <i class="fas fa-user-check"></i>
+              <h3>Select a guest to check in</h3>
+              <p>Click on any arrival from the list to start the check-in process</p>
+            </div>
+          }
+
+          @if (selectedCheckInBooking) {
+            <div class="form-container">
+              <div class="form-header">
+                <div>
+                  <h3>Check-in Guest</h3>
+                  <p>Complete the check-in process for {{ selectedCheckInBooking.guestName }}</p>
+                </div>
+                <button class="close-btn" (click)="clearSelectedCheckIn()">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+
+              <!-- Booking Summary -->
+              <div class="booking-summary">
+                <div class="summary-row">
+                  <span class="label">Booking Reference:</span>
+                  <span class="value">#{{ selectedCheckInBooking.bookingReference }}</span>
+                </div>
+                <div class="summary-row">
+                  <span class="label">Room:</span>
+                  <span class="value">Room {{ selectedCheckInBooking.roomNumber }} ({{ selectedCheckInBooking.roomType }})</span>
+                </div>
+                <div class="summary-row">
+                  <span class="label">Stay:</span>
+                  <span class="value">{{ selectedCheckInBooking.totalNights }} nights</span>
+                </div>
+                <div class="summary-row">
+                  <span class="label">Guests:</span>
+                  <span class="value">{{ selectedCheckInBooking.numberOfAdults }} Adults, {{ selectedCheckInBooking.numberOfChildren }} Children</span>
+                </div>
+              </div>
+
+              <!-- Check-in Form -->
+              <form [formGroup]="checkInForm" class="checkin-form">
+                <div class="form-group">
+                  <label>
+                    <i class="fas fa-id-card"></i>
+                    ID Card Number *
+                  </label>
+                  <input
+                    type="text"
+                    formControlName="idCardNumber"
+                    placeholder="Passport / Driver's License / National ID"
+                    class="form-control"
+                  >
+                  @if (checkInForm.get('idCardNumber')?.invalid && checkInForm.get('idCardNumber')?.touched) {
+                    <div class="error">ID card number is required</div>
+                  }
+                </div>
+
+                <div class="form-group">
+                  <label>
+                    <i class="fas fa-car"></i>
+                    Vehicle Number (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    formControlName="vehicleNumber"
+                    placeholder="Vehicle registration number"
+                    class="form-control"
+                  >
+                </div>
+
+                <div class="form-group">
+                  <label>
+                    <i class="fas fa-sticky-note"></i>
+                    Special Notes (Optional)
+                  </label>
+                  <textarea
+                    formControlName="specialNotes"
+                    rows="3"
+                    placeholder="Any special instructions or notes..."
+                    class="form-control"
+                  ></textarea>
+                </div>
+
+                <div class="form-actions">
+                  <button type="button" class="btn-secondary" (click)="clearSelectedCheckIn()">
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-checkin"
+                    (click)="confirmCheckIn()"
+                    [disabled]="isCheckingIn || checkInForm.invalid"
+                  >
+                    @if (isCheckingIn) {
+                      <i class="fas fa-spinner fa-spin"></i>
+                      Processing...
+                    } @else {
+                      <i class="fas fa-sign-in-alt"></i>
+                      Confirm Check-in
+                    }
+                  </button>
+                </div>
+              </form>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Check-out Section -->
+  @if (activeTab === 'checkout') {
+    <div class="checkout-section">
+      <div class="content-grid">
+        <!-- Left Panel - Today's Departures List -->
+        <div class="departures-panel">
+          <div class="panel-header">
+            <h3>
+              <i class="fas fa-calendar-day"></i>
+              Today's Departures
+            </h3>
+            <div class="search-box">
+              <i class="fas fa-search"></i>
+              <input
+                type="text"
+                placeholder="Search by name, booking #, or room..."
+                [(ngModel)]="checkOutSearchTerm"
+                (input)="searchCheckOutBookings()"
+              >
+            </div>
+          </div>
+
+          <div class="departures-list">
+            @if (isSearchingCheckOut) {
+              <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Loading departures...</span>
+              </div>
+            }
+
+            @if (!isSearchingCheckOut && checkOutBookings.length === 0) {
+              <div class="empty-state">
+                <i class="fas fa-calendar-check"></i>
+                <p>No departures scheduled for today</p>
+              </div>
+            }
+
+            @for (booking of checkOutBookings; track booking.bookingId) {
+              <div
+                class="departure-card"
+                [class.selected]="selectedCheckOutBooking?.bookingId === booking.bookingId"
+                (click)="selectCheckOutBooking(booking)"
+              >
+                <div class="departure-info">
+                  <div class="guest-name">
+                    <i class="fas fa-user-circle"></i>
+                    <span>{{ booking.guestName }}</span>
+                  </div>
+                  <div class="booking-details">
+                    <span class="booking-ref">#{{ booking.bookingReference }}</span>
+                    <span class="room-number">Room {{ booking.roomNumber }}</span>
+                  </div>
+                  <div class="stay-dates">
+                    <i class="fas fa-calendar-alt"></i>
+                    {{ formatDate(booking.checkInDate) }} - {{ formatDate(booking.checkOutDate) }}
+                  </div>
+                </div>
+                <div class="departure-status">
+                  <span class="status-badge checked-in">Checked In</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Right Panel - Check-out Form -->
+        <div class="checkout-form-panel">
+          @if (!selectedCheckOutBooking) {
+            <div class="placeholder-state">
+              <i class="fas fa-user-check"></i>
+              <h3>Select a guest to check out</h3>
+              <p>Click on any departure from the list to start the check-out process</p>
+            </div>
+          }
+
+          @if (selectedCheckOutBooking) {
+            <div class="form-container">
+              <div class="form-header">
+                <div>
+                  <h3>Check-out Guest</h3>
+                  <p>Complete the check-out process for {{ selectedCheckOutBooking.guestName }}</p>
+                </div>
+                <button class="close-btn" (click)="clearSelectedCheckOut()">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+
+              <!-- Booking Summary -->
+              <div class="booking-summary">
+                <div class="summary-row">
+                  <span class="label">Booking Reference:</span>
+                  <span class="value">#{{ selectedCheckOutBooking.bookingReference }}</span>
+                </div>
+                <div class="summary-row">
+                  <span class="label">Room:</span>
+                  <span class="value">Room {{ selectedCheckOutBooking.roomNumber }} ({{ selectedCheckOutBooking.roomType }})</span>
+                </div>
+                <div class="summary-row">
+                  <span class="label">Stay:</span>
+                  <span class="value">{{ selectedCheckOutBooking.totalNights }} nights</span>
+                </div>
+              </div>
+
+              <!-- Bill Summary -->
+              <div class="bill-summary">
+                <h4>Bill Summary</h4>
+                <div class="bill-row">
+                  <span>Room Charges:</span>
+                  <span>{{ formatPrice(selectedCheckOutBooking.totalAmount) }}</span>
+                </div>
+                <div class="bill-row" *ngIf="checkOutForm.get('extraCharges')?.value">
+                  <span>Extra Charges:</span>
+                  <span>{{ formatPrice(checkOutForm.get('extraCharges')?.value) }}</span>
+                </div>
+                <div class="bill-row total">
+                  <span>Total Amount:</span>
+                  <span>{{ formatPrice(calculateTotalAmount()) }}</span>
+                </div>
+              </div>
+
+              <!-- Check-out Form -->
+              <form [formGroup]="checkOutForm" class="checkout-form">
+                <div class="form-group">
+                  <label>
+                    <i class="fas fa-coins"></i>
+                    Extra Charges (Optional)
+                  </label>
+                  <input
+                    type="number"
+                    formControlName="extraCharges"
+                    min="0"
+                    step="1000"
+                    placeholder="Additional charges (if any)"
+                    class="form-control"
+                  >
+                </div>
+
+                <div class="form-group">
+                  <label>
+                    <i class="fas fa-sticky-note"></i>
+                    Notes (Optional)
+                  </label>
+                  <textarea
+                    formControlName="notes"
+                    rows="3"
+                    placeholder="Any notes about the check-out..."
+                    class="form-control"
+                  ></textarea>
+                </div>
+
+                <div class="form-actions">
+                  <button type="button" class="btn-secondary" (click)="clearSelectedCheckOut()">
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-checkout"
+                    (click)="confirmCheckOut()"
+                    [disabled]="isCheckingOut"
+                  >
+                    @if (isCheckingOut) {
+                      <i class="fas fa-spinner fa-spin"></i>
+                      Processing...
+                    } @else {
+                      <i class="fas fa-sign-out-alt"></i>
+                      Finalize Check-out
+                    }
+                  </button>
+                </div>
+              </form>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

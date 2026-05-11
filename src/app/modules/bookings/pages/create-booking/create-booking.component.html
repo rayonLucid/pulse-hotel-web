@@ -1,0 +1,386 @@
+<!-- src/app/modules/bookings/pages/create-booking/create-booking.component.html -->
+<div class="create-booking-container">
+  <!-- Header -->
+  <div class="page-header">
+    <button class="back-btn" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i>
+      Back
+    </button>
+    <h1 class="page-title">New Booking</h1>
+    <div class="step-indicator">
+      <div class="step" [class.active]="step >= 1" [class.completed]="step > 1">
+        <span class="step-number">1</span>
+        <span class="step-label">Search</span>
+      </div>
+      <div class="step-line" [class.active]="step > 1"></div>
+      <div class="step" [class.active]="step >= 2" [class.completed]="step > 2">
+        <span class="step-number">2</span>
+        <span class="step-label">Select Room</span>
+      </div>
+      <div class="step-line" [class.active]="step > 2"></div>
+      <div class="step" [class.active]="step >= 3" [class.completed]="step > 3">
+        <span class="step-number">3</span>
+        <span class="step-label">Guest Details</span>
+      </div>
+      <div class="step-line" [class.active]="step > 3"></div>
+      <div class="step" [class.active]="step >= 4">
+        <span class="step-number">4</span>
+        <span class="step-label">Payment</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 1: Search Availability -->
+  @if (step === 1) {
+    <div class="step-content">
+      <div class="search-card">
+        <h2>Search Available Rooms</h2>
+        <p class="subtitle">Enter your travel dates and guest information</p>
+
+        <form [formGroup]="bookingForm" class="search-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>
+                <i class="fas fa-calendar-alt"></i>
+                Check-in Date
+              </label>
+              <input
+                type="date"
+                formControlName="checkInDate"
+                [min]="minDate"
+                [max]="maxDate"
+                class="form-control"
+              >
+              @if (bookingForm.get('checkInDate')?.invalid && bookingForm.get('checkInDate')?.touched) {
+                <div class="error">Check-in date is required</div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>
+                <i class="fas fa-calendar-alt"></i>
+                Check-out Date
+              </label>
+              <input
+                type="date"
+                formControlName="checkOutDate"
+                [min]="minDate"
+                [max]="maxDate"
+                class="form-control"
+              >
+              @if (bookingForm.get('checkOutDate')?.errors?.['invalid']) {
+                <div class="error">Check-out must be after check-in</div>
+              }
+              @if (bookingForm.get('checkOutDate')?.errors?.['required']) {
+                <div class="error">Check-out date is required</div>
+              }
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>
+                <i class="fas fa-user"></i>
+                Adults
+              </label>
+              <input
+                type="number"
+                formControlName="adults"
+                min="1"
+                max="10"
+                class="form-control"
+              >
+            </div>
+
+            <div class="form-group">
+              <label>
+                <i class="fas fa-child"></i>
+                Children
+              </label>
+              <input
+                type="number"
+                formControlName="children"
+                min="0"
+                max="5"
+                class="form-control"
+              >
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="btn-search"
+            (click)="searchRooms()"
+            [disabled]="isSearching"
+          >
+            @if (isSearching) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Searching...
+            } @else {
+              <i class="fas fa-search"></i>
+              Search Available Rooms
+            }
+          </button>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Step 2: Select Room -->
+  @if (step === 2) {
+    <div class="step-content">
+      <div class="rooms-section">
+        <h2>Select a Room</h2>
+        <p class="subtitle">{{ availableRooms.length }} rooms available for your selected dates</p>
+
+        @if (isSearching) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Searching for available rooms...</p>
+          </div>
+        }
+
+        @if (!isSearching && availableRooms.length === 0) {
+          <div class="empty-state">
+            <i class="fas fa-bed"></i>
+            <h3>No rooms available</h3>
+            <p>Please try different dates or guest count</p>
+            <button class="btn-secondary" (click)="step = 1">
+              <i class="fas fa-arrow-left"></i>
+              Back to Search
+            </button>
+          </div>
+        }
+
+        <div class="rooms-grid">
+          @for (room of availableRooms; track room.roomId) {
+            <div class="room-card" (click)="selectRoom(room)">
+              <div class="room-header">
+                <div>
+                  <h3 class="room-type">{{ room.roomType }}</h3>
+                  <p class="room-number">Room {{ room.roomNumber }}</p>
+                </div>
+                <div class="room-price">
+                  <span class="price">{{ formatPrice(room.pricePerNight) }}</span>
+                  <span class="per-night">/ night</span>
+                </div>
+              </div>
+              <div class="room-details">
+                <div class="detail">
+                  <i class="fas fa-user-friends"></i>
+                  <span>Max {{ room.maxAdults }} adults, {{ room.maxChildren }} children</span>
+                </div>
+                <div class="amenities">
+                  @for (amenity of room.amenities.slice(0, 3); track amenity) {
+                    <span class="amenity-tag">{{ amenity }}</span>
+                  }
+                  @if (room.amenities.length > 3) {
+                    <span class="amenity-tag">+{{ room.amenities.length - 3 }} more</span>
+                  }
+                </div>
+              </div>
+              <button class="btn-select">Select Room</button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Step 3: Guest Details -->
+  @if (step === 3 && selectedRoom) {
+    <div class="step-content">
+      <div class="booking-summary">
+        <!-- Selected Room Summary -->
+        <div class="summary-card">
+          <h3>Room Summary</h3>
+          <div class="room-summary">
+            <div class="room-info">
+              <i class="fas fa-door-open"></i>
+              <div>
+                <strong>{{ selectedRoom.roomType }}</strong>
+                <span>Room {{ selectedRoom.roomNumber }}</span>
+              </div>
+            </div>
+            <div class="price-summary">
+              <div class="price-row">
+                <span>{{ formatPrice(selectedRoom.pricePerNight) }} x {{ totalNights }} nights</span>
+                <span>{{ formatPrice(subtotal) }}</span>
+              </div>
+              <div class="price-row">
+                <span>Tax (7.5% VAT)</span>
+                <span>{{ formatPrice(taxAmount) }}</span>
+              </div>
+              <div class="price-row total">
+                <span>Total Amount</span>
+                <span>{{ formatPrice(totalAmount) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Guest Information Form -->
+        <div class="guest-card">
+          <h3>Guest Information</h3>
+          <form [formGroup]="bookingForm" class="guest-form">
+            <div class="form-group">
+              <label>
+                <i class="fas fa-user"></i>
+                Full Name *
+              </label>
+              <input
+                type="text"
+                formControlName="guestName"
+                placeholder="Enter guest full name"
+                class="form-control"
+              >
+              @if (bookingForm.get('guestName')?.invalid && bookingForm.get('guestName')?.touched) {
+                <div class="error">Full name is required</div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>
+                <i class="fas fa-envelope"></i>
+                Email Address *
+              </label>
+              <input
+                type="email"
+                formControlName="guestEmail"
+                placeholder="guest@example.com"
+                class="form-control"
+              >
+              @if (bookingForm.get('guestEmail')?.invalid && bookingForm.get('guestEmail')?.touched) {
+                <div class="error">Valid email is required</div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>
+                <i class="fas fa-phone"></i>
+                Phone Number *
+              </label>
+              <input
+                type="tel"
+                formControlName="guestPhone"
+                placeholder="08012345678"
+                class="form-control"
+              >
+              @if (bookingForm.get('guestPhone')?.invalid && bookingForm.get('guestPhone')?.touched) {
+                <div class="error">Valid phone number is required (10-15 digits)</div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>
+                <i class="fas fa-comment"></i>
+                Special Requests (Optional)
+              </label>
+              <textarea
+                formControlName="specialRequests"
+                rows="3"
+                placeholder="Any special requests or preferences..."
+                class="form-control"
+              ></textarea>
+            </div>
+          </form>
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn-secondary" (click)="step = 2">
+            <i class="fas fa-arrow-left"></i>
+            Back
+          </button>
+          <button class="btn-primary" (click)="proceedToPayment()">
+            Proceed to Payment
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Step 4: Payment -->
+  @if (step === 4 && selectedRoom) {
+    <div class="step-content">
+      <div class="payment-section">
+        <div class="order-summary">
+          <h3>Order Summary</h3>
+          <div class="order-details">
+            <div class="detail-row">
+              <span>Room Type:</span>
+              <strong>{{ selectedRoom.roomType }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Room Number:</span>
+              <strong>{{ selectedRoom.roomNumber }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Dates:</span>
+              <strong>{{ bookingForm.get('checkInDate')?.value | date:'MMM d' }} - {{ bookingForm.get('checkOutDate')?.value | date:'MMM d, yyyy' }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Guests:</span>
+              <strong>{{ bookingForm.get('adults')?.value }} Adults, {{ bookingForm.get('children')?.value }} Children</strong>
+            </div>
+            <div class="divider"></div>
+            <div class="detail-row">
+              <span>Subtotal:</span>
+              <span>{{ formatPrice(subtotal) }}</span>
+            </div>
+            <div class="detail-row">
+              <span>Tax (7.5% VAT):</span>
+              <span>{{ formatPrice(taxAmount) }}</span>
+            </div>
+            <div class="detail-row total">
+              <span>Total:</span>
+              <span class="total-amount">{{ formatPrice(totalAmount) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="payment-methods">
+          <h3>Payment Method</h3>
+          <form [formGroup]="bookingForm">
+            <div class="payment-options">
+              <label class="payment-option">
+                <input type="radio" formControlName="paymentMethod" value="paystack">
+                <div class="payment-card">
+                  <i class="fas fa-credit-card"></i>
+                  <div>
+                    <strong>Paystack</strong>
+                    <span>Pay with card, bank transfer, or USSD</span>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </form>
+
+          <div class="info-box">
+            <i class="fas fa-shield-alt"></i>
+            <div>
+              <strong>Secure Payment</strong>
+              <p>Your payment information is encrypted and secure. We accept all major credit cards, bank transfers, and USSD payments.</p>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button class="btn-secondary" (click)="step = 3">
+              <i class="fas fa-arrow-left"></i>
+              Back
+            </button>
+            <button class="btn-pay" (click)="createBooking()" [disabled]="isLoading">
+              @if (isLoading) {
+                <i class="fas fa-spinner fa-spin"></i>
+                Processing...
+              } @else {
+                <i class="fas fa-lock"></i>
+                Pay {{ formatPrice(totalAmount) }}
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

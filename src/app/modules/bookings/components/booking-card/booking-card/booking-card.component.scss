@@ -1,0 +1,287 @@
+// src/app/modules/bookings/components/booking-card/booking-card.component.scss
+.booking-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  position: relative;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  }
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  .booking-info {
+    .booking-reference {
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 4px;
+    }
+
+    .booking-date {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+  }
+}
+
+.card-body {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.guest-info {
+  .guest-name {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      font-size: 18px;
+      color: #c49a6c;
+    }
+  }
+
+  .guest-contact {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      width: 16px;
+      font-size: 12px;
+    }
+  }
+}
+
+.room-info {
+  background: #f9fafb;
+  padding: 12px;
+  border-radius: 10px;
+
+  .room-detail {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1f2937;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      color: #c49a6c;
+    }
+  }
+
+  .guest-count {
+    font-size: 12px;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.date-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 10px;
+
+  .check-in, .check-out {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      font-size: 14px;
+      color: #c49a6c;
+    }
+
+    .label {
+      font-size: 11px;
+      color: #9ca3af;
+      display: block;
+    }
+
+    .date {
+      font-size: 13px;
+      font-weight: 500;
+      color: #1f2937;
+    }
+  }
+
+  .nights {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #c49a6c;
+  }
+}
+
+.payment-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .payment-amount {
+    .label {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-right: 8px;
+    }
+
+    .amount {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1f2937;
+    }
+  }
+}
+
+.special-requests {
+  font-size: 12px;
+  color: #6b7280;
+  padding: 8px 12px;
+  background: #fffbeb;
+  border-radius: 8px;
+  display: flex;
+  gap: 8px;
+
+  i {
+    color: #f59e0b;
+  }
+}
+
+.status-badge, .payment-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-pending { background: #fef3c7; color: #d97706; }
+.status-confirmed { background: #d1fae5; color: #059669; }
+.status-checked-in { background: #dbeafe; color: #2563eb; }
+.status-checked-out { background: #e5e7eb; color: #4b5563; }
+.status-cancelled { background: #fee2e2; color: #dc2626; }
+.status-no-show { background: #f3f4f6; color: #6b7280; }
+
+.payment-pending { background: #fef3c7; color: #d97706; }
+.payment-paid { background: #d1fae5; color: #059669; }
+.payment-partial { background: #dbeafe; color: #2563eb; }
+.payment-refunded { background: #e5e7eb; color: #4b5563; }
+.payment-failed { background: #fee2e2; color: #dc2626; }
+
+.card-footer {
+  padding: 12px 20px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.2s;
+
+  &.visible {
+    opacity: 1;
+  }
+
+  .action-btn {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: all 0.2s;
+
+    &.view {
+      background: #f3f4f6;
+      color: #4b5563;
+
+      &:hover {
+        background: #e5e7eb;
+      }
+    }
+
+    &.check-in {
+      background: #10b981;
+      color: white;
+
+      &:hover {
+        background: #059669;
+      }
+    }
+
+    &.check-out {
+      background: #3b82f6;
+      color: white;
+
+      &:hover {
+        background: #2563eb;
+      }
+    }
+
+    &.cancel {
+      background: #ef4444;
+      color: white;
+
+      &:hover {
+        background: #dc2626;
+      }
+    }
+  }
+}
+
+// Add to booking-card.component.scss
+
+.action-btn {
+  // ... existing styles
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+
+    &:hover {
+      transform: none;
+    }
+  }
+
+  .fa-spinner {
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

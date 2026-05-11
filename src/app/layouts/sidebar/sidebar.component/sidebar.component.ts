@@ -45,7 +45,7 @@ export class SidebarComponent implements OnInit {
   loadMenus(): void {
     this.menuService.loadUserMenus().subscribe({
       next: (userMenu:any) => {
-       console.log('User menus loaded:', userMenu.data.menus);
+   //    console.log('User menus loaded:', userMenu.data.menus);
         this.menus = userMenu.data.menus;
        // console.log('Menus set in component:', this.menus);
         this.pinnedMenus = userMenu.data.pinnedMenus;

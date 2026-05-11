@@ -37,6 +37,10 @@ export const routes: Routes = [
         loadChildren: () => import('./modules/inventory/inventory.routes').then(m => m.INVENTORY_ROUTES),
         data: { roles: ['Admin', 'Manager', 'Storekeeper'] }
       },
+       {
+        path: 'bookings',
+        loadChildren: () => import('./modules/bookings/bookings.routes').then(m => m.BOOKINGS_ROUTES)
+      },
       // {
       //   path: 'settings',
       //   loadChildren: () => import('./modules/settings/settings.routes').then(m => m.SETTINGS_ROUTES)

@@ -1,0 +1,515 @@
+// src/app/modules/bookings/pages/check-in-out/check-in-out.component.scss
+.check-in-out-container {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100vh;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+}
+
+// Page Header
+.page-header {
+  margin-bottom: 24px;
+
+  .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 8px;
+
+    @media (max-width: 768px) {
+      font-size: 22px;
+    }
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+  }
+}
+
+// Tab Navigation
+.tab-navigation {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  background: white;
+  padding: 8px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+
+  .tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+
+    .badge {
+      background: #e5e7eb;
+      color: #6b7280;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    &:hover {
+      background: #f3f4f6;
+    }
+
+    &.active {
+      background: #c49a6c;
+      color: white;
+
+      .badge {
+        background: rgba(255,255,255,0.2);
+        color: white;
+      }
+    }
+  }
+}
+
+// Content Grid
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 24px;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Left Panel (Arrivals/Departures)
+.arrivals-panel, .departures-panel {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  height: fit-content;
+  max-height: calc(100vh - 200px);
+  display: flex;
+  flex-direction: column;
+
+  .panel-header {
+    padding: 20px;
+    border-bottom: 1px solid #f0f0f0;
+
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 12px;
+
+      i {
+        color: #c49a6c;
+      }
+    }
+
+    .search-box {
+      position: relative;
+
+      i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px 12px 10px 36px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+
+        &:focus {
+          outline: none;
+          border-color: #c49a6c;
+        }
+      }
+    }
+  }
+
+  .arrivals-list, .departures-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+}
+
+// Arrival/Departure Cards
+.arrival-card, .departure-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+
+  &:hover {
+    background: #f9fafb;
+  }
+
+  &.selected {
+    background: #fdf8f2;
+    border-color: #c49a6c;
+  }
+
+  .guest-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 6px;
+
+    i {
+      color: #c49a6c;
+    }
+  }
+
+  .booking-details {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 6px;
+    font-size: 12px;
+
+    .booking-ref {
+      color: #6b7280;
+    }
+
+    .room-number {
+      color: #c49a6c;
+      font-weight: 500;
+    }
+  }
+
+  .stay-dates {
+    font-size: 11px;
+    color: #9ca3af;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+
+    &.pending {
+      background: #fef3c7;
+      color: #d97706;
+    }
+
+    &.checked-in {
+      background: #d1fae5;
+      color: #059669;
+    }
+  }
+}
+
+// Right Panel Forms
+.checkin-form-panel, .checkout-form-panel {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  min-height: 500px;
+}
+
+// Placeholder State
+.placeholder-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 40px;
+  min-height: 500px;
+
+  i {
+    font-size: 64px;
+    color: #d1d5db;
+    margin-bottom: 20px;
+  }
+
+  h3 {
+    font-size: 20px;
+    color: #374151;
+    margin-bottom: 8px;
+  }
+
+  p {
+    color: #6b7280;
+    font-size: 14px;
+  }
+}
+
+// Form Container
+.form-container {
+  padding: 24px;
+
+  .form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+
+    h3 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 4px;
+    }
+
+    p {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #9ca3af;
+
+      &:hover {
+        color: #ef4444;
+      }
+    }
+  }
+}
+
+// Booking Summary
+.booking-summary {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e5e7eb;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .label {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .value {
+      font-size: 14px;
+      font-weight: 500;
+      color: #1f2937;
+    }
+  }
+}
+
+// Bill Summary
+.bill-summary {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+
+  h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 12px;
+  }
+
+  .bill-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 14px;
+
+    &.total {
+      margin-top: 8px;
+      padding-top: 12px;
+      border-top: 2px solid #e5e7eb;
+      font-weight: 700;
+      font-size: 16px;
+      color: #c49a6c;
+    }
+  }
+}
+
+// Forms
+.checkin-form, .checkout-form {
+  .form-group {
+    margin-bottom: 20px;
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 8px;
+
+      i {
+        margin-right: 8px;
+        color: #c49a6c;
+      }
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.2s;
+
+      &:focus {
+        outline: none;
+        border-color: #c49a6c;
+        box-shadow: 0 0 0 3px rgba(196,154,108,0.1);
+      }
+    }
+
+    textarea.form-control {
+      resize: vertical;
+    }
+
+    .error {
+      font-size: 12px;
+      color: #ef4444;
+      margin-top: 6px;
+    }
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+
+    button {
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &.btn-secondary {
+        background: #f3f4f6;
+        border: none;
+        color: #4b5563;
+
+        &:hover {
+          background: #e5e7eb;
+        }
+      }
+
+      &.btn-checkin {
+        background: #10b981;
+        border: none;
+        color: white;
+
+        &:hover {
+          background: #059669;
+        }
+      }
+
+      &.btn-checkout {
+        background: #3b82f6;
+        border: none;
+        color: white;
+
+        &:hover {
+          background: #2563eb;
+        }
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+// Loading Spinner
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+
+  i {
+    font-size: 32px;
+    color: #c49a6c;
+    margin-bottom: 12px;
+  }
+
+  span {
+    font-size: 14px;
+    color: #6b7280;
+  }
+}
+
+// Empty State
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+
+  i {
+    font-size: 48px;
+    color: #d1d5db;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 14px;
+    color: #6b7280;
+  }
+}
+
+// Scrollbar Styling
+.arrivals-list::-webkit-scrollbar,
+.departures-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.arrivals-list::-webkit-scrollbar-track,
+.departures-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.arrivals-list::-webkit-scrollbar-thumb,
+.departures-list::-webkit-scrollbar-thumb {
+  background: #c49a6c;
+  border-radius: 3px;
+}

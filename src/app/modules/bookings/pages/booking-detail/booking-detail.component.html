@@ -1,0 +1,258 @@
+<!-- src/app/modules/bookings/pages/booking-detail/booking-detail.component.html -->
+<div class="booking-detail-container">
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading booking details...</p>
+    </div>
+  }
+
+  <!-- Booking Detail Content -->
+  @if (!isLoading && booking) {
+    <!-- Header -->
+    <div class="page-header">
+      <button class="back-btn" (click)="goBack()">
+        <i class="fas fa-arrow-left"></i>
+        Back to Bookings
+      </button>
+      <div class="header-actions">
+        <button class="btn-print" (click)="printBooking()">
+          <i class="fas fa-print"></i>
+          Print
+        </button>
+        @if (canCheckIn()) {
+          <button class="btn-checkin" (click)="checkIn()" [disabled]="isProcessing">
+            @if (isProcessing) {
+              <i class="fas fa-spinner fa-spin"></i>
+            } @else {
+              <i class="fas fa-sign-in-alt"></i>
+            }
+            Check In
+          </button>
+        }
+        @if (canCheckOut()) {
+          <button class="btn-checkout" (click)="checkOut()" [disabled]="isProcessing">
+            @if (isProcessing) {
+              <i class="fas fa-spinner fa-spin"></i>
+            } @else {
+              <i class="fas fa-sign-out-alt"></i>
+            }
+            Check Out
+          </button>
+        }
+        @if (canCancel()) {
+          <button class="btn-cancel" (click)="openCancelModal()" [disabled]="isProcessing">
+            <i class="fas fa-times"></i>
+            Cancel Booking
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Booking Header -->
+    <div class="booking-header">
+      <div>
+        <h1 class="booking-title">Booking #{{ booking.bookingReference }}</h1>
+        <p class="booking-date">Created on {{ formatDate(booking.bookingDate) }}</p>
+      </div>
+      <div class="booking-status-badge">
+        <span class="status-badge" [class]="getStatusClass()">
+          {{ booking.bookingStatus }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="detail-grid">
+      <!-- Guest Information -->
+      <div class="info-card">
+        <div class="card-header">
+          <i class="fas fa-user-circle"></i>
+          <h3>Guest Information</h3>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <span class="label">Full Name:</span>
+            <span class="value">{{ booking.guestName }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Email Address:</span>
+            <span class="value">{{ booking.guestEmail }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Phone Number:</span>
+            <span class="value">{{ booking.guestPhone }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Room Information -->
+      <div class="info-card">
+        <div class="card-header">
+          <i class="fas fa-door-open"></i>
+          <h3>Room Information</h3>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <span class="label">Room Number:</span>
+            <span class="value">Room {{ booking.roomNumber }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Room Type:</span>
+            <span class="value">{{ booking.roomType }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Guests:</span>
+            <span class="value">{{ booking.numberOfAdults }} Adults, {{ booking.numberOfChildren }} Children</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stay Dates -->
+      <div class="info-card">
+        <div class="card-header">
+          <i class="fas fa-calendar-alt"></i>
+          <h3>Stay Dates</h3>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <span class="label">Check-in:</span>
+            <span class="value">
+              {{ formatDate(booking.checkInDate) }}
+              @if (booking.checkInTime) {
+                <span class="time">at {{ formatTime(booking.checkInTime) }}</span>
+              }
+            </span>
+          </div>
+          <div class="info-row">
+            <span class="label">Check-out:</span>
+            <span class="value">
+              {{ formatDate(booking.checkOutDate) }}
+              @if (booking.checkOutTime) {
+                <span class="time">at {{ formatTime(booking.checkOutTime) }}</span>
+              }
+            </span>
+          </div>
+          <div class="info-row">
+            <span class="label">Total Nights:</span>
+            <span class="value">{{ booking.totalNights }} nights</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Information -->
+      <div class="info-card">
+        <div class="card-header">
+          <i class="fas fa-credit-card"></i>
+          <h3>Payment Information</h3>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <span class="label">Payment Status:</span>
+            <span class="value">
+              <span class="payment-badge" [class]="getPaymentStatusClass()">
+                <i [class]="getPaymentIcon()"></i>
+                {{ booking.paymentStatus }}
+              </span>
+            </span>
+          </div>
+          <div class="info-row">
+            <span class="label">Room Rate:</span>
+            <span class="value">{{ formatPrice(booking.roomPricePerNight) }} / night</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Subtotal:</span>
+            <span class="value">{{ formatPrice(booking.subTotal) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Tax (7.5% VAT):</span>
+            <span class="value">{{ formatPrice(booking.taxAmount) }}</span>
+          </div>
+          <div class="info-row total">
+            <span class="label">Total Amount:</span>
+            <span class="value">{{ formatPrice(booking.totalAmount) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Special Requests -->
+      @if (booking.specialRequests) {
+        <div class="info-card full-width">
+          <div class="card-header">
+            <i class="fas fa-star-of-life"></i>
+            <h3>Special Requests</h3>
+          </div>
+          <div class="card-body">
+            <p class="special-requests">{{ booking.specialRequests }}</p>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Booking Timeline -->
+    <div class="timeline-card">
+      <div class="card-header">
+        <i class="fas fa-history"></i>
+        <h3>Booking Timeline</h3>
+      </div>
+      <div class="timeline">
+        @for (event of timelineEvents; track $index) {
+          <div class="timeline-item" [class]="event.status">
+            <div class="timeline-icon">
+              <i [class]="event.icon"></i>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-date">{{ formatDate(event.date) }} at {{ formatTime(event.date) }}</div>
+              <div class="timeline-title">{{ event.title }}</div>
+              <div class="timeline-description">{{ event.description }}</div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Cancel Modal -->
+  @if (showCancelModal) {
+    <div class="modal-overlay" (click)="closeCancelModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Cancel Booking</h3>
+          <button class="modal-close" (click)="closeCancelModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to cancel this booking?</p>
+          <p class="warning-text">This action cannot be undone.</p>
+
+          <div class="form-group">
+            <label for="cancelReason">Reason for cancellation *</label>
+            <textarea
+              id="cancelReason"
+              [(ngModel)]="cancelReason"
+              rows="3"
+              placeholder="Please provide a reason for cancellation..."
+              class="form-control"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeCancelModal()">
+            No, Keep Booking
+          </button>
+          <button class="btn-danger" (click)="confirmCancel()" [disabled]="isProcessing">
+            @if (isProcessing) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Cancelling...
+            } @else {
+              <i class="fas fa-trash-alt"></i>
+              Yes, Cancel Booking
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
