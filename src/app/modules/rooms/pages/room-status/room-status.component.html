@@ -1,0 +1,225 @@
+<!-- src/app/modules/rooms/pages/room-status/room-status.component.html -->
+<div class="room-status-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Room Status Dashboard</h1>
+      <p class="page-subtitle">Real-time view of all room statuses and occupancy</p>
+    </div>
+    <button class="btn-refresh" (click)="refresh()">
+      <i class="fas fa-sync-alt"></i>
+      Refresh
+    </button>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon bg-blue-100">
+        <i class="fas fa-bed text-blue-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Total Rooms</h3>
+        <p>{{ stats.total }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-green-100">
+        <i class="fas fa-check-circle text-green-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Available</h3>
+        <p>{{ stats.available }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-purple-100">
+        <i class="fas fa-user-check text-purple-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Occupied</h3>
+        <p>{{ stats.occupied }}</p>
+        <span class="trend">{{ getOccupancyRate() }}% occupancy</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-orange-100">
+        <i class="fas fa-tools text-orange-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Maintenance</h3>
+        <p>{{ stats.maintenance }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Mode Toggle -->
+  <div class="view-toggle">
+    <button
+      class="toggle-btn"
+      [class.active]="viewMode === 'grid'"
+      (click)="setViewMode('grid')"
+    >
+      <i class="fas fa-th-large"></i>
+      Grid View
+    </button>
+    <button
+      class="toggle-btn"
+      [class.active]="viewMode === 'floor'"
+      (click)="setViewMode('floor')"
+    >
+      <i class="fas fa-building"></i>
+      Floor Plan
+    </button>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input
+        type="text"
+        placeholder="Search by room number, type, or guest..."
+        [(ngModel)]="searchTerm"
+        (input)="onSearch()"
+      >
+    </div>
+
+    <div class="filter-group">
+      <select [(ngModel)]="selectedStatus" (change)="applyFilters()">
+        @for (option of statusOptions; track option.value) {
+          <option [value]="option.value">
+            {{ option.label }} ({{ option.count }})
+          </option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <select [(ngModel)]="selectedFloor" (change)="applyFilters()">
+        <option [value]="null">All Floors</option>
+        @for (floor of floors; track floor) {
+          <option [value]="floor">Floor {{ floor }}</option>
+        }
+      </select>
+    </div>
+
+    @if (searchTerm || selectedStatus || selectedFloor) {
+      <button class="clear-filters" (click)="clearFilters()">
+        <i class="fas fa-times"></i>
+        Clear Filters
+      </button>
+    }
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading room statuses...</p>
+    </div>
+  }
+
+  <!-- Grid View -->
+  @if (!isLoading && viewMode === 'grid') {
+    <div class="rooms-grid">
+      @for (room of filteredRooms; track room.roomId) {
+        <div class="room-card" [class]="room.status.toLowerCase()">
+          <div class="room-header">
+            <div class="room-number">{{ room.roomNumber }}</div>
+            <div class="room-status" [class]="getStatusClass(room.status)">
+              <i [class]="'fas ' + getRoomIcon(room.status)"></i>
+              {{ getStatusLabel(room.status) }}
+            </div>
+          </div>
+
+          <div class="room-body">
+            <div class="room-type">
+              <i class="fas fa-tag"></i>
+              {{ room.roomType }}
+            </div>
+
+            @if (room.currentGuestName) {
+              <div class="current-guest">
+                <i class="fas fa-user"></i>
+                {{ room.currentGuestName }}
+              </div>
+            }
+
+            <div class="stay-dates" *ngIf="room.checkInDate && room.checkOutDate">
+              <i class="fas fa-calendar-alt"></i>
+              {{ room.checkInDate | date:'MMM d' }} - {{ room.checkOutDate | date:'MMM d, yyyy' }}
+            </div>
+
+            @if (room.lastCleaned) {
+              <div class="cleaned-date">
+                <i class="fas fa-broom"></i>
+                Last cleaned: {{ room.lastCleaned | date:'MMM d, h:mm a' }}
+              </div>
+            }
+          </div>
+
+          <div class="room-footer">
+            <button class="btn-view" (click)="viewRoomDetail(room.roomId)">
+              <i class="fas fa-eye"></i>
+              View Details
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (filteredRooms.length === 0) {
+        <div class="empty-state">
+          <i class="fas fa-bed"></i>
+          <h3>No rooms found</h3>
+          <p>Try adjusting your filters</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Floor Plan View -->
+  @if (!isLoading && viewMode === 'floor') {
+    <div class="floor-plan">
+      @for (floor of floors; track floor) {
+        @if (floorPlan[floor] && floorPlan[floor].length > 0) {
+          <div class="floor-section">
+            <div class="floor-header">
+              <h3>
+                <i class="fas fa-layer-group"></i>
+                Floor {{ floor }}
+              </h3>
+              <div class="floor-stats">
+                <span class="occupancy-badge">
+                  {{ getFloorOccupancyRate(floor) }}% Occupied
+                </span>
+                <span class="room-count">{{ floorPlan[floor].length }} rooms</span>
+              </div>
+            </div>
+
+            <div class="floor-rooms">
+              @for (room of floorPlan[floor]; track room.roomId) {
+                <div class="floor-room" [class]="room.status.toLowerCase()">
+                  <div class="room-number">{{ room.roomNumber }}</div>
+                  <div class="room-status-icon">
+                    <i [class]="'fas ' + getRoomIcon(room.status)"></i>
+                  </div>
+                  <div class="room-type-short">{{ room.roomType.substring(0, 3) }}</div>
+                  <div class="room-tooltip">
+                    <strong>Room {{ room.roomNumber }}</strong>
+                    <span>{{ room.roomType }}</span>
+                    <span>Status: {{ getStatusLabel(room.status) }}</span>
+                    @if (room.currentGuestName) {
+                      <span>Guest: {{ room.currentGuestName }}</span>
+                    }
+                    <button class="tooltip-btn" (click)="viewRoomDetail(room.roomId)">View Details</button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

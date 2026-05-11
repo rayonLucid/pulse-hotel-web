@@ -1,0 +1,312 @@
+<!-- src/app/modules/rooms/pages/room-detail/room-detail.component.html -->
+<div class="room-detail-container">
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading room details...</p>
+    </div>
+  }
+
+  <!-- Room Detail Content -->
+  @if (!isLoading && room) {
+    <!-- Header -->
+    <div class="page-header">
+      <button class="back-btn" (click)="goBack()">
+        <i class="fas fa-arrow-left"></i>
+        Back to Rooms
+      </button>
+      <div class="header-actions">
+        <button class="btn-status" (click)="openStatusModal()">
+          <i class="fas fa-exchange-alt"></i>
+          Change Status
+        </button>
+        @if (!isEditing) {
+          <button class="btn-edit" (click)="toggleEdit()">
+            <i class="fas fa-edit"></i>
+            Edit Room
+          </button>
+        }
+        <button class="btn-delete" (click)="openDeleteModal()">
+          <i class="fas fa-trash-alt"></i>
+          Delete
+        </button>
+      </div>
+    </div>
+
+    <!-- Room Header -->
+    <div class="room-header">
+      <div>
+        <div class="room-badge">
+          <span class="room-number">Room {{ room.roomNumber }}</span>
+          <span class="status-badge" [class]="getStatusClass(room.status)">
+            {{ room.status }}
+          </span>
+        </div>
+        <p class="room-type">{{ room.roomType }}</p>
+      </div>
+      <div class="room-price">
+        <span class="price">{{ formatPrice(room.pricePerNight) }}</span>
+        <span class="per-night">/ night</span>
+      </div>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="detail-grid">
+      <!-- Room Details Card -->
+      <div class="info-card">
+        <div class="card-header">
+          <i class="fas fa-info-circle"></i>
+          <h3>Room Details</h3>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <span class="label">Room Number:</span>
+            <span class="value">{{ room.roomNumber }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Floor:</span>
+            <span class="value">Floor {{ room.floorNumber }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Room Size:</span>
+            <span class="value">{{ room.roomSize }} m²</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Bed Type:</span>
+            <span class="value">{{ getBedTypeLabel(room.bedType) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">View:</span>
+            <span class="value">{{ getViewTypeLabel(room.viewType) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Max Occupancy:</span>
+            <span class="value">{{ room.maxAdults }} Adults, {{ room.maxChildren }} Children</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Amenities Card -->
+      <div class="info-card">
+        <div class="card-header">
+          <i class="fas fa-concierge-bell"></i>
+          <h3>Amenities</h3>
+        </div>
+        <div class="card-body">
+          <div class="amenities-list">
+            @for (amenity of room.amenities; track amenity) {
+              <span class="amenity-tag">
+                <i class="fas fa-check-circle"></i>
+                {{ amenity }}
+              </span>
+            }
+            @if (room.amenities.length === 0) {
+              <p class="no-data">No amenities listed</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Room Images Card -->
+      <div class="info-card full-width">
+        <div class="card-header">
+          <i class="fas fa-images"></i>
+          <h3>Room Images</h3>
+        </div>
+        <div class="card-body">
+          <div class="images-grid">
+            @for (image of room.images; track image) {
+              <div class="image-item">
+                <img [src]="image" [alt]="room.roomType">
+              </div>
+            }
+            @if (room.images.length === 0) {
+              <p class="no-data">No images available</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Description Card -->
+      @if (room.description) {
+        <div class="info-card full-width">
+          <div class="card-header">
+            <i class="fas fa-align-left"></i>
+            <h3>Description</h3>
+          </div>
+          <div class="card-body">
+            <p class="description">{{ room.description }}</p>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Edit Form (Visible when editing) -->
+    @if (isEditing) {
+      <div class="edit-form-container">
+        <div class="edit-header">
+          <h3>Edit Room Details</h3>
+          <button class="close-btn" (click)="toggleEdit()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <form [formGroup]="roomForm" class="edit-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Room Number *</label>
+              <input type="text" formControlName="roomNumber" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Floor Number *</label>
+              <input type="number" formControlName="floorNumber" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Price per Night (₦) *</label>
+              <input type="number" formControlName="pricePerNight" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Room Size (m²) *</label>
+              <input type="number" formControlName="roomSize" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Max Adults *</label>
+              <input type="number" formControlName="maxAdults" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Max Children *</label>
+              <input type="number" formControlName="maxChildren" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Bed Type *</label>
+              <select formControlName="bedType" class="form-control">
+                @for (option of bedTypeOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>View Type *</label>
+              <select formControlName="viewType" class="form-control">
+                @for (option of viewTypeOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Description</label>
+            <textarea formControlName="description" rows="3" class="form-control" placeholder="Room description..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Amenities</label>
+            <div class="amenities-checkboxes">
+              @for (amenity of amenityOptions; track amenity) {
+                <label class="checkbox-label">
+                  <input type="checkbox" [checked]="isAmenitySelected(amenity)" (change)="toggleAmenity(amenity)">
+                  <span>{{ amenity }}</span>
+                </label>
+              }
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" (click)="toggleEdit()">Cancel</button>
+            <button type="button" class="btn-save" (click)="saveRoom()" [disabled]="isSaving">
+              @if (isSaving) {
+                <i class="fas fa-spinner fa-spin"></i>
+                Saving...
+              } @else {
+                <i class="fas fa-save"></i>
+                Save Changes
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+  }
+
+  <!-- Status Change Modal -->
+  @if (showStatusModal) {
+    <div class="modal-overlay" (click)="closeStatusModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Change Room Status</h3>
+          <button class="modal-close" (click)="closeStatusModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>New Status *</label>
+            <select [(ngModel)]="newStatus" class="form-control">
+              <option value="">Select status...</option>
+              @for (option of statusOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Notes (Optional)</label>
+            <textarea [(ngModel)]="statusNotes" rows="3" class="form-control" placeholder="Reason for status change..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeStatusModal()">Cancel</button>
+          <button class="btn-primary" (click)="updateStatus()" [disabled]="!newStatus || isSaving">
+            @if (isSaving) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Updating...
+            } @else {
+              <i class="fas fa-check"></i>
+              Update Status
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Delete Confirmation Modal -->
+  @if (showDeleteModal) {
+    <div class="modal-overlay" (click)="closeDeleteModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Delete Room</h3>
+          <button class="modal-close" (click)="closeDeleteModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete <strong>Room {{ room?.roomNumber }}</strong>?</p>
+          <p class="warning-text">This action cannot be undone. All associated bookings will be affected.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeDeleteModal()">Cancel</button>
+          <button class="btn-danger" (click)="confirmDelete()" [disabled]="isSaving">
+            @if (isSaving) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Deleting...
+            } @else {
+              <i class="fas fa-trash-alt"></i>
+              Delete Room
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,287 @@
+<!-- src/app/modules/rooms/pages/room-types/room-types.component.html -->
+<div class="room-types-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Room Types Management</h1>
+      <p class="page-subtitle">Configure room categories, pricing, and amenities</p>
+    </div>
+    <button class="btn-primary" (click)="openCreateModal()">
+      <i class="fas fa-plus"></i>
+      New Room Type
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading room types...</p>
+    </div>
+  }
+
+  <!-- Room Types Grid -->
+  @if (!isLoading && roomTypes.length > 0) {
+    <div class="room-types-grid">
+      @for (roomType of roomTypes; track roomType.roomTypeId) {
+        <div class="room-type-card">
+          <div class="card-header">
+            <div>
+              <h3 class="room-type-name">{{ roomType.typeName }}</h3>
+              <p class="room-type-desc">{{ roomType.description || 'No description' }}</p>
+            </div>
+            <div class="card-actions">
+              <button class="btn-icon" (click)="openEditModal(roomType)" title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-icon btn-delete" (click)="openDeleteModal(roomType)" title="Delete">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <!-- Pricing -->
+            <div class="info-section">
+              <div class="info-title">
+                <i class="fas fa-tag"></i>
+                Pricing
+              </div>
+              <div class="info-row">
+                <span class="label">Base Price:</span>
+                <span class="value">{{ formatPrice(roomType.basePrice) }}/night</span>
+              </div>
+              @if (roomType.peakPrice) {
+                <div class="info-row">
+                  <span class="label">Peak Price:</span>
+                  <span class="value">{{ formatPrice(roomType.peakPrice) }}/night</span>
+                </div>
+              }
+            </div>
+
+            <!-- Capacity -->
+            <div class="info-section">
+              <div class="info-title">
+                <i class="fas fa-users"></i>
+                Capacity
+              </div>
+              <div class="info-row">
+                <span class="label">Max Adults:</span>
+                <span class="value">{{ roomType.maxAdults }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Max Children:</span>
+                <span class="value">{{ roomType.maxChildren }}</span>
+              </div>
+            </div>
+
+            <!-- Specifications -->
+            <div class="info-section">
+              <div class="info-title">
+                <i class="fas fa-info-circle"></i>
+                Specifications
+              </div>
+              <div class="info-row">
+                <span class="label">Room Size:</span>
+                <span class="value">{{ roomType.roomSize }} m²</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Bed Type:</span>
+                <span class="value">{{ getBedTypeLabel(roomType.bedType) }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">View:</span>
+                <span class="value">{{ getViewTypeLabel(roomType.viewType) }}</span>
+              </div>
+            </div>
+
+            <!-- Amenities -->
+            @if (roomType.amenities && roomType.amenities.length > 0) {
+              <div class="info-section">
+                <div class="info-title">
+                  <i class="fas fa-concierge-bell"></i>
+                  Amenities ({{ roomType.amenities.length }})
+                </div>
+                <div class="amenities-list">
+                  @for (amenity of roomType.amenities.slice(0, 6); track amenity) {
+                    <span class="amenity-tag">
+                      <i class="fas fa-check-circle"></i>
+                      {{ amenity }}
+                    </span>
+                  }
+                  @if (roomType.amenities.length > 6) {
+                    <span class="amenity-tag more">+{{ roomType.amenities.length - 6 }} more</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="card-footer">
+            <span class="room-count" *ngIf="roomType.roomCount">
+              <i class="fas fa-bed"></i>
+              {{ roomType.roomCount }} rooms
+            </span>
+            <button class="btn-view" (click)="openEditModal(roomType)">
+              <i class="fas fa-edit"></i>
+              Edit Details
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading && roomTypes.length === 0) {
+    <div class="empty-state">
+      <i class="fas fa-tags"></i>
+      <h3>No room types configured</h3>
+      <p>Create your first room type to start managing rooms</p>
+      <button class="btn-primary" (click)="openCreateModal()">
+        <i class="fas fa-plus"></i>
+        Create Room Type
+      </button>
+    </div>
+  }
+
+  <!-- Create/Edit Modal -->
+  @if (isEditing) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-container modal-large" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ selectedRoomType ? 'Edit Room Type' : 'Create New Room Type' }}</h3>
+          <button class="modal-close" (click)="closeModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <form [formGroup]="roomTypeForm" class="room-type-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Room Type Name *</label>
+                <input type="text" formControlName="typeName" placeholder="e.g., Deluxe Suite" class="form-control">
+                @if (roomTypeForm.get('typeName')?.invalid && roomTypeForm.get('typeName')?.touched) {
+                  <div class="error">Room type name is required</div>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Description</label>
+                <textarea formControlName="description" rows="3" placeholder="Room type description..." class="form-control"></textarea>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Base Price (₦) *</label>
+                <input type="number" formControlName="basePrice" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Peak Price (Optional)</label>
+                <input type="number" formControlName="peakPrice" class="form-control">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Max Adults *</label>
+                <input type="number" formControlName="maxAdults" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Max Children *</label>
+                <input type="number" formControlName="maxChildren" class="form-control">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Room Size (m²) *</label>
+                <input type="number" formControlName="roomSize" class="form-control">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Bed Type *</label>
+                <select formControlName="bedType" class="form-control">
+                  @for (option of bedTypeOptions; track option.value) {
+                    <option [value]="option.value">{{ option.label }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-group">
+                <label>View Type *</label>
+                <select formControlName="viewType" class="form-control">
+                  @for (option of viewTypeOptions; track option.value) {
+                    <option [value]="option.value">{{ option.label }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Amenities</label>
+              <div class="amenities-checkboxes">
+                @for (amenity of amenityOptions; track amenity) {
+                  <label class="checkbox-label">
+                    <input type="checkbox" [checked]="isAmenitySelected(amenity)" (change)="toggleAmenity(amenity)">
+                    <span>{{ amenity }}</span>
+                  </label>
+                }
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">Cancel</button>
+          <button class="btn-primary" (click)="saveRoomType()" [disabled]="isSaving">
+            @if (isSaving) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Saving...
+            } @else {
+              <i class="fas fa-save"></i>
+              {{ selectedRoomType ? 'Update' : 'Create' }}
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Delete Confirmation Modal -->
+  @if (showDeleteModal) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Delete Room Type</h3>
+          <button class="modal-close" (click)="closeModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete <strong>{{ selectedRoomType?.typeName }}</strong>?</p>
+          <p class="warning-text">
+            This action cannot be undone. All rooms of this type will be affected.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">Cancel</button>
+          <button class="btn-danger" (click)="confirmDelete()" [disabled]="isSaving">
+            @if (isSaving) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Deleting...
+            } @else {
+              <i class="fas fa-trash-alt"></i>
+              Delete
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

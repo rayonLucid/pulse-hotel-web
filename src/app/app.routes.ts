@@ -41,6 +41,10 @@ export const routes: Routes = [
         path: 'bookings',
         loadChildren: () => import('./modules/bookings/bookings.routes').then(m => m.BOOKINGS_ROUTES)
       },
+       {
+        path: 'rooms',
+        loadChildren: () => import('./modules/rooms/rooms.routes').then(m => m.ROOMS_ROUTES)
+      },
       // {
       //   path: 'settings',
       //   loadChildren: () => import('./modules/settings/settings.routes').then(m => m.SETTINGS_ROUTES)
