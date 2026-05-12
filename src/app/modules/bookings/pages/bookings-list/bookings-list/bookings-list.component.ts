@@ -1,5 +1,5 @@
 // src/app/modules/bookings/pages/bookings-list/bookings-list.component.ts
-import { Component, OnInit, OnDestroy, inject, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, EventEmitter, Output, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
@@ -41,6 +41,7 @@ export class BookingsListComponent implements OnInit, OnDestroy {
 
   private subscriptions: Subscription = new Subscription();
   private bookingService: BookingService = inject(BookingService);
+  private changeDet = inject(ChangeDetectorRef);
   constructor(
 
     private toastr: ToastrService
@@ -71,7 +72,7 @@ export class BookingsListComponent implements OnInit, OnDestroy {
     }
     return pages;
   }
-  
+
   /**
    * Load bookings with current filters
    */
@@ -91,11 +92,13 @@ export class BookingsListComponent implements OnInit, OnDestroy {
           this.totalItems = response.pagination.totalItems;
           this.totalPages = response.pagination.totalPages;
           this.isLoading = false;
+ this.changeDet.detectChanges();
         },
         error: (error) => {
-          console.error('Error loading bookings:', error);
+          console.error('Error loading booking:', error);
           this.toastr.error('Failed to load bookings', 'Error');
           this.isLoading = false;
+ this.changeDet.detectChanges();
         }
       })
     );
@@ -108,12 +111,15 @@ export class BookingsListComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.bookingService.getBookingStats().subscribe({
         next: (response) => {
+          console.log('Stats response:', response);
           if (response.success) {
             this.stats = response.data;
+            this.changeDet.detectChanges();
           }
         },
         error: (error) => {
           console.error('Error loading stats:', error);
+          this.changeDet.detectChanges();
         }
       })
     );

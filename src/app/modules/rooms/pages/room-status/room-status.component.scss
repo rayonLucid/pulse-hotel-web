@@ -514,3 +514,86 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+
+// Add to room-status.component.scss
+
+// Pagination Styles
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 32px;
+  padding: 20px 0;
+  flex-wrap: wrap;
+
+  .page-btn {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 8px;
+    border: 1px solid #e5e7eb;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover:not(:disabled) {
+      background: #f3f4f6;
+      border-color: #c49a6c;
+      color: #c49a6c;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .page-numbers {
+    display: flex;
+    gap: 6px;
+
+    .page-number {
+      min-width: 40px;
+      height: 40px;
+      padding: 0 8px;
+      border: 1px solid #e5e7eb;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #f3f4f6;
+        border-color: #c49a6c;
+      }
+
+      &.active {
+        background: #c49a6c;
+        border-color: #c49a6c;
+        color: white;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    gap: 4px;
+
+    .page-btn, .page-number {
+      min-width: 32px;
+      height: 32px;
+      font-size: 12px;
+    }
+  }
+}
+
+.pagination-info {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 13px;
+  color: #6b7280;
+}

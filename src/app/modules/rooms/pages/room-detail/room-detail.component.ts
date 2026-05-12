@@ -1,5 +1,5 @@
 // src/app/modules/rooms/pages/room-detail/room-detail.component.ts
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -63,7 +63,7 @@ export class RoomDetailComponent implements OnInit {
     'Ironing Facilities', 'Hair Dryer', 'Bathrobe', 'Slippers',
     'Bath Tub', 'Separate Shower', 'Balcony', 'Ocean View'
   ];
-
+private changeDet = inject(ChangeDetectorRef);
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -88,6 +88,7 @@ export class RoomDetailComponent implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
+    console.log('Room ID from route:', id);
     if (id) {
       this.loadRoom(parseInt(id));
     } else {
@@ -99,10 +100,12 @@ export class RoomDetailComponent implements OnInit {
     this.isLoading = true;
     this.roomService.getRoomById(id).subscribe({
       next: (response) => {
+       // console.log('Room data loaded:', response);
         if (response.success) {
           this.room = response.data;
           this.populateForm();
           this.isLoading = false;
+          this.changeDet.detectChanges();
         } else {
           this.toastr.error('Room not found', 'Error');
           this.router.navigate(['/rooms']);

@@ -1,5 +1,5 @@
 // src/app/modules/bookings/pages/check-in-out/check-in-out.component.ts
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -54,12 +54,13 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
 
   private refreshInterval: any;
  private bookingService: BookingService= inject(BookingService);
-
+  private changeDet = inject(ChangeDetectorRef);
   constructor(
     private fb: FormBuilder,
 
     private router: Router,
     private toastr: ToastrService
+
   ) {
     this.checkInForm = this.fb.group({
       idCardNumber: ['', [Validators.required, Validators.minLength(5)]],
@@ -100,10 +101,13 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
           this.checkInBookings = response.data;
         }
         this.isSearchingCheckIn = false;
+        this.changeDet.detectChanges();
       },
       error: (error:any) => {
-        console.error('Error loading check-in bookings:', error);
+       // console.error('Error loading check-in bookings:', error.error);
+        this.toastr.error(error.error.message, 'Error');
         this.isSearchingCheckIn = false;
+        this.changeDet.detectChanges();
       }
     });
   }

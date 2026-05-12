@@ -14,22 +14,6 @@ export class RoomService {
   constructor(private http: HttpClient) {}
 
 
-
-  // Get all rooms with filters
-  // getRooms(filter: RoomFilter): Observable<{ data: Room[]; pagination: any }> {
-  //   let params = new HttpParams()
-  //     .set('page', filter.page.toString())
-  //     .set('pageSize', filter.pageSize.toString());
-
-  //   if (filter.status) params = params.set('status', filter.status);
-  //   if (filter.roomType) params = params.set('roomType', filter.roomType);
-  //   if (filter.floor) params = params.set('floor', filter.floor.toString());
-  //   if (filter.minPrice) params = params.set('minPrice', filter.minPrice.toString());
-  //   if (filter.maxPrice) params = params.set('maxPrice', filter.maxPrice.toString());
-
-  //   return this.http.get<{ data: Room[]; pagination: any }>(this.apiUrl, { params });
-  // }
-
   // Get room by ID
   getRoomById(id: number): Observable<{ success: boolean; data: Room }> {
     return this.http.get<{ success: boolean; data: Room }>(`${this.apiUrl}/${id}`);

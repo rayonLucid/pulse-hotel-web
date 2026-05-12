@@ -1,3 +1,211 @@
-<p>
-  rooms-list works!
-</p>
+<!-- src/app/modules/rooms/pages/rooms-list/rooms-list.component.html -->
+<div class="rooms-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Rooms Management</h1>
+      <p class="page-subtitle">Manage all hotel rooms and their status</p>
+    </div>
+    <button class="btn-primary" routerLink="/rooms/types">
+      <i class="fas fa-tags"></i>
+      Manage Room Types
+    </button>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon bg-blue-100">
+        <i class="fas fa-bed text-blue-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Total Rooms</h3>
+        <p>{{ stats.totalRooms || 0 }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-green-100">
+        <i class="fas fa-check-circle text-green-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Available</h3>
+        <p>{{ stats.availableRooms || 0 }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-purple-100">
+        <i class="fas fa-user-check text-purple-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Occupied</h3>
+        <p>{{ stats.occupiedRooms || 0 }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-orange-100">
+        <i class="fas fa-tools text-orange-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Maintenance</h3>
+        <p>{{ stats.maintenanceRooms || 0 }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="filter-group">
+      <select [(ngModel)]="filters.status" (change)="applyFilters()">
+        <option value="">All Statuses</option>
+        <option value="Available">Available</option>
+        <option value="Occupied">Occupied</option>
+        <option value="Maintenance">Maintenance</option>
+        <option value="Cleaning">Cleaning</option>
+        <option value="Reserved">Reserved</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <select [(ngModel)]="filters.floor" (change)="applyFilters()">
+        <option [value]="null">All Floors</option>
+        @for (floor of floors; track floor) {
+          <option [value]="floor">Floor {{ floor }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <select [(ngModel)]="filters.roomType" (change)="applyFilters()">
+        <option value="">All Room Types</option>
+        @for (type of roomTypes; track type) {
+          <option [value]="type">{{ type }}</option>
+        }
+      </select>
+    </div>
+
+    @if (hasActiveFilters()) {
+      <button class="clear-filters" (click)="clearFilters()">
+        <i class="fas fa-times"></i>
+        Clear Filters
+      </button>
+    }
+  </div>
+
+  <!-- Rooms Grid -->
+  <div class="rooms-grid">
+    <!-- Loading State -->
+    @if (isLoading) {
+      <div class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Loading Rooms...</span>
+      </div>
+    }
+
+    <!-- Rooms List -->
+    @for (room of rooms; track room.roomId) {
+      <div class="room-card">
+        <div class="room-header">
+          <div>
+            <h3 class="room-number">Room {{ room.roomNumber }}</h3>
+            <p class="room-type">{{ room.roomType }}</p>
+          </div>
+          <div class="room-status" [class]="getStatusClass(room.status)">
+            {{ room.status }}
+          </div>
+        </div>
+
+        <div class="room-details">
+          <div class="detail">
+            <i class="fas fa-dollar-sign"></i>
+            <span>{{ formatPrice(room.pricePerNight) }}/night</span>
+          </div>
+          <div class="detail">
+            <i class="fas fa-users"></i>
+            <span>Max {{ room.maxAdults }} adults</span>
+          </div>
+          <div class="detail">
+            <i class="fas fa-arrows-alt"></i>
+            <span>{{ room.roomSize }} m²</span>
+          </div>
+        </div>
+        <div class="room-footer">
+          <a [routerLink]="['/rooms/detail', room.roomId]" class="btn-view">View Details</a>
+        </div>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!isLoading && rooms.length === 0) {
+      <div class="empty-state">
+        <i class="fas fa-bed"></i>
+        <h3>No rooms found</h3>
+        <p>Try adjusting your filters</p>
+      </div>
+    }
+  </div>
+
+  <!-- Pagination -->
+  @if (totalPages > 1) {
+    <div class="pagination">
+      <!-- First Page -->
+      <button
+        class="page-btn"
+        [disabled]="currentPage === 1"
+        (click)="goToPage(1)"
+        title="First Page"
+      >
+        <i class="fas fa-angle-double-left"></i>
+      </button>
+
+      <!-- Previous Page -->
+      <button
+        class="page-btn"
+        [disabled]="currentPage === 1"
+        (click)="goToPage(currentPage - 1)"
+        title="Previous Page"
+      >
+        <i class="fas fa-chevron-left"></i>
+      </button>
+
+      <!-- Page Numbers -->
+      <div class="page-numbers">
+        @for (page of pageNumbers; track page) {
+          <button
+            class="page-number"
+            [class.active]="currentPage === page"
+            (click)="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+        }
+      </div>
+
+      <!-- Next Page -->
+      <button
+        class="page-btn"
+        [disabled]="currentPage === totalPages"
+        (click)="goToPage(currentPage + 1)"
+        title="Next Page"
+      >
+        <i class="fas fa-chevron-right"></i>
+      </button>
+
+      <!-- Last Page -->
+      <button
+        class="page-btn"
+        [disabled]="currentPage === totalPages"
+        (click)="goToPage(totalPages)"
+        title="Last Page"
+      >
+        <i class="fas fa-angle-double-right"></i>
+      </button>
+    </div>
+  }
+
+  <!-- Pagination Info -->
+  <div class="pagination-info" *ngIf="totalItems > 0">
+    Showing {{ (currentPage - 1) * pageSize + 1 }} to
+    {{ Math.min(currentPage * pageSize, totalItems) }} of
+    {{ totalItems }} rooms
+  </div>
+</div>

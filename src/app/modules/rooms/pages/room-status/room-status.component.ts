@@ -1,5 +1,5 @@
 // src/app/modules/rooms/pages/room-status/room-status.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -23,12 +23,20 @@ interface StatusFilter {
 export class RoomStatusComponent implements OnInit, OnDestroy {
   roomStatuses: RoomStatus[] = [];
   filteredRooms: RoomStatus[] = [];
+  paginatedRooms: RoomStatus[] = [];
   isLoading = true;
   searchTerm = '';
   selectedFloor: number | null = null;
   selectedStatus: string = '';
   selectedRoomType: string = '';
   refreshInterval: any;
+  Math = Math;
+
+  // Pagination
+  currentPage = 1;
+  pageSize = 12;
+  totalItems = 0;
+  totalPages = 0;
 
   // Statistics
   stats = {
@@ -58,7 +66,7 @@ export class RoomStatusComponent implements OnInit, OnDestroy {
 
   // Floor plan data
   floorPlan: { [key: number]: RoomStatus[] } = {};
-
+private changeDet = inject(ChangeDetectorRef);
   constructor(
     private roomService: RoomService,
     private toastr: ToastrService
@@ -82,7 +90,7 @@ export class RoomStatusComponent implements OnInit, OnDestroy {
   loadRoomStatuses(): void {
     this.isLoading = true;
     this.roomService.getRoomStatuses().subscribe({
-      next: (response:any) => {
+      next: (response) => {
         if (response.success) {
           this.roomStatuses = response.data;
           this.updateStatistics();
@@ -135,7 +143,7 @@ export class RoomStatusComponent implements OnInit, OnDestroy {
       filtered = filtered.filter(room =>
         room.roomNumber.toLowerCase().includes(term) ||
         room.roomType.toLowerCase().includes(term) ||
-        room.currentGuestName?.toLowerCase().includes(term)
+        (room.currentGuestName && room.currentGuestName.toLowerCase().includes(term))
       );
     }
 
@@ -146,26 +154,72 @@ export class RoomStatusComponent implements OnInit, OnDestroy {
 
     // Filter by floor
     if (this.selectedFloor) {
-      filtered = filtered.filter(room => room.floorNumber === this.selectedFloor);
-    }
-
-    // Filter by room type
-    if (this.selectedRoomType) {
-      filtered = filtered.filter(room => room.roomType.toLowerCase().includes(this.selectedRoomType.toLowerCase()));
+      filtered = filtered.filter(room => room.floorNumber === Number(this.selectedFloor));
     }
 
     this.filteredRooms = filtered;
+    this.totalItems = this.filteredRooms.length;
+    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+    this.currentPage = 1;
+    this.updatePaginatedRooms();
+  }
+
+  updatePaginatedRooms(): void {
+    const start = (this.currentPage - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    this.paginatedRooms = this.filteredRooms.slice(start, end);
+    this.isLoading = false;
+    this.changeDet.detectChanges();
+   // console.log('Paginated rooms:', this.paginatedRooms);
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.updatePaginatedRooms();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  get pageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    let startPage: number;
+    let endPage: number;
+
+    if (this.totalPages <= maxVisible) {
+      startPage = 1;
+      endPage = this.totalPages;
+    } else {
+      if (this.currentPage <= Math.ceil(maxVisible / 2)) {
+        startPage = 1;
+        endPage = maxVisible;
+      } else if (this.currentPage + Math.floor(maxVisible / 2) >= this.totalPages) {
+        startPage = this.totalPages - maxVisible + 1;
+        endPage = this.totalPages;
+      } else {
+        startPage = this.currentPage - Math.floor(maxVisible / 2);
+        endPage = this.currentPage + Math.floor(maxVisible / 2);
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 
   onSearch(): void {
     this.applyFilters();
   }
 
+  hasActiveFilters(): boolean {
+    return !!(this.searchTerm || this.selectedStatus || this.selectedFloor);
+  }
+
   clearFilters(): void {
     this.searchTerm = '';
     this.selectedStatus = '';
     this.selectedFloor = null;
-    this.selectedRoomType = '';
     this.applyFilters();
   }
 

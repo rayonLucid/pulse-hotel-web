@@ -1,5 +1,5 @@
 // src/app/modules/rooms/pages/room-types/room-types.component.ts
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -54,6 +54,7 @@ export class RoomTypesComponent implements OnInit {
     'Sea View', 'Mountain View', 'Soundproofing', 'Executive Lounge Access'
   ];
 private roomService: RoomService = inject(RoomService);
+  private changeDet = inject(ChangeDetectorRef);
   constructor(
     private fb: FormBuilder,
 
@@ -84,15 +85,18 @@ private roomService: RoomService = inject(RoomService);
         if (response.success) {
           this.roomTypes = response.data;
           this.isLoading = false;
+          this.changeDet.detectChanges();
         } else {
           this.toastr.error('Failed to load room types', 'Error');
           this.isLoading = false;
+          this.changeDet.detectChanges();
         }
       },
       error: (error) => {
-        console.error('Error loading room types:', error);
+        console.error('Error loading room type:', error);
         this.toastr.error('Failed to load room types', 'Error');
         this.isLoading = false;
+        this.changeDet.detectChanges();
       }
     });
   }
