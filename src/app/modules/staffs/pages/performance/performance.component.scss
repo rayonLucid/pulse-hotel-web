@@ -1,0 +1,85 @@
+// Add to performance.component.scss
+
+.performance-container {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100vh;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 4px;
+  cursor: pointer;
+
+  i {
+    color: #d1d5db;
+    transition: color 0.2s;
+
+    &:hover, &.active {
+      color: #f59e0b;
+    }
+  }
+}
+
+.rating-badge, .rating-value {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+
+  &.rating-excellent { background: #d1fae5; color: #059669; }
+  &.rating-good { background: #dbeafe; color: #2563eb; }
+  &.rating-average { background: #fef3c7; color: #d97706; }
+  &.rating-poor { background: #fee2e2; color: #dc2626; }
+  &.rating-bad { background: #f3f4f6; color: #6b7280; }
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+
+  &.status-draft { background: #f3f4f6; color: #6b7280; }
+  &.status-submitted { background: #dbeafe; color: #2563eb; }
+  &.status-acknowledged { background: #d1fae5; color: #059669; }
+}
+
+.metrics-section {
+  background: #f9fafb;
+  padding: 20px;
+  border-radius: 12px;
+  margin: 20px 0;
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .metric-item {
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+
+    .metric-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+
+      .metric-name { font-weight: 600; }
+      .metric-weight { font-size: 12px; color: #6b7280; }
+    }
+
+    .metric-rating {
+      label { font-size: 12px; margin-right: 8px; }
+    }
+  }
+
+  .overall-rating {
+    text-align: right;
+    font-size: 16px;
+
+    strong { margin-right: 12px; }
+  }
+}

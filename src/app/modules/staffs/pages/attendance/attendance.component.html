@@ -1,0 +1,380 @@
+<!-- src/app/modules/staff/pages/attendance/attendance.component.html -->
+<div class="attendance-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Attendance Management</h1>
+      <p class="page-subtitle">Track staff attendance and clock-in/out records</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary" (click)="exportToExcel()">
+        <i class="fas fa-file-excel"></i>
+        Export Report
+      </button>
+    </div>
+  </div>
+
+  <!-- Current Time Display -->
+  <div class="time-card">
+    <div class="time-display">
+      <div class="date">{{ currentTime | date:'EEEE, MMMM d, yyyy' }}</div>
+      <div class="time">{{ currentTime | date:'h:mm:ss a' }}</div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon bg-blue-100">
+        <i class="fas fa-users text-blue-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Total Staff</h3>
+        <p>{{ stats.totalStaff }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-green-100">
+        <i class="fas fa-check-circle text-green-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Present</h3>
+        <p>{{ stats.present }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-red-100">
+        <i class="fas fa-times-circle text-red-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Absent</h3>
+        <p>{{ stats.absent }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-yellow-100">
+        <i class="fas fa-clock text-yellow-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Late</h3>
+        <p>{{ stats.late }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-purple-100">
+        <i class="fas fa-umbrella-beach text-purple-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>On Leave</h3>
+        <p>{{ stats.onLeave }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-orange-100">
+        <i class="fas fa-chart-line text-orange-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Attendance Rate</h3>
+        <p>{{ stats.attendanceRate }}%</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Mode Toggle -->
+  <div class="view-toggle">
+    <button
+      class="toggle-btn"
+      [class.active]="viewMode === 'list'"
+      (click)="setViewMode('list')"
+    >
+      <i class="fas fa-list"></i>
+      List View
+    </button>
+    <button
+      class="toggle-btn"
+      [class.active]="viewMode === 'calendar'"
+      (click)="setViewMode('calendar')"
+    >
+      <i class="fas fa-calendar-alt"></i>
+      Calendar View
+    </button>
+    <button
+      class="toggle-btn"
+      [class.active]="viewMode === 'report'"
+      (click)="setViewMode('report')"
+    >
+      <i class="fas fa-chart-bar"></i>
+      Report
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="filter-group">
+      <select [(ngModel)]="selectedStaffId" (change)="onStaffFilterChange()">
+        <option [value]="null">All Staff</option>
+        @for (staffMember of staff; track staffMember.staffId) {
+          <option [value]="staffMember.staffId">{{ staffMember.fullName }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <input type="date" [(ngModel)]="startDate" (change)="onDateRangeChange()">
+    </div>
+    <div class="filter-group">
+      <input type="date" [(ngModel)]="endDate" (change)="onDateRangeChange()">
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading attendance records...</p>
+    </div>
+  }
+
+  <!-- List View -->
+  @if (!isLoading && viewMode === 'list') {
+    <div class="attendance-table-container">
+      <table class="attendance-table">
+        <thead>
+          <tr>
+            <th>Staff Name</th>
+            <th>Department</th>
+            <th>Date</th>
+            <th>Clock In</th>
+            <th>Clock Out</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (log of filteredLogs; track log.logId) {
+            <tr>
+              <td>
+                <div class="staff-info">
+                  <div class="staff-avatar">
+                    {{ getStaffName(log.staffId) | slice:0:2 | uppercase }}
+                  </div>
+                  <span>{{ getStaffName(log.staffId) }}</span>
+                </div>
+              </td>
+              <td>{{ getStaffDepartment(log.staffId) }}</td>
+              <td>{{ formatDate(log.logDate) }}</td>
+              <td>
+                @if (log.clockInTime) {
+                  <span class="clock-time">{{ formatTime(log.clockInTime) }}</span>
+                } @else {
+                  <span class="not-clocked">--:--</span>
+                }
+              </td>
+              <td>
+                @if (log.clockOutTime) {
+                  <span class="clock-time">{{ formatTime(log.clockOutTime) }}</span>
+                } @else {
+                  <span class="not-clocked">--:--</span>
+                }
+              </td>
+              <td>
+                <span class="status-badge" [class]="getStatusClass(log.status)">
+                  <i [class]="getStatusIcon(log.status)"></i>
+                  {{ log.status }}
+                </span>
+                @if (log.lateMinutes > 0) {
+                  <span class="late-badge">{{ log.lateMinutes }} min late</span>
+                }
+              </td>
+              <td>
+                @if (!log.clockOutTime && log.clockInTime) {
+                  <button class="btn-clockout" (click)="clockOut(log.staffId, getStaffName(log.staffId))">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Clock Out
+                  </button>
+                }
+                @if (!log.clockInTime) {
+                  <button class="btn-clockin" (click)="openClockInModal(getStaffById(log.staffId)!)">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Clock In
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+          @if (filteredLogs.length === 0) {
+            <tr>
+              <td colspan="7" class="empty-row">
+                <i class="fas fa-clock"></i>
+                <p>No attendance records found</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Calendar View -->
+  @if (!isLoading && viewMode === 'calendar') {
+    <div class="calendar-view">
+      <div class="calendar-header">
+        <button class="nav-btn" (click)="previousMonth()">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <h3>{{ selectedDate | date:'MMMM yyyy' }}</h3>
+        <button class="nav-btn" (click)="nextMonth()">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <div class="calendar-weekdays">
+        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+      </div>
+
+      <div class="calendar-days">
+        @for (day of getDaysInMonth(); track day) {
+          <div class="calendar-day" [class.today]="day.toDateString() === currentTime.toDateString()">
+            <div class="day-number">{{ day.getDate() }}</div>
+            <div class="attendance-summary">
+              @for (staffMember of staff; track staffMember.staffId) {
+                @if (getStaffStatus(staffMember.staffId, day) !== 'Not Recorded') {
+                  <div class="attendance-dot"
+                       [class]="getStatusClass(getStaffStatus(staffMember.staffId, day))"
+                       [title]="staffMember.fullName + ': ' + getStaffStatus(staffMember.staffId, day)">
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Report View -->
+  @if (!isLoading && viewMode === 'report') {
+    <div class="report-view">
+      <div class="report-header">
+        <h3>Attendance Summary Report</h3>
+        <button class="btn-generate" (click)="generateReport()" [disabled]="isGeneratingReport">
+          @if (isGeneratingReport) {
+            <i class="fas fa-spinner fa-spin"></i>
+            Generating...
+          } @else {
+            <i class="fas fa-chart-line"></i>
+            Generate Report
+          }
+        </button>
+      </div>
+
+      <div class="report-stats">
+        <div class="report-stat">
+          <div class="stat-value">{{ stats.attendanceRate }}%</div>
+          <div class="stat-label">Attendance Rate</div>
+        </div>
+        <div class="report-stat">
+          <div class="stat-value">{{ stats.present }}</div>
+          <div class="stat-label">Present Days</div>
+        </div>
+        <div class="report-stat">
+          <div class="stat-value">{{ stats.absent }}</div>
+          <div class="stat-label">Absent Days</div>
+        </div>
+        <div class="report-stat">
+          <div class="stat-value">{{ stats.late }}</div>
+          <div class="stat-label">Late Arrivals</div>
+        </div>
+      </div>
+
+      <div class="report-table">
+        <h4>Staff Attendance Summary</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Staff Name</th>
+              <th>Department</th>
+              <th>Present</th>
+              <th>Absent</th>
+              <th>Late</th>
+              <th>Leave</th>
+              <th>Attendance %</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (staffMember of staff; track staffMember.staffId) {
+              @let staffLogs = attendanceLogs.filter(l => l.staffId === staffMember.staffId);
+              @let present = staffLogs.filter(l => l.status === 'Present').length;
+              @let absent = staffLogs.filter(l => l.status === 'Absent').length;
+              @let late = staffLogs.filter(l => l.status === 'Late').length;
+              @let leave = staffLogs.filter(l => l.status === 'Leave').length;
+              @let attendanceRate = staffLogs.length > 0 ? Math.round((present / staffLogs.length) * 100) : 0;
+              <tr>
+                <td>{{ staffMember.fullName }}</td>
+                <td>{{ staffMember.department }}</td>
+                <td>{{ present }}</td>
+                <td>{{ absent }}</td>
+                <td>{{ late }}</td>
+                <td>{{ leave }}</td>
+                <td>
+                  <div class="attendance-progress">
+                    <div class="progress-bar" [style.width.%]="attendanceRate"></div>
+                    <span>{{ attendanceRate }}%</span>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- Clock In Modal -->
+  @if (showClockInModal && selectedStaffForClockIn) {
+    <div class="modal-overlay" (click)="closeClockInModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Clock In - {{ selectedStaffForClockIn.fullName }}</h3>
+          <button class="modal-close" (click)="closeClockInModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="current-time">
+            <i class="fas fa-clock"></i>
+            {{ currentTime | date:'h:mm:ss a' }}
+          </div>
+
+          <form [formGroup]="clockInForm">
+            <div class="form-group">
+              <label>Clock In Method</label>
+              <select formControlName="clockInMethod" class="form-control">
+                <option value="manual">Manual Entry</option>
+                <option value="qr">QR Code Scan</option>
+                <option value="biometric">Biometric</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Notes (Optional)</label>
+              <textarea formControlName="notes" rows="2" class="form-control" placeholder="Any notes..."></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeClockInModal()">Cancel</button>
+          <button class="btn-primary" (click)="clockIn()" [disabled]="isCheckingIn">
+            @if (isCheckingIn) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Processing...
+            } @else {
+              <i class="fas fa-sign-in-alt"></i>
+              Clock In
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

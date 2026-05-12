@@ -1,0 +1,186 @@
+<!-- src/app/modules/staff/pages/shift-schedule/shift-schedule.component.html -->
+<div class="shift-schedule-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Shift Schedule</h1>
+      <p class="page-subtitle">Manage staff shifts and assignments</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary" (click)="openShiftModal()">
+        <i class="fas fa-plus"></i>
+        New Shift
+      </button>
+      <button class="btn-secondary" (click)="openCreateModal()">
+        <i class="fas fa-calendar-plus"></i>
+        Assign Shift
+      </button>
+    </div>
+  </div>
+
+  <!-- View Mode Toggle -->
+  <div class="view-toggle">
+    <button
+      class="toggle-btn"
+      [class.active]="viewMode === 'week'"
+      (click)="setViewMode('week')"
+    >
+      <i class="fas fa-calendar-week"></i>
+      Week View
+    </button>
+    <button
+      class="toggle-btn"
+      [class.active]="viewMode === 'staff'"
+      (click)="setViewMode('staff')"
+    >
+      <i class="fas fa-users"></i>
+      Staff View
+    </button>
+  </div>
+
+  <!-- Week View -->
+  @if (viewMode === 'week') {
+    <div class="week-view">
+      <!-- Week Navigation -->
+      <div class="week-navigation">
+        <button class="nav-btn" (click)="previousWeek()">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="week-range">
+          {{ selectedWeek[0] | date:'MMM d' }} - {{ selectedWeek[6] | date:'MMM d, yyyy' }}
+        </div>
+        <button class="nav-btn" (click)="nextWeek()">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        <button class="today-btn" (click)="goToToday()">
+          Today
+        </button>
+      </div>
+
+      <!-- Schedule Grid -->
+      <div class="schedule-grid">
+        <!-- Time Column Header -->
+        <div class="grid-header time-header">Shift</div>
+        @for (day of selectedWeek; track day; let i = $index) {
+          <div class="grid-header" [class.today]="isToday(day)">
+            <div class="day-name">{{ day | date:'EEE' }}</div>
+            <div class="day-date">{{ day | date:'MMM d' }}</div>
+          </div>
+        }
+
+        <!-- Shift Rows -->
+        @for (shift of shifts; track shift.shiftId) {
+          <div class="grid-row">
+            <div class="shift-cell">
+              <div class="shift-name">
+                {{ shift.shiftName }}
+                <span class="shift-time">{{ shift.startTime }} - {{ shift.endTime }}</span>
+              </div>
+              <div class="shift-actions">
+                <button class="icon-btn edit" (click)="openShiftModal(shift)">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="icon-btn delete" (click)="deleteShift(shift.shiftId)">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+            </div>
+            @for (day of selectedWeek; track day) {
+              <div class="assignment-cell" (click)="openCreateModal(day)">
+                @for (assignment of getAssignmentsForShiftAndDate(shift.shiftId, day); track assignment.assignmentId) {
+                  <div class="assignment-badge"
+                       [style.border-left-color]="getShiftColor(shift.shiftName)">
+                    <div class="staff-name">{{ getStaffName(assignment.staffId) }}</div>
+                    <button class="cancel-assignment"
+                            (click)="$event.stopPropagation(); cancelAssignment(assignment.assignmentId)">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Staff View -->
+  @if (viewMode === 'staff') {
+    <div class="staff-view">
+      <div class="staff-list">
+        @for (staffMember of staff; track staffMember.staffId) {
+          <div class="staff-card">
+            <div class="staff-header">
+              <div class="staff-avatar">
+                {{ getStaffInitials(staffMember.fullName) }}
+              </div>
+              <div class="staff-info">
+                <h3 class="staff-name">{{ staffMember.fullName }}</h3>
+                <p class="staff-role">{{ staffMember.position }} • {{ staffMember.department }}</p>
+              </div>
+              <button class="assign-btn" (click)="openCreateModalForStaff(staffMember)">
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+            <div class="staff-schedule">
+              @for (day of selectedWeek; track day) {
+                <div class="schedule-day" [class.today]="isToday(day)">
+                  <div class="day-label">{{ day | date:'EEE' }}</div>
+                  <div class="day-shift">
+                    @let assignment = getStaffShiftForDate(staffMember.staffId, day);
+                    @if (assignment) {
+                      <div class="shift-badge"
+                           [style.background]="getShiftColor(getShiftName(assignment.shiftId))">
+                        {{ getShiftName(assignment.shiftId) }}
+                        <button class="remove-shift"
+                                (click)="$event.stopPropagation(); cancelAssignment(assignment.assignmentId)">
+                          <i class="fas fa-times-circle"></i>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Shift Types Section -->
+  <div class="shift-types-section">
+    <h3>Shift Types</h3>
+    <div class="shift-types-grid">
+      @for (shift of shifts; track shift.shiftId) {
+        <div class="shift-type-card" [style.border-left-color]="getShiftColor(shift.shiftName)">
+          <div class="shift-type-header">
+            <div class="shift-type-name">{{ shift.shiftName }}</div>
+            <div class="shift-type-time">{{ shift.startTime }} - {{ shift.endTime }}</div>
+          </div>
+          <div class="shift-type-details">
+            <div class="detail">
+              <i class="fas fa-coffee"></i>
+              Break: {{ shift.breakDuration }} min
+            </div>
+            @if (shift.shiftAllowance > 0) {
+              <div class="detail">
+                <i class="fas fa-money-bill-wave"></i>
+                Allowance: {{ formatPrice(shift.shiftAllowance) }}
+              </div>
+            }
+            @if (shift.overnightShift) {
+              <div class="detail">
+                <i class="fas fa-moon"></i>
+                Overnight Shift
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Rest of the modals remain the same -->

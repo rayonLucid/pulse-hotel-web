@@ -1,0 +1,430 @@
+<!-- src/app/modules/staff/pages/leave-requests/leave-requests.component.html -->
+<div class="leave-requests-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Leave Requests</h1>
+      <p class="page-subtitle">Manage staff leave requests and balances</p>
+    </div>
+    <button class="btn-primary" (click)="openRequestModal()">
+      <i class="fas fa-plus"></i>
+      Request Leave
+    </button>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon bg-yellow-100">
+        <i class="fas fa-clock text-yellow-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Pending</h3>
+        <p>{{ stats.pending }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-green-100">
+        <i class="fas fa-check-circle text-green-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Approved</h3>
+        <p>{{ stats.approved }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-red-100">
+        <i class="fas fa-times-circle text-red-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Rejected</h3>
+        <p>{{ stats.rejected }}</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-blue-100">
+        <i class="fas fa-calendar-day text-blue-600"></i>
+      </div>
+      <div class="stat-info">
+        <h3>Total Days</h3>
+        <p>{{ stats.totalDays }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Mode Toggle -->
+  <div class="view-toggle">
+    <button
+      class="toggle-btn"
+      [class.active]="viewMode === 'requests'"
+      (click)="setViewMode('requests')"
+    >
+      <i class="fas fa-list"></i>
+      Requests
+    </button>
+    <button
+      class="toggle-btn"
+      [class.active]="viewMode === 'calendar'"
+      (click)="setViewMode('calendar')"
+    >
+      <i class="fas fa-calendar-alt"></i>
+      Calendar
+    </button>
+    <button
+      class="toggle-btn"
+      [class.active]="viewMode === 'balances'"
+      (click)="setViewMode('balances')"
+    >
+      <i class="fas fa-chart-pie"></i>
+      Leave Balances
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="filter-group">
+      <select [(ngModel)]="selectedStaffId" (change)="onStaffFilterChange()">
+        <option [value]="null">All Staff</option>
+        @for (staffMember of staff; track staffMember.staffId) {
+          <option [value]="staffMember.staffId">{{ staffMember.fullName }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <select [(ngModel)]="selectedStatus" (change)="onStatusFilterChange()">
+        <option value="">All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Approved">Approved</option>
+        <option value="Rejected">Rejected</option>
+      </select>
+    </div>
+
+    @if (selectedStaffId || selectedStatus) {
+      <button class="clear-filters" (click)="clearFilters()">
+        <i class="fas fa-times"></i>
+        Clear Filters
+      </button>
+    }
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading leave requests...</p>
+    </div>
+  }
+
+  <!-- Requests View -->
+  @if (!isLoading && viewMode === 'requests') {
+    <div class="requests-list">
+      @for (request of filteredRequests; track request.leaveId) {
+        <div class="request-card">
+          <div class="card-header">
+            <div class="request-info">
+              <h3>{{ getStaffName(request.staffId) }}</h3>
+              <p class="request-dates">
+                {{ formatDate(request.startDate) }} - {{ formatDate(request.endDate) }}
+              </p>
+            </div>
+            <div class="request-status" [class]="getStatusClass(request.status)">
+              <i [class]="getStatusIcon(request.status)"></i>
+              {{ request.status }}
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="request-details">
+              <div class="detail">
+                <i class="fas fa-tag"></i>
+                <span>Type: {{ getLeaveTypeLabel(request.leaveType) }}</span>
+              </div>
+              <div class="detail">
+                <i class="fas fa-calendar-week"></i>
+                <span>Duration: {{ request.totalDays }} days</span>
+              </div>
+              <div class="detail">
+                <i class="fas fa-comment"></i>
+                <span>Reason: {{ request.reason }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            @if (request.status === 'Pending') {
+              <div class="action-buttons">
+                <button class="btn-approve" (click)="openApproveModal(request)">
+                  <i class="fas fa-check"></i>
+                  Approve
+                </button>
+                <button class="btn-reject" (click)="openRejectModal(request)">
+                  <i class="fas fa-times"></i>
+                  Reject
+                </button>
+              </div>
+            }
+            @if (request.approverName) {
+              <div class="approver-info">
+                <i class="fas fa-user-check"></i>
+                {{ request.status === 'Approved' ? 'Approved' : 'Rejected' }} by {{ request.approverName }}
+                @if (request.approvalDate) {
+                  on {{ formatDate(request.approvalDate) }}
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (filteredRequests.length === 0) {
+        <div class="empty-state">
+          <i class="fas fa-calendar-alt"></i>
+          <h3>No leave requests found</h3>
+          <p>No leave requests match your filters</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Calendar View -->
+<!-- Calendar View - Complete fixed section -->
+@if (!isLoading && viewMode === 'calendar') {
+  <div class="calendar-view">
+    <div class="calendar-header">
+      <h3>{{ getYear() }} Leave Calendar</h3>
+    </div>
+
+    <div class="calendar-months">
+      @for (month of [0,1,2,3,4,5,6,7,8,9,10,11]; track month) {
+        <div class="month-card">
+          <div class="month-title">{{ getMonthName(month) }}</div>
+          <div class="month-leaves">
+            @let monthLeaves = getLeavesForMonth(month);
+            @for (request of monthLeaves; track request.leaveId) {
+              <div class="leave-indicator"
+                   [title]="getStaffName(request.staffId) + ': ' + getLeaveTypeLabel(request.leaveType) + ' (' + formatDate(request.startDate) + ' to ' + formatDate(request.endDate) + ')'">
+                <span class="leave-dot"></span>
+                <span class="leave-name">{{ getStaffName(request.staffId) }}</span>
+              </div>
+            }
+            @if (monthLeaves.length === 0) {
+              <div class="no-leaves">No approved leaves</div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}
+  <!-- Leave Balances View -->
+  @if (!isLoading && viewMode === 'balances' && selectedStaffId) {
+    <div class="balances-view">
+      <div class="balances-header">
+        <h3>Leave Balance for {{ getStaffName(selectedStaffId) }}</h3>
+        <p>Year: {{ currentYear }}</p>
+      </div>
+
+      <div class="balances-summary">
+        <div class="summary-card">
+          <div class="summary-value">{{ getLeaveEntitledTotal() }}</div>
+          <div class="summary-label">Total Entitled</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-value">{{ getLeaveTakenTotal() }}</div>
+          <div class="summary-label">Days Taken</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-value">{{ getLeaveBalanceTotal() }}</div>
+          <div class="summary-label">Days Remaining</div>
+        </div>
+      </div>
+
+      <div class="balances-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Leave Type</th>
+              <th>Entitled</th>
+              <th>Taken</th>
+              <th>Remaining</th>
+              <th>Usage %</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (balance of leaveBalances; track balance.balanceId) {
+              @let usagePercent = (balance.taken / balance.totalEntitled) * 100;
+              <tr>
+                <td><strong>{{ getLeaveTypeLabel(balance.leaveType) }}</strong></td>
+                <td>{{ balance.totalEntitled }}</td>
+                <td>{{ balance.taken }}</td>
+                <td class="remaining">{{ balance.remaining }}</td>
+                <td>
+                  <div class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="usagePercent"></div>
+                    <span>{{ usagePercent | number:'1.0-0' }}%</span>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading && viewMode === 'balances' && !selectedStaffId) {
+    <div class="empty-state">
+      <i class="fas fa-chart-pie"></i>
+      <h3>Select a staff member</h3>
+      <p>Please select a staff member from the filter to view leave balances</p>
+    </div>
+  }
+
+  <!-- Leave Request Modal -->
+  @if (showRequestModal) {
+    <div class="modal-overlay" (click)="closeRequestModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Request Leave</h3>
+          <button class="modal-close" (click)="closeRequestModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="leaveForm" class="leave-form">
+            <div class="form-group">
+              <label>Staff Member *</label>
+              <select formControlName="staffId" class="form-control">
+                <option value="">Select staff member</option>
+                @for (staffMember of staff; track staffMember.staffId) {
+                  <option [value]="staffMember.staffId">{{ staffMember.fullName }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Leave Type *</label>
+              <select formControlName="leaveType" class="form-control">
+                <option value="">Select leave type</option>
+                <option value="Annual">Annual Leave</option>
+                <option value="Sick">Sick Leave</option>
+                <option value="Maternity">Maternity Leave</option>
+                <option value="Paternity">Paternity Leave</option>
+                <option value="Unpaid">Unpaid Leave</option>
+                <option value="Compensatory">Compensatory Leave</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Start Date *</label>
+                <input type="date" formControlName="startDate" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>End Date *</label>
+                <input type="date" formControlName="endDate" class="form-control">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Total Days: <strong>{{ calculateDays() }}</strong> days</label>
+            </div>
+
+            <div class="form-group">
+              <label>Reason *</label>
+              <textarea formControlName="reason" rows="3" class="form-control"
+                        placeholder="Please provide a reason for your leave request..."></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeRequestModal()">Cancel</button>
+          <button class="btn-primary" (click)="submitLeaveRequest()" [disabled]="isSaving">
+            @if (isSaving) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Submitting...
+            } @else {
+              <i class="fas fa-paper-plane"></i>
+              Submit Request
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Approve Modal -->
+  @if (showApproveModal && selectedRequest) {
+    <div class="modal-overlay" (click)="closeApproveModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Approve Leave Request</h3>
+          <button class="modal-close" (click)="closeApproveModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Approve leave request for <strong>{{ getStaffName(selectedRequest.staffId) }}</strong></p>
+          <p>Leave Type: <strong>{{ getLeaveTypeLabel(selectedRequest.leaveType) }}</strong></p>
+          <p>Duration: <strong>{{ selectedRequest.totalDays }} days</strong></p>
+          <p>Dates: <strong>{{ formatDate(selectedRequest.startDate) }} - {{ formatDate(selectedRequest.endDate) }}</strong></p>
+
+          <div class="form-group">
+            <label>Comments (Optional)</label>
+            <textarea [(ngModel)]="approveComments" rows="2" class="form-control"
+                      placeholder="Add any comments..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeApproveModal()">Cancel</button>
+          <button class="btn-approve" (click)="approveRequest()" [disabled]="isSaving">
+            @if (isSaving) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Processing...
+            } @else {
+              <i class="fas fa-check"></i>
+              Approve
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Reject Modal -->
+  @if (showRejectModal && selectedRequest) {
+    <div class="modal-overlay" (click)="closeRejectModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Reject Leave Request</h3>
+          <button class="modal-close" (click)="closeRejectModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Reject leave request for <strong>{{ getStaffName(selectedRequest.staffId) }}</strong></p>
+          <p>Reason: <strong>{{ selectedRequest.reason }}</strong></p>
+
+          <div class="form-group">
+            <label>Rejection Reason *</label>
+            <textarea [(ngModel)]="rejectReason" rows="3" class="form-control"
+                      placeholder="Please provide a reason for rejection..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeRejectModal()">Cancel</button>
+          <button class="btn-reject" (click)="rejectRequest()" [disabled]="isSaving">
+            @if (isSaving) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Processing...
+            } @else {
+              <i class="fas fa-times"></i>
+              Reject
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

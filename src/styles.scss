@@ -753,15 +753,114 @@ $large-desktop: 1280px;
     animation: none;
   }
 }
+// Add to your component's SCSS file
 
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  color: #4b5563;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
 
+  i {
+    font-size: 12px;
+    transition: transform 0.2s ease;
+  }
 
+  &:hover {
+    background: #f3f4f6;
+    border-color: #c49a6c;
+    color: #c49a6c;
+
+    i {
+      transform: translateX(-3px);
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  // Mobile optimization
+  @media (max-width: 768px) {
+    padding: 6px 12px;
+    font-size: 13px;
+
+    i {
+      font-size: 11px;
+    }
+  }
+}
+
+// Alternative: Different variants
+.back-btn-outline {
+  background: transparent;
+  border: 1px solid #c49a6c;
+  color: #c49a6c;
+
+  &:hover {
+    background: #c49a6c;
+    color: white;
+
+    i {
+      color: white;
+    }
+  }
+}
+
+.back-btn-ghost {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+
+  &:hover {
+    background: #f3f4f6;
+    color: #374151;
+  }
+}
+
+.back-btn-dark {
+  background: #1f2937;
+  border-color: #374151;
+  color: #e5e7eb;
+
+  &:hover {
+    background: #374151;
+    border-color: #c49a6c;
+    color: #c49a6c;
+  }
+}
+
+ .btn-gen-primary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #c49a6c !important;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+  margin: auto;
+    &:hover {
+      background: #a87b4e;
+    }
+  }
 
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  scrollbar-width: 0px !important;
 }
 
 body {

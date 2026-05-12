@@ -1,0 +1,447 @@
+<!-- src/app/modules/staff/pages/performance/performance.component.html -->
+<div class="performance-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Performance Management</h1>
+      <p class="page-subtitle">Manage staff performance reviews and evaluations</p>
+    </div>
+    <button class="btn-primary" (click)="openCreateModal()">
+      <i class="fas fa-plus"></i>
+      New Review
+    </button>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-navigation">
+    <button
+      class="tab-btn"
+      [class.active]="selectedTab === 'dashboard'"
+      (click)="selectedTab = 'dashboard'"
+    >
+      <i class="fas fa-chart-line"></i>
+      Dashboard
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="selectedTab === 'reviews'"
+      (click)="selectedTab = 'reviews'"
+    >
+      <i class="fas fa-list"></i>
+      All Reviews
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="selectedTab === 'new'"
+      (click)="selectedTab = 'new'"
+    >
+      <i class="fas fa-plus-circle"></i>
+      New Review
+    </button>
+  </div>
+
+  <!-- Dashboard Tab -->
+  @if (selectedTab === 'dashboard' && dashboard) {
+    <div class="dashboard-tab">
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon bg-blue-100">
+            <i class="fas fa-file-alt text-blue-600"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Total Reviews</h3>
+            <p>{{ dashboard.totalReviews }}</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-yellow-100">
+            <i class="fas fa-clock text-yellow-600"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Pending Reviews</h3>
+            <p>{{ dashboard.pendingReviews }}</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-green-100">
+            <i class="fas fa-star text-green-600"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Average Rating</h3>
+            <p>{{ dashboard.averageRating }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rating Distribution -->
+      <div class="rating-distribution">
+        <h3>Rating Distribution</h3>
+        <div class="rating-bars">
+          @for (item of dashboard.reviewsByRating; track item.rating) {
+            <div class="rating-bar-item">
+              <span class="rating-label">{{ getRatingText(item.rating) }}</span>
+              <div class="bar-container">
+                <div class="bar" [style.width.%]="(item.count / dashboard.totalReviews) * 100"></div>
+              </div>
+              <span class="rating-count">{{ item.count }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Top Performers -->
+      <div class="top-performers">
+        <h3>Top Performers</h3>
+        <div class="performers-list">
+          @for (review of dashboard.topPerformers.slice(0, 5); track review.reviewId) {
+            <div class="performer-item">
+              <div class="performer-info">
+                <span class="performer-name">{{ review.staffName }}</span>
+                <span class="performer-rating" [class]="getRatingClass(review.overallRating)">
+                  {{ review.overallRating }}
+                </span>
+              </div>
+              <div class="performer-date">{{ review.reviewDate | date:'MMM d, yyyy' }}</div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Recent Reviews -->
+      <div class="recent-reviews">
+        <h3>Recent Reviews</h3>
+        <div class="reviews-table">
+          <table>
+            <thead>
+              <tr><th>Staff</th><th>Review Period</th><th>Rating</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+              @for (review of dashboard.recentReviews; track review.reviewId) {
+                <tr>
+                  <td>{{ review.staffName }}</td>
+                  <td>{{ review.reviewPeriodStart | date:'MMM yyyy' }} - {{ review.reviewPeriodEnd | date:'MMM yyyy' }}</td>
+                  <td>
+                    <span class="rating-badge" [class]="getRatingClass(review.overallRating)">
+                      {{ review.overallRating }}
+                    </span>
+                  </td>
+                  <td><span class="status-badge" [class]="getStatusClass(review.status)">{{ review.status }}</span></td>
+                  <td><button class="btn-sm" (click)="viewReview(review)">View</button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Reviews List Tab -->
+  @if (selectedTab === 'reviews') {
+    <div class="reviews-tab">
+      <!-- Filters -->
+      <div class="filters-bar">
+        <div class="filter-group">
+          <select [(ngModel)]="selectedStaffId" (change)="applyFilters()">
+            <option [value]="null">All Staff</option>
+            @for (staffMember of staff; track staffMember.staffId) {
+              <option [value]="staffMember.staffId">{{ staffMember.fullName }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <select [(ngModel)]="selectedStatus" (change)="applyFilters()">
+            <option value="">All Statuses</option>
+            <option value="Draft">Draft</option>
+            <option value="Submitted">Submitted</option>
+            <option value="Acknowledged">Acknowledged</option>
+          </select>
+        </div>
+
+        @if (selectedStaffId || selectedStatus) {
+          <button class="clear-filters" (click)="clearFilters()">
+            <i class="fas fa-times"></i>
+            Clear Filters
+          </button>
+        }
+      </div>
+
+      <!-- Reviews List -->
+      @if (isLoading) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading reviews...</p>
+        </div>
+      }
+
+      @if (!isLoading && reviews.length === 0) {
+        <div class="empty-state">
+          <i class="fas fa-file-alt"></i>
+          <h3>No performance reviews found</h3>
+          <p>Create your first performance review</p>
+          <button class="btn-primary" (click)="openCreateModal()">
+            <i class="fas fa-plus"></i>
+            New Review
+          </button>
+        </div>
+      }
+
+      <div class="reviews-grid">
+        @for (review of reviews; track review.reviewId) {
+          <div class="review-card">
+            <div class="card-header">
+              <div>
+                <h3>{{ review.staffName }}</h3>
+                <p>{{ review.reviewerName }} • {{ review.reviewDate | date:'MMM d, yyyy' }}</p>
+              </div>
+              <span class="status-badge" [class]="getStatusClass(review.status)">{{ review.status }}</span>
+            </div>
+            <div class="card-body">
+              <div class="period">
+                <i class="fas fa-calendar-alt"></i>
+                {{ review.reviewPeriodStart | date:'MMM yyyy' }} - {{ review.reviewPeriodEnd | date:'MMM yyyy' }}
+              </div>
+              <div class="rating">
+                <span class="rating-label">Overall Rating:</span>
+                <span class="rating-value" [class]="getRatingClass(review.overallRating)">
+                  {{ review.overallRating }} / 5
+                </span>
+              </div>
+              <div class="promotion" *ngIf="review.promotionRecommended">
+                <i class="fas fa-trophy"></i>
+                Promotion Recommended
+              </div>
+            </div>
+            <div class="card-footer">
+              @if (review.status === 'Submitted') {
+                <button class="btn-acknowledge" (click)="openAcknowledgeModal(review)">
+                  <i class="fas fa-check-circle"></i>
+                  Acknowledge
+                </button>
+              }
+              <button class="btn-view" (click)="viewReview(review)">
+                <i class="fas fa-eye"></i>
+                View Details
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- New Review Tab -->
+  @if (selectedTab === 'new') {
+    <div class="new-review-tab">
+      <div class="form-container">
+        <h3>Create Performance Review</h3>
+
+        <form [formGroup]="reviewForm" class="review-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Staff Member *</label>
+              <select formControlName="staffId" class="form-control">
+                <option value="">Select staff member</option>
+                @for (staffMember of staff; track staffMember.staffId) {
+                  <option [value]="staffMember.staffId">{{ staffMember.fullName }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Review Period Start *</label>
+              <input type="month" formControlName="reviewPeriodStart" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Review Period End *</label>
+              <input type="month" formControlName="reviewPeriodEnd" class="form-control">
+            </div>
+          </div>
+
+          <div class="metrics-section">
+            <h4>Performance Metrics</h4>
+            <div class="metrics-grid">
+              @for (metric of metrics; track metric.metricName) {
+                <div class="metric-item">
+                  <div class="metric-header">
+                    <span class="metric-name">{{ metric.metricName }}</span>
+                    <span class="metric-weight">Weight: {{ metric.weight }}%</span>
+                  </div>
+                  <div class="metric-rating">
+                    <label>Rating (1-5):</label>
+                    <div class="rating-stars">
+                      @for (star of [1,2,3,4,5]; track star) {
+                        <i
+                          class="fas fa-star"
+                          [class.active]="star <= metric.actual"
+                          (click)="updateMetric(metric, star)"
+                        ></i>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+            <div class="overall-rating">
+              <strong>Overall Rating:</strong>
+              <span [class]="getRatingClass(reviewForm.get('overallRating')?.value)">
+                {{ reviewForm.get('overallRating')?.value }} / 5
+              </span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Strengths *</label>
+            <textarea formControlName="strengths" rows="3" class="form-control" placeholder="List the staff member's key strengths..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Areas for Improvement *</label>
+            <textarea formControlName="areasForImprovement" rows="3" class="form-control" placeholder="Identify areas that need improvement..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Goals for Next Period *</label>
+            <textarea formControlName="goalsForNextPeriod" rows="3" class="form-control" placeholder="Set goals for the next review period..."></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group checkbox">
+              <label>
+                <input type="checkbox" formControlName="promotionRecommended">
+                Recommend for Promotion
+              </label>
+            </div>
+            <div class="form-group checkbox">
+              <label>
+                <input type="checkbox" formControlName="salaryIncreaseRecommended" (change)="reviewForm.get('salaryIncreasePercentage')?.enable()">
+                Recommend Salary Increase
+              </label>
+            </div>
+            @if (reviewForm.get('salaryIncreaseRecommended')?.value) {
+              <div class="form-group">
+                <label>Increase Percentage (%)</label>
+                <input type="number" formControlName="salaryIncreasePercentage" class="form-control" step="1" min="0" max="100">
+              </div>
+            }
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" (click)="selectedTab = 'dashboard'">Cancel</button>
+            <button type="button" class="btn-primary" (click)="createReview()" [disabled]="isSaving">
+              @if (isSaving) {
+                <i class="fas fa-spinner fa-spin"></i>
+                Creating...
+              } @else {
+                <i class="fas fa-save"></i>
+                Create Review
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- View Review Modal -->
+@if (showReviewModal && selectedReview) {
+  <div class="modal-overlay" (click)="closeReviewModal()">
+    <div class="modal-container modal-large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Performance Review - {{ selectedReview.staffName }}</h3>
+        <button class="modal-close" (click)="closeReviewModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="review-details">
+          <div class="detail-row">
+            <span class="label">Review Period:</span>
+            <span>{{ selectedReview.reviewPeriodStart | date:'MMM yyyy' }} - {{ selectedReview.reviewPeriodEnd | date:'MMM yyyy' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Reviewer:</span>
+            <span>{{ selectedReview.reviewerName }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Review Date:</span>
+            <span>{{ selectedReview.reviewDate | date:'MMMM d, yyyy' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Overall Rating:</span>
+            <span class="rating-value" [class]="getRatingClass(selectedReview.overallRating)">
+              {{ selectedReview.overallRating }} / 5
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Strengths:</span>
+            <p>{{ selectedReview.strengths }}</p>
+          </div>
+          <div class="detail-row">
+            <span class="label">Areas for Improvement:</span>
+            <p>{{ selectedReview.areasForImprovement }}</p>
+          </div>
+          <div class="detail-row">
+            <span class="label">Goals:</span>
+            <p>{{ selectedReview.goalsForNextPeriod }}</p>
+          </div>
+          @if (selectedReview.promotionRecommended) {
+            <div class="detail-row highlight">
+              <i class="fas fa-trophy"></i>
+              <span>Promotion Recommended</span>
+            </div>
+          }
+          @if (selectedReview.salaryIncreaseRecommended) {
+            <div class="detail-row highlight">
+              <i class="fas fa-money-bill-wave"></i>
+              <span>Salary Increase Recommended: {{ selectedReview.salaryIncreasePercentage }}%</span>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeReviewModal()">Close</button>
+        @if (selectedReview.status === 'Submitted') {
+          <button class="btn-primary" (click)="openAcknowledgeModal(selectedReview); closeReviewModal()">
+            Acknowledge Review
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Acknowledge Modal -->
+@if (showAcknowledgeModal && selectedReview) {
+  <div class="modal-overlay" (click)="closeAcknowledgeModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Acknowledge Performance Review</h3>
+        <button class="modal-close" (click)="closeAcknowledgeModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Please confirm that you have read and understood this performance review.</p>
+        <p class="info-text">This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeAcknowledgeModal()">Cancel</button>
+        <button class="btn-primary" (click)="acknowledgeReview()" [disabled]="isSaving">
+          @if (isSaving) {
+            <i class="fas fa-spinner fa-spin"></i>
+            Processing...
+          } @else {
+            <i class="fas fa-check"></i>
+            Acknowledge
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

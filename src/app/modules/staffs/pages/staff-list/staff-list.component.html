@@ -1,0 +1,235 @@
+<!-- src/app/modules/staff/pages/staff-list/staff-list.component.html -->
+<div class="staff-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Staff Management</h1>
+      <p class="page-subtitle">Manage hotel staff, schedules, and attendance</p>
+    </div>
+    <button class="btn-primary" routerLink="/staff/add">
+      <i class="fas fa-plus"></i>
+      Add New Staff
+    </button>
+  </div>
+
+  <!-- Statistics Cards -->
+  @if (stats) {
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon bg-blue-100">
+          <i class="fas fa-users text-blue-600"></i>
+        </div>
+        <div class="stat-info">
+          <h3>Total Staff</h3>
+          <p>{{ stats.totalStaff }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-green-100">
+          <i class="fas fa-user-check text-green-600"></i>
+        </div>
+        <div class="stat-info">
+          <h3>Present Today</h3>
+          <p>{{ stats.presentToday }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-yellow-100">
+          <i class="fas fa-clock text-yellow-600"></i>
+        </div>
+        <div class="stat-info">
+          <h3>Late Today</h3>
+          <p>{{ stats.lateToday }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-purple-100">
+          <i class="fas fa-umbrella-beach text-purple-600"></i>
+        </div>
+        <div class="stat-info">
+          <h3>On Leave</h3>
+          <p>{{ stats.onLeave }}</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input
+        type="text"
+        placeholder="Search by name, email, or employee number..."
+        [(ngModel)]="filters.searchTerm"
+        (input)="applyFilters()"
+      >
+    </div>
+
+    <div class="filter-group">
+      <select [(ngModel)]="filters.department" (change)="applyFilters()">
+        <option value="">All Departments</option>
+        @for (dept of departments; track dept) {
+          <option [value]="dept">{{ dept }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <select [(ngModel)]="filters.employmentType" (change)="applyFilters()">
+        <option value="">All Employment Types</option>
+        @for (type of employmentTypes; track type) {
+          <option [value]="type">{{ type }}</option>
+        }
+      </select>
+    </div>
+
+    @if (hasActiveFilters()) {
+      <button class="clear-filters" (click)="clearFilters()">
+        <i class="fas fa-times"></i>
+        Clear Filters
+      </button>
+    }
+  </div>
+
+  <!-- Staff Grid -->
+  <div class="staff-grid">
+    <!-- Loading State -->
+    @if (isLoading) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading staff members...</p>
+      </div>
+    }
+
+    <!-- Staff Cards -->
+    @for (member of staff; track member.staffId) {
+      <div class="staff-card">
+        <div class="card-header">
+          <div class="staff-avatar">
+            @if (member.profilePhotoUrl) {
+              <img [src]="member.profilePhotoUrl" [alt]="member.fullName">
+            } @else {
+              <div class="avatar-initials">
+                {{ getInitials(member?.fullName) }}
+              </div>
+            }
+          </div>
+          <div class="staff-info">
+            <h3 class="staff-name">{{ member?.fullName }}</h3>
+            <p class="staff-role">{{ member?.position }}</p>
+            <p class="staff-department">{{ member?.department }}</p>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="info-row">
+            <i class="fas fa-id-card"></i>
+            <span>{{ member.employeeNumber }}</span>
+          </div>
+          <div class="info-row">
+            <i class="fas fa-envelope"></i>
+            <span>{{ member.email }}</span>
+          </div>
+          <div class="info-row">
+            <i class="fas fa-phone"></i>
+            <span>{{ member.phoneNumber }}</span>
+          </div>
+          <div class="info-row">
+            <i class="fas fa-briefcase"></i>
+            <span>{{ member.employmentType }}</span>
+          </div>
+          <div class="info-row">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Hired: {{ member.hireDate | date:'MMM d, yyyy' }}</span>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <span class="status-badge" [class]="getStatusClass(member?.isActive)">
+            {{ getStatusText(member?.isActive) }}
+          </span>
+          <a [routerLink]="['/staff/detail', member?.staffId]" class="btn-view">
+            <i class="fas fa-eye"></i>
+            View Details
+          </a>
+        </div>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!isLoading && staff.length === 0) {
+      <div class="empty-state">
+        <i class="fas fa-users"></i>
+        <h3>No staff members found</h3>
+        <p>Try adjusting your filters or add a new staff member</p>
+        <button class="btn-gen-primary" routerLink="/staff/add">
+          <i class="fas fa-plus"></i>
+          Add New Staff
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- Pagination -->
+  @if (totalPages > 1) {
+    <div class="pagination">
+      <button
+        class="page-btn"
+        [disabled]="currentPage === 1"
+        (click)="goToPage(1)"
+        title="First Page"
+      >
+        <i class="fas fa-angle-double-left"></i>
+      </button>
+
+      <button
+        class="page-btn"
+        [disabled]="currentPage === 1"
+        (click)="goToPage(currentPage - 1)"
+        title="Previous Page"
+      >
+        <i class="fas fa-chevron-left"></i>
+      </button>
+
+      <div class="page-numbers">
+        @for (page of pageNumbers; track page) {
+          <button
+            class="page-number"
+            [class.active]="currentPage === page"
+            (click)="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+        }
+      </div>
+
+      <button
+        class="page-btn"
+        [disabled]="currentPage === totalPages"
+        (click)="goToPage(currentPage + 1)"
+        title="Next Page"
+      >
+        <i class="fas fa-chevron-right"></i>
+      </button>
+
+      <button
+        class="page-btn"
+        [disabled]="currentPage === totalPages"
+        (click)="goToPage(totalPages)"
+        title="Last Page"
+      >
+        <i class="fas fa-angle-double-right"></i>
+      </button>
+    </div>
+  }
+
+  <!-- Pagination Info -->
+  @if (totalItems > 0) {
+    <div class="pagination-info">
+      Showing {{ ((currentPage - 1) * pageSize) + 1 }} to
+      {{ Math.min(currentPage * pageSize, totalItems) }} of
+      {{ totalItems }} staff members
+    </div>
+  }
+</div>

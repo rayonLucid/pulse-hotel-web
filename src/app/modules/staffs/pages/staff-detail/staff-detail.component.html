@@ -1,0 +1,744 @@
+<!-- staff-detail.component.html -->
+<div class="staff-detail-container">
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading staff details...</p>
+    </div>
+  }
+
+  <!-- Content -->
+  @if (!isLoading && staff || isAddMode) {
+    <!-- Header -->
+    <div class="page-header">
+      <button class="back-btn" (click)="goBack()">
+        <i class="fas fa-arrow-left"></i>
+        Back to Staff
+      </button>
+      <div class="header-actions">
+        @if (!isEditing && !isAddMode) {
+          <button class="btn-edit" (click)="toggleEdit()">
+            <i class="fas fa-edit"></i>
+            Edit Profile
+          </button>
+        }
+        @if (!isAddMode && !isEditing) {
+          <button class="btn-delete" (click)="openDeleteModal()">
+            <i class="fas fa-trash-alt"></i>
+            Deactivate
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- ==================== VIEW MODE ==================== -->
+    @if (!isEditing && !isAddMode) {
+      <!-- Profile Header -->
+      <div class="profile-header">
+        <div class="profile-avatar">
+          @if (staff?.profilePhotoUrl) {
+            <img [src]="staff?.profilePhotoUrl" [alt]="staff?.fullName">
+          } @else {
+            <div class="avatar-initials">
+              {{ getInitials(staff?.fullName || '') }}
+            </div>
+          }
+        </div>
+        <div class="profile-info">
+          <h1 class="profile-name">{{ staff?.fullName }}</h1>
+          <p class="profile-role">{{ staff?.position }} • {{ staff?.department }}</p>
+          <div class="profile-meta">
+            <span class="employee-id">
+              <i class="fas fa-id-card"></i>
+              {{ staff?.employeeNumber }}
+            </span>
+            <span class="status-badge" [class]="getStatusClass(staff?.isActive || false)">
+              {{ getStatusText(staff?.isActive || false) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="tab-navigation">
+        <button
+          class="tab-btn"
+          [class.active]="activeTab === 'profile'"
+          (click)="setActiveTab('profile')"
+        >
+          <i class="fas fa-user"></i>
+          Profile
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab === 'schedules'"
+          (click)="setActiveTab('schedules')"
+        >
+          <i class="fas fa-calendar-alt"></i>
+          Schedules
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab === 'attendance'"
+          (click)="setActiveTab('attendance')"
+        >
+          <i class="fas fa-clock"></i>
+          Attendance
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab === 'leaves'"
+          (click)="setActiveTab('leaves')"
+        >
+          <i class="fas fa-umbrella-beach"></i>
+          Leave Requests
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab === 'performance'"
+          (click)="setActiveTab('performance')"
+        >
+          <i class="fas fa-chart-line"></i>
+          Performance
+        </button>
+      </div>
+
+      <!-- Profile Tab Content -->
+      @if (activeTab === 'profile') {
+        <div class="profile-tab">
+          <div class="info-grid">
+            <!-- Personal Information -->
+            <div class="info-card">
+              <div class="card-header">
+                <i class="fas fa-user-circle"></i>
+                <h3>Personal Information</h3>
+              </div>
+              <div class="card-body">
+                <div class="info-row">
+                  <span class="label">Full Name:</span>
+                  <span class="value">{{ staff?.fullName }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Email Address:</span>
+                  <span class="value">{{ staff?.email }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Phone Number:</span>
+                  <span class="value">{{ staff?.phoneNumber }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Employment Information -->
+            <div class="info-card">
+              <div class="card-header">
+                <i class="fas fa-briefcase"></i>
+                <h3>Employment Information</h3>
+              </div>
+              <div class="card-body">
+                <div class="info-row">
+                  <span class="label">Employee Number:</span>
+                  <span class="value">{{ staff?.employeeNumber }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Department:</span>
+                  <span class="value">{{ staff?.department }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Position:</span>
+                  <span class="value">{{ staff?.position }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Job Title:</span>
+                  <span class="value">{{ staff?.jobTitle }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Employment Type:</span>
+                  <span class="value">{{ staff?.employmentType }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Hire Date:</span>
+                  <span class="value">{{ staff?.hireDate | date }}</span>
+                </div>
+                @if (staff?.confirmationDate) {
+                  <div class="info-row">
+                    <span class="label">Confirmation Date:</span>
+                    <span class="value">{{ staff?.confirmationDate | date }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Compensation -->
+            <div class="info-card">
+              <div class="card-header">
+                <i class="fas fa-money-bill-wave"></i>
+                <h3>Compensation</h3>
+              </div>
+              <div class="card-body">
+                @if (staff?.basicSalary) {
+                  <div class="info-row">
+                    <span class="label">Basic Salary:</span>
+                    <span class="value">{{ staff?.basicSalary | number }}</span>
+                  </div>
+                }
+                @if (staff?.hourlyRate) {
+                  <div class="info-row">
+                    <span class="label">Hourly Rate:</span>
+                    <span class="value">{{ staff?.hourlyRate | number }}</span>
+                  </div>
+                }
+                @if (staff?.bankName && staff?.accountNumber) {
+                  <div class="info-row">
+                    <span class="label">Bank Account:</span>
+                    <span class="value">{{ staff?.bankName }} - {{ staff?.accountNumber }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Emergency Contact -->
+            <div class="info-card">
+              <div class="card-header">
+                <i class="fas fa-ambulance"></i>
+                <h3>Emergency Contact</h3>
+              </div>
+              <div class="card-body">
+                <div class="info-row">
+                  <span class="label">Contact Name:</span>
+                  <span class="value">{{ staff?.emergencyContactName || 'Not provided' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Contact Phone:</span>
+                  <span class="value">{{ staff?.emergencyContactPhone || 'Not provided' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Schedules Tab Content -->
+      @if (activeTab === 'schedules') {
+        <div class="schedules-tab">
+          <div class="date-filter">
+            <div class="filter-group">
+              <label>Start Date:</label>
+              <input type="date" [(ngModel)]="scheduleStartDate" (change)="updateScheduleDates()" class="filter-input">
+            </div>
+            <div class="filter-group">
+              <label>End Date:</label>
+              <input type="date" [(ngModel)]="scheduleEndDate" (change)="updateScheduleDates()" class="filter-input">
+            </div>
+          </div>
+
+          <div class="schedules-list">
+            @if (shiftAssignments.length === 0) {
+              <div class="empty-state">
+                <i class="fas fa-calendar-alt"></i>
+                <p>No shift assignments for this period</p>
+              </div>
+            }
+            @for (shift of shiftAssignments; track shift.assignmentId) {
+              <div class="schedule-item">
+                <div class="schedule-date">{{ shift.assignmentDate | date }}</div>
+                <div class="schedule-details">
+                  <div class="shift-name">{{ shift.shiftName }}</div>
+                  <div class="shift-time">
+                    <i class="fas fa-clock"></i>
+                    {{ shift.startTime }} - {{ shift.endTime }}
+                  </div>
+                  <div class="shift-status" [class]="shift.status.toLowerCase()">
+                    {{ shift.status }}
+                  </div>
+                </div>
+                @if (shift.checkInTime) {
+                  <div class="schedule-check">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Checked in: {{ formatTime(shift.checkInTime) }}
+                  </div>
+                }
+                @if (shift.checkOutTime) {
+                  <div class="schedule-check">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Checked out: {{ formatTime(shift.checkOutTime) }}
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Attendance Tab Content -->
+      @if (activeTab === 'attendance') {
+        <div class="attendance-tab">
+          <div class="date-filter">
+            <div class="filter-group">
+              <label>Start Date:</label>
+              <input type="date" [(ngModel)]="attendanceStartDate" (change)="updateAttendanceDates()" class="filter-input">
+            </div>
+            <div class="filter-group">
+              <label>End Date:</label>
+              <input type="date" [(ngModel)]="attendanceEndDate" (change)="updateAttendanceDates()" class="filter-input">
+            </div>
+          </div>
+
+          <div class="attendance-stats">
+            <div class="stat">
+              <span class="stat-label">Present:</span>
+              <span class="stat-value">{{ attendanceLogs.filter(l => l.status === 'Present').length }}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Late:</span>
+              <span class="stat-value">{{ attendanceLogs.filter(l => l.status === 'Late').length }}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Absent:</span>
+              <span class="stat-value">{{ attendanceLogs.filter(l => l.status === 'Absent').length }}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Leave:</span>
+              <span class="stat-value">{{ attendanceLogs.filter(l => l.status === 'Leave').length }}</span>
+            </div>
+          </div>
+
+          <div class="attendance-timeline">
+            @for (log of attendanceLogs; track log.logId) {
+              <div class="attendance-item">
+                <div class="attendance-date">{{ log.logDate | date }}</div>
+                <div class="attendance-status" [class]="getAttendanceStatusClass(log.status)">
+                  {{ log.status }}
+                </div>
+                <div class="attendance-times">
+                  @if (log.clockInTime) {
+                    <span><i class="fas fa-sign-in-alt"></i> {{ formatTime(log.clockInTime) }}</span>
+                  }
+                  @if (log.clockOutTime) {
+                    <span><i class="fas fa-sign-out-alt"></i> {{ formatTime(log.clockOutTime) }}</span>
+                  }
+                  @if (log.lateMinutes > 0) {
+                    <span class="late-badge">{{ log.lateMinutes }} min late</span>
+                  }
+                </div>
+              </div>
+            }
+            @if (attendanceLogs.length === 0) {
+              <div class="empty-state">
+                <i class="fas fa-clock"></i>
+                <p>No attendance records for this period</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Leave Requests Tab Content -->
+      @if (activeTab === 'leaves') {
+        <div class="leaves-tab">
+          <div class="leave-stats" *ngIf="leaveRequests.length > 0">
+            <div class="stat">
+              <span class="stat-label">Pending:</span>
+              <span class="stat-value">{{ leaveRequests.filter(l => l.status === 'Pending').length }}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Approved:</span>
+              <span class="stat-value">{{ leaveRequests.filter(l => l.status === 'Approved').length }}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Rejected:</span>
+              <span class="stat-value">{{ leaveRequests.filter(l => l.status === 'Rejected').length }}</span>
+            </div>
+          </div>
+
+          <div class="leaves-list">
+            @for (leave of leaveRequests; track leave.leaveId) {
+              <div class="leave-item">
+                <div class="leave-header">
+                  <div class="leave-type">{{ leave.leaveType }}</div>
+                  <div class="leave-status" [class]="getLeaveStatusClass(leave.status)">
+                    {{ leave.status }}
+                  </div>
+                </div>
+                <div class="leave-dates">
+                  <i class="fas fa-calendar-alt"></i>
+                  {{ leave.startDate | date }} - {{ leave.endDate | date }}
+                  ({{ leave.totalDays }} days)
+                </div>
+                <div class="leave-reason">{{ leave.reason }}</div>
+                @if (leave.approverName) {
+                  <div class="leave-approver">
+                    <i class="fas fa-user-check"></i>
+                    Approved by: {{ leave.approverName }}
+                  </div>
+                }
+              </div>
+            }
+            @if (leaveRequests.length === 0) {
+              <div class="empty-state">
+                <i class="fas fa-umbrella-beach"></i>
+                <p>No leave requests found</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Performance Tab Content -->
+      @if (activeTab === 'performance') {
+        <div class="performance-tab">
+          <div class="performance-stats" *ngIf="performanceReviews.length > 0">
+            <div class="stat">
+              <span class="stat-label">Average Rating:</span>
+              <span class="stat-value">
+                {{ (performanceReviews.reduce((sum, r) => sum + r.overallRating, 0) / performanceReviews.length).toFixed(1) }}
+              </span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Total Reviews:</span>
+              <span class="stat-value">{{ performanceReviews.length }}</span>
+            </div>
+          </div>
+
+          <div class="reviews-list">
+            @for (review of performanceReviews; track review.reviewId) {
+              <div class="review-item">
+                <div class="review-header">
+                  <div class="review-period">
+                    {{ review.reviewPeriodStart | date }} - {{ review.reviewPeriodEnd | date }}
+                  </div>
+                  <div class="review-rating" [class]="getPerformanceRatingClass(review.overallRating)">
+                    {{ review.overallRating }} / 5
+                  </div>
+                </div>
+                <div class="review-body">
+                  <div class="review-section">
+                    <strong>Strengths:</strong>
+                    <p>{{ review.strengths }}</p>
+                  </div>
+                  <div class="review-section">
+                    <strong>Areas for Improvement:</strong>
+                    <p>{{ review.areasForImprovement }}</p>
+                  </div>
+                  <div class="review-section">
+                    <strong>Goals:</strong>
+                    <p>{{ review.goalsForNextPeriod }}</p>
+                  </div>
+                  @if (review.promotionRecommended) {
+                    <div class="review-badge promotion">
+                      <i class="fas fa-trophy"></i> Promotion Recommended
+                    </div>
+                  }
+                </div>
+                <div class="review-footer">
+                  <span>Reviewed by: {{ review.reviewerName }}</span>
+                  <span>on {{ review.reviewDate | date }}</span>
+                </div>
+              </div>
+            }
+            @if (performanceReviews.length === 0) {
+              <div class="empty-state">
+                <i class="fas fa-chart-line"></i>
+                <p>No performance reviews found</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    <!-- ==================== EDIT / ADD MODE ==================== -->
+    @if (isEditing || isAddMode) {
+      <div class="edit-form-container">
+        <div class="edit-header">
+          <h3>{{ isAddMode ? 'Add New Staff Member' : 'Edit Staff Profile' }}</h3>
+          <button class="close-btn" (click)="toggleEdit()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <form [formGroup]="editForm" (ngSubmit)="saveStaff()" class="edit-form">
+          <!-- Personal Information Section -->
+          <div class="form-section">
+            <h4 class="section-title">
+              <i class="fas fa-user"></i>
+              Personal Information
+            </h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="fullName">Full Name *</label>
+                <input
+                  type="text"
+                  id="fullName"
+                  formControlName="fullName"
+                  class="form-control"
+                  [class.is-invalid]="editForm.get('fullName')?.invalid && editForm.get('fullName')?.touched"
+                >
+                @if (editForm.get('fullName')?.invalid && editForm.get('fullName')?.touched) {
+                  <div class="error-message">Full name is required</div>
+                }
+              </div>
+              <div class="form-group">
+                <label for="employeeNumber">Employee Number *</label>
+                <input
+                  type="text"
+                  id="employeeNumber"
+                  formControlName="employeeNumber"
+                  class="form-control"
+                  [class.is-invalid]="editForm.get('employeeNumber')?.invalid && editForm.get('employeeNumber')?.touched"
+                >
+                @if (editForm.get('employeeNumber')?.invalid && editForm.get('employeeNumber')?.touched) {
+                  <div class="error-message">Employee number is required</div>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="email">Email *</label>
+                <input
+                  type="email"
+                  id="email"
+                  formControlName="email"
+                  class="form-control"
+                  [class.is-invalid]="editForm.get('email')?.invalid && editForm.get('email')?.touched"
+                >
+                @if (editForm.get('email')?.invalid && editForm.get('email')?.touched) {
+                  <div class="error-message">Valid email is required</div>
+                }
+              </div>
+              <div class="form-group">
+                <label for="phoneNumber">Phone Number *</label>
+                <input
+                  type="tel"
+                  id="phoneNumber"
+                  formControlName="phoneNumber"
+                  class="form-control"
+                  [class.is-invalid]="editForm.get('phoneNumber')?.invalid && editForm.get('phoneNumber')?.touched"
+                >
+                @if (editForm.get('phoneNumber')?.invalid && editForm.get('phoneNumber')?.touched) {
+                  <div class="error-message">Valid phone number is required</div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Employment Information Section -->
+          <div class="form-section">
+            <h4 class="section-title">
+              <i class="fas fa-briefcase"></i>
+              Employment Information
+            </h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="department">Department *</label>
+                <select
+                  id="department"
+                  formControlName="department"
+                  class="form-control"
+                  [class.is-invalid]="editForm.get('department')?.invalid && editForm.get('department')?.touched"
+                >
+                  <option value="">Select Department</option>
+                  @for (dept of departments; track dept) {
+                    <option [value]="dept">{{ dept }}</option>
+                  }
+                </select>
+                @if (editForm.get('department')?.invalid && editForm.get('department')?.touched) {
+                  <div class="error-message">Department is required</div>
+                }
+              </div>
+              <div class="form-group">
+                <label for="position">Position *</label>
+                <select
+                  id="position"
+                  formControlName="position"
+                  class="form-control"
+                  [class.is-invalid]="editForm.get('position')?.invalid && editForm.get('position')?.touched"
+                >
+                  <option value="">Select Position</option>
+                  @for (pos of positions; track pos) {
+                    <option [value]="pos">{{ pos }}</option>
+                  }
+                </select>
+                @if (editForm.get('position')?.invalid && editForm.get('position')?.touched) {
+                  <div class="error-message">Position is required</div>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="jobTitle">Job Title *</label>
+                <input
+                  type="text"
+                  id="jobTitle"
+                  formControlName="jobTitle"
+                  class="form-control"
+                  [class.is-invalid]="editForm.get('jobTitle')?.invalid && editForm.get('jobTitle')?.touched"
+                >
+                @if (editForm.get('jobTitle')?.invalid && editForm.get('jobTitle')?.touched) {
+                  <div class="error-message">Job title is required</div>
+                }
+              </div>
+              <div class="form-group">
+                <label for="employmentType">Employment Type *</label>
+                <select
+                  id="employmentType"
+                  formControlName="employmentType"
+                  class="form-control"
+                  [class.is-invalid]="editForm.get('employmentType')?.invalid && editForm.get('employmentType')?.touched"
+                >
+                  <option value="">Select Type</option>
+                  @for (type of employmentTypes; track type) {
+                    <option [value]="type">{{ type }}</option>
+                  }
+                </select>
+                @if (editForm.get('employmentType')?.invalid && editForm.get('employmentType')?.touched) {
+                  <div class="error-message">Employment type is required</div>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="hireDate">Hire Date *</label>
+                <input
+                  type="date"
+                  id="hireDate"
+                  formControlName="hireDate"
+                  class="form-control"
+                  [class.is-invalid]="editForm.get('hireDate')?.invalid && editForm.get('hireDate')?.touched"
+                >
+                @if (editForm.get('hireDate')?.invalid && editForm.get('hireDate')?.touched) {
+                  <div class="error-message">Hire date is required</div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Compensation Section -->
+          <div class="form-section">
+            <h4 class="section-title">
+              <i class="fas fa-money-bill-wave"></i>
+              Compensation
+            </h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="basicSalary">Basic Salary</label>
+                <input
+                  type="number"
+                  id="basicSalary"
+                  formControlName="basicSalary"
+                  class="form-control"
+                >
+              </div>
+              <div class="form-group">
+                <label for="hourlyRate">Hourly Rate</label>
+                <input
+                  type="number"
+                  id="hourlyRate"
+                  formControlName="hourlyRate"
+                  class="form-control"
+                >
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="bankName">Bank Name</label>
+                <input
+                  type="text"
+                  id="bankName"
+                  formControlName="bankName"
+                  class="form-control"
+                >
+              </div>
+              <div class="form-group">
+                <label for="accountNumber">Account Number</label>
+                <input
+                  type="text"
+                  id="accountNumber"
+                  formControlName="accountNumber"
+                  class="form-control"
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Emergency Contact Section -->
+          <div class="form-section">
+            <h4 class="section-title">
+              <i class="fas fa-ambulance"></i>
+              Emergency Contact
+            </h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="emergencyContactName">Contact Name</label>
+                <input
+                  type="text"
+                  id="emergencyContactName"
+                  formControlName="emergencyContactName"
+                  class="form-control"
+                >
+              </div>
+              <div class="form-group">
+                <label for="emergencyContactPhone">Contact Phone</label>
+                <input
+                  type="tel"
+                  id="emergencyContactPhone"
+                  formControlName="emergencyContactPhone"
+                  class="form-control"
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" (click)="toggleEdit()">Cancel</button>
+            <button type="submit" class="btn-save" [disabled]="isSaving || editForm.invalid">
+              @if (isSaving) {
+                <i class="fas fa-spinner fa-spin"></i>
+                Saving...
+              } @else {
+                <i class="fas fa-save"></i>
+                {{ isAddMode ? 'Create Staff' : 'Save Changes' }}
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+  }
+
+  <!-- Delete Confirmation Modal -->
+  @if (showDeleteModal) {
+    <div class="modal-overlay" (click)="closeDeleteModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Deactivate Staff Member</h3>
+          <button class="modal-close" (click)="closeDeleteModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to deactivate <strong>{{ staff?.fullName }}</strong>?</p>
+          <p class="warning-text">This action can be reversed later.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeDeleteModal()">Cancel</button>
+          <button class="btn-danger" (click)="confirmDelete()" [disabled]="isSaving">
+            @if (isSaving) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Processing...
+            } @else {
+              <i class="fas fa-user-slash"></i>
+              Deactivate
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
