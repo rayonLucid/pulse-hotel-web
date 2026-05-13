@@ -33,7 +33,7 @@ export class StaffService {
   }
 
   createStaff(staffData: any): Observable<{ success: boolean; data: Staff }> {
-    return this.http.post<{ success: boolean; data: Staff }>(this.apiUrl, staffData);
+    return this.http.post<{ success: boolean; data: Staff }>(this.apiUrl+'/create', staffData);
   }
 
   updateStaff(id: number, staffData: any): Observable<{ success: boolean; data: Staff }> {

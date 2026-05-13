@@ -108,15 +108,15 @@
         <div class="card-header">
           <div class="staff-avatar">
             @if (member.profilePhotoUrl) {
-              <img [src]="member.profilePhotoUrl" [alt]="member.fullName">
+              <img [src]="member.profilePhotoUrl" [alt]="member.firstName" class="avatar-img">
             } @else {
               <div class="avatar-initials">
-                {{ getInitials(member?.fullName) }}
+                {{ getIntials() }}
               </div>
             }
           </div>
           <div class="staff-info">
-            <h3 class="staff-name">{{ member?.fullName }}</h3>
+            <h3 class="staff-name">{{ member?.firstName }}</h3>
             <p class="staff-role">{{ member?.position }}</p>
             <p class="staff-department">{{ member?.department }}</p>
           </div>

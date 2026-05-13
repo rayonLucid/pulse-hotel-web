@@ -113,10 +113,10 @@
           <div class="staff-card">
             <div class="staff-header">
               <div class="staff-avatar">
-                {{ getStaffInitials(staffMember.fullName) }}
+                {{ getStaffInitials() }}
               </div>
               <div class="staff-info">
-                <h3 class="staff-name">{{ staffMember.fullName }}</h3>
+                <h3 class="staff-name">{{ staffMember.firstName }} {{ staffMember.lastName }}</h3>
                 <p class="staff-role">{{ staffMember.position }} • {{ staffMember.department }}</p>
               </div>
               <button class="assign-btn" (click)="openCreateModalForStaff(staffMember)">

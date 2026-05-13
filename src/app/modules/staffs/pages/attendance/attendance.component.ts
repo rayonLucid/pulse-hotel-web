@@ -172,7 +172,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.isCheckingIn = false;
         if (response.success) {
-          this.toastr.success(`${this.selectedStaffForClockIn?.fullName} checked in successfully`, 'Clock In');
+          this.toastr.success(`${this.selectedStaffForClockIn?.firstName} ${this.selectedStaffForClockIn?.lastName} checked in successfully`, 'Clock In');
           this.closeClockInModal();
           this.loadAttendance();
         } else {
@@ -207,7 +207,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   // Helper methods
   getStaffName(staffId: number): string {
     const staff = this.staff.find(s => s.staffId === staffId);
-    return staff ? staff.fullName : 'Unknown';
+    return staff ? staff.firstName + ' ' + staff.lastName : 'Unknown';
   }
 
   getStaffDepartment(staffId: number): string {
@@ -217,8 +217,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   getStaffInitials(staffId: number): string {
     const staff = this.staff.find(s => s.staffId === staffId);
+    let fullName = staff ? staff.firstName + ' ' + staff.lastName : '';
     if (!staff) return '??';
-    return staff.fullName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    return fullName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
   }
 
   getStaffById(staffId: number): Staff | undefined {

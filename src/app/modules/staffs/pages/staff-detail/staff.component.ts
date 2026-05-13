@@ -6,6 +6,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ToastrService } from 'ngx-toastr';
 import { StaffService } from '../../../../core/services/staff.service';
 import { Staff, ShiftAssignment, AttendanceLog, LeaveRequest, PerformanceReview } from '../../../../core/models/staff.model';
+import { Bank, BankService } from '../../../../core/services/bank.service';
 
 @Component({
   selector: 'app-staff-detail',
@@ -29,6 +30,14 @@ export class StaffDetailComponent implements OnInit {
   // Edit Form
   editForm: FormGroup;
 
+
+  // Bank validation properties
+  banks: Bank[] = [];
+  isVerifyingAccount = false;
+  accountVerified = false;
+  accountName = '';
+  bankCode = '';
+
   // Date filters
   scheduleStartDate: Date;
   scheduleEndDate: Date;
@@ -44,6 +53,7 @@ private changeDet =inject(ChangeDetectorRef);
     private router: Router,
     private fb: FormBuilder,
     private staffService: StaffService,
+    private bankService: BankService,
     private toastr: ToastrService
   ) {
     // Initialize dates
@@ -69,11 +79,14 @@ private changeDet =inject(ChangeDetectorRef);
       bankName: [''],
       accountNumber: [''],
       emergencyContactName: [''],
-      emergencyContactPhone: ['']
+      emergencyContactPhone: [''],
+      Password: [''],
+      SalaryGrade: [ '' ]
     });
   }
 
   ngOnInit(): void {
+     this.banks = this.bankService.getBanks();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.loadStaff(parseInt(id));
@@ -194,32 +207,7 @@ private changeDet =inject(ChangeDetectorRef);
     }
   }
 
-  saveStaff(): void {
-    if (this.editForm.invalid) {
-      this.toastr.warning('Please fill all required fields', 'Validation Error');
-      return;
-    }
 
-    this.isSaving = true;
-    const updatedStaff = this.editForm.value;
-
-    this.staffService.updateStaff(this.staff!.staffId, updatedStaff).subscribe({
-      next: (response:any) => {
-        this.isSaving = false;
-        if (response.success) {
-          this.toastr.success('Staff member updated successfully', 'Success');
-          this.isEditing = false;
-          this.loadStaff(this.staff!.staffId);
-        } else {
-          this.toastr.error(response.message || 'Update failed', 'Error');
-        }
-      },
-      error: (error) => {
-        this.isSaving = false;
-        this.toastr.error(error.message || 'Failed to update staff', 'Error');
-      }
-    });
-  }
 
   deactivateStaff(): void {
     this.isSaving = true;
@@ -330,5 +318,179 @@ this.changeDet.detectChanges();
 
   formatPrice(price: number): string {
     return `₦${price.toLocaleString()}`;
+  }
+
+// Add this method to the component
+
+// Create new staff member
+createStaff(): void {
+  if (this.editForm.invalid) {
+    this.toastr.warning('Please fill all required fields', 'Validation Error');
+    return;
+  }
+
+  this.isSaving = true;
+  const staffData = this.editForm.value;
+
+  this.staffService.createStaff(staffData).subscribe({
+    next: (response:any) => {
+      this.isSaving = false;
+      if (response.success) {
+        this.toastr.success('Staff member created successfully', 'Success');
+        this.router.navigate(['/staff/detail', response.data.staffId]);
+      } else {
+        this.toastr.error(response.message || 'Creation failed', 'Error');
+      }
+    },
+    error: (error) => {
+      this.isSaving = false;
+      console.log(error)
+      this.toastr.error(error.message || 'Failed to create staff', 'Error');
+    }
+  });
+}
+
+// Update existing staff member
+updateStaff(): void {
+  if (this.editForm.invalid) {
+    this.toastr.warning('Please fill all required fields', 'Validation Error');
+    return;
+  }
+
+  this.isSaving = true;
+  const staffData = this.editForm.value;
+
+  this.staffService.updateStaff(this.staff!.staffId, staffData).subscribe({
+    next: (response:any) => {
+      this.isSaving = false;
+      if (response.success) {
+        this.toastr.success('Staff member updated successfully', 'Success');
+        this.isEditing = false;
+        this.loadStaff(this.staff!.staffId);
+        this.changeDet.detectChanges();
+      } else {
+        this.toastr.error(response.message || 'Update failed', 'Error');
+        this.changeDet.detectChanges();
+      }
+    },
+    error: (error) => {
+      this.isSaving = false;
+      this.toastr.error(error.message || 'Failed to update staff', 'Error');
+      this.changeDet.detectChanges();
+    }
+  });
+}
+
+// Save staff (handles both create and update)
+saveStaff(): void {
+  // if(this.accountVerified ==false){
+  //       this.toastr.warning('Please verify account number', 'Verification Failed');
+  //       this.isSaving =false
+  //       this.changeDet.detectChanges()
+  //   return
+  // }
+  if (this.isAddMode) {
+    this.createStaff();
+  } else {
+    this.updateStaff();
+  }
+}
+
+// Validate bank account number
+  async validateBankAccount(): Promise<void> {
+    const accountNumber = this.editForm.get('accountNumber')?.value;
+    const bankCode = this.bankCode;
+
+    if (!accountNumber || accountNumber.length !== 10) {
+      this.accountVerified = false;
+      this.accountName = '';
+      this.toastr.warning('Please enter a valid 10-digit account number', 'Validation Error');
+      return;
+    }
+
+    if (!bankCode) {
+      this.accountVerified = false;
+      this.accountName = '';
+      this.toastr.warning('Please select a bank first', 'Validation Error');
+      return;
+    }
+
+    this.isVerifyingAccount = true;
+
+    // First do local validation
+    const localValidation = this.bankService.validateAccountLocally(accountNumber, bankCode);
+console.log('Local validation result:', localValidation);
+    if (!localValidation.valid) {
+      this.isVerifyingAccount = false;
+      this.accountVerified = false;
+      this.toastr.warning(localValidation.message, 'Invalid Account');
+      return;
+    }
+
+    // If local validation passes, try API validation (optional)
+    this.bankService.validateAccountWithPaystack(accountNumber, bankCode).subscribe({
+      next: (response) => {
+        this.isVerifyingAccount = false;
+        console.log('API validation response:', response);
+        if (response.success && response.data) {
+          this.accountVerified = true;
+          this.accountName = response.data.account_name;
+          this.toastr.success(`Account verified: ${response.data.account_name}`, 'Account Verified');
+          this.changeDet.detectChanges()
+        } else {
+          this.accountVerified = false;
+          this.accountName = '';
+          this.toastr.warning(response.message || 'Account verification failed', 'Verification Failed');
+          this.changeDet.detectChanges()
+        }
+      },
+      error: (error) => {
+        this.isVerifyingAccount = false;
+        console.error('API validation:', error);
+        // If API fails, still accept the account based on local validation
+        if (localValidation.valid) {
+          this.accountVerified = true;
+          this.accountName = 'Account number format valid (API unavailable)';
+          this.toastr.info('Account format verified locally. Please confirm with bank if needed.', 'Local Verification');
+          this.changeDet.detectChanges();
+        }
+      }
+    });
+  }
+
+  // Format account number as user types
+  formatAccountNumberInput(): void {
+    let accountNumber = this.editForm.get('accountNumber')?.value || '';
+    // Remove non-digits
+    accountNumber = accountNumber.replace(/\D/g, '');
+    // Limit to 10 digits
+    if (accountNumber.length > 10) {
+      accountNumber = accountNumber.slice(0, 10);
+    }
+    this.editForm.get('accountNumber')?.setValue(accountNumber, { emitEvent: false });
+
+    // Reset verification when account number changes
+    if (this.accountVerified) {
+      this.accountVerified = false;
+      this.accountName = '';
+    }
+  }
+
+  // Reset verification when bank changes
+  onBankChange(bankCode: any): void {
+    this.bankCode = bankCode.value;
+    this.accountVerified = false;
+    this.accountName = '';
+
+    // Clear account number if bank changes
+    if (this.editForm.get('accountNumber')?.value) {
+      this.editForm.get('accountNumber')?.setValue('');
+    }
+  }
+
+  // Get bank name by code
+  getBankName(bankCode: string): string {
+    const bank = this.banks.find(b => b.code === bankCode);
+    return bank ? bank.name : '';
   }
 }

@@ -314,7 +314,8 @@ export class ShiftScheduleComponent implements OnInit {
 
   getStaffName(staffId: number): string {
     const staff = this.staff.find(s => s.staffId === staffId);
-    return staff ? staff.fullName : 'Unknown';
+    return staff ? staff.firstName + ' ' + staff.lastName : 'Unknown';
+   // return staff ? staff.fullName : 'Unknown';
   }
 
   getShiftName(shiftId: number): string {
@@ -379,7 +380,11 @@ hasAssignmentOnDate(staffId: number, date: Date): boolean {
 }
 // Add these methods to the ShiftScheduleComponent class
 
-getStaffInitials(name: string): string {
+getStaffInitials(): string {
+  let name = '';
+  if (this.staff.length > 0) {
+    name = this.staff[0].firstName + ' ' + this.staff[0].lastName;
+  }
   return name.split(' ').map(n => n[0]).join('').toUpperCase();
 }
 

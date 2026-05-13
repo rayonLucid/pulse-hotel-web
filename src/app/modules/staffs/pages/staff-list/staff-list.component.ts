@@ -140,7 +140,8 @@ private changeDet =inject(ChangeDetectorRef);
     return pages;
   }
 
-  getInitials(name: string|undefined): string {
+  getIntials(): string {
+    const name = this.staff[0]?.firstName + ' ' + this.staff[0]?.lastName;
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '';
   }
 

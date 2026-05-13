@@ -86,7 +86,7 @@
       <select [(ngModel)]="selectedStaffId" (change)="onStaffFilterChange()">
         <option [value]="null">All Staff</option>
         @for (staffMember of staff; track staffMember.staffId) {
-          <option [value]="staffMember.staffId">{{ staffMember.fullName }}</option>
+          <option [value]="staffMember.staffId">{{ staffMember.firstName }} {{ staffMember.lastName }}</option>
         }
       </select>
     </div>
@@ -298,7 +298,7 @@
               <select formControlName="staffId" class="form-control">
                 <option value="">Select staff member</option>
                 @for (staffMember of staff; track staffMember.staffId) {
-                  <option [value]="staffMember.staffId">{{ staffMember.fullName }}</option>
+                  <option [value]="staffMember.staffId">{{ staffMember.firstName }} {{ staffMember.lastName }}</option>
                 }
               </select>
             </div>

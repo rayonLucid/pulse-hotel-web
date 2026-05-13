@@ -114,7 +114,7 @@
       <select [(ngModel)]="selectedStaffId" (change)="onStaffFilterChange()">
         <option [value]="null">All Staff</option>
         @for (staffMember of staff; track staffMember.staffId) {
-          <option [value]="staffMember.staffId">{{ staffMember.fullName }}</option>
+          <option [value]="staffMember.staffId">{{ staffMember.firstName }} {{ staffMember.lastName }}</option>
         }
       </select>
     </div>
@@ -241,7 +241,7 @@
                 @if (getStaffStatus(staffMember.staffId, day) !== 'Not Recorded') {
                   <div class="attendance-dot"
                        [class]="getStatusClass(getStaffStatus(staffMember.staffId, day))"
-                       [title]="staffMember.fullName + ': ' + getStaffStatus(staffMember.staffId, day)">
+                       [title]="staffMember.firstName + ' ' + staffMember.lastName + ': ' + getStaffStatus(staffMember.staffId, day)">
                   </div>
                 }
               }
@@ -310,7 +310,7 @@
               @let leave = staffLogs.filter(l => l.status === 'Leave').length;
               @let attendanceRate = staffLogs.length > 0 ? Math.round((present / staffLogs.length) * 100) : 0;
               <tr>
-                <td>{{ staffMember.fullName }}</td>
+                <td>{{ staffMember.firstName }} {{ staffMember.lastName }}</td>
                 <td>{{ staffMember.department }}</td>
                 <td>{{ present }}</td>
                 <td>{{ absent }}</td>
@@ -335,7 +335,7 @@
     <div class="modal-overlay" (click)="closeClockInModal()">
       <div class="modal-container" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h3>Clock In - {{ selectedStaffForClockIn.fullName }}</h3>
+          <h3>Clock In - {{ selectedStaffForClockIn.firstName }} {{ selectedStaffForClockIn.lastName }}</h3>
           <button class="modal-close" (click)="closeClockInModal()">
             <i class="fas fa-times"></i>
           </button>

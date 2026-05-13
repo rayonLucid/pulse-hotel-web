@@ -300,7 +300,7 @@ export class LeaveRequestsComponent implements OnInit {
   // Helper methods
   getStaffName(staffId: number): string {
     const staff = this.staff.find(s => s.staffId === staffId);
-    return staff ? staff.fullName : 'Unknown';
+    return staff ? staff.firstName + ' ' + staff.lastName : 'Unknown';
   }
 
   getStaffDepartment(staffId: number): string {
@@ -462,7 +462,7 @@ formatDateTime(date: Date): string {
 getStaffInitials(staffId: number): string {
   const staff = this.staff.find(s => s.staffId === staffId);
   if (!staff) return '??';
-  return staff.fullName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+  return staff.firstName.charAt(0) + staff.lastName.charAt(0);
 }
 
 
