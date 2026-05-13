@@ -54,7 +54,8 @@ private changeDet =inject(ChangeDetectorRef);
     this.attendanceEndDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
     this.editForm = this.fb.group({
-      fullName: ['', [Validators.required, Validators.minLength(3)]],
+      firstName: ['', [Validators.required, Validators.minLength(3)]],
+      lastName: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       phoneNumber: ['', [Validators.required, Validators.pattern('^[0-9]{10,15}$')]],
       employeeNumber: ['', [Validators.required]],
@@ -167,7 +168,8 @@ private changeDet =inject(ChangeDetectorRef);
     if (!this.staff) return;
 
     this.editForm.patchValue({
-      fullName: this.staff.fullName,
+      firstName: this.staff.firstName,
+      lastName: this.staff.lastName,
       email: this.staff.email,
       phoneNumber: this.staff.phoneNumber,
       employeeNumber: this.staff.employeeNumber,
@@ -278,7 +280,8 @@ this.changeDet.detectChanges();
     this.loadAttendanceLogs(this.staff!.staffId);
   }
 
-  getInitials(name: string|undefined): string {
+  getInitials(): string {
+   let name =this.staff?.firstName + ' ' + this.staff?.lastName;
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '';
   }
 
