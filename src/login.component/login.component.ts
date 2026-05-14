@@ -1,5 +1,5 @@
 // src/app/modules/auth/components/login/login.component.ts
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
@@ -32,7 +32,7 @@ export class LoginComponent implements OnInit {
       rememberMe: [false]
     });
   }
-
+changDef =inject(ChangeDetectorRef)
   ngOnInit(): void {
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
   // Load saved credentials if Remember Me was checked
@@ -60,15 +60,18 @@ export class LoginComponent implements OnInit {
       next: (response) => {
         this.isLoading = false;
         if (response.success) {
-          this.toaStr.success('Welcome back!', 'Login Successful');
+        //  this.toaStr.success('Welcome back!', 'Login Successful');
           this.router.navigate([this.returnUrl]);
         } else {
           this.toaStr.error(response.message || 'Login failed', 'Error');
+          this.isLoading =false
+        this.changDef.detectChanges()
         }
       },
       error: (error) => {
         this.isLoading = false;
         this.toaStr.error(error.message || 'Invalid email or password', 'Login Failed');
+        this.changDef.detectChanges()
       }
     });
   }

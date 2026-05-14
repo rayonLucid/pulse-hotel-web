@@ -95,7 +95,7 @@ export class StaffService {
     if (staffId) params = params.set('staffId', staffId.toString());
     if (status) params = params.set('status', status);
 
-    return this.http.get<{ success: boolean; data: LeaveRequest[] }>(`${this.apiUrl}/leaves`, { params });
+    return this.http.get<{ success: boolean; data: LeaveRequest[] }>(`${this.apiUrl}/leave`, { params });
   }
 
   getLeaveBalance(staffId: number, year: number): Observable<{ success: boolean; data: LeaveBalance[] }> {
@@ -117,12 +117,20 @@ export class StaffService {
   // Add to src/app/core/services/staff.service.ts
 
 // Performance Management
-getPerformanceReviews(staffId?: number, status?: string): Observable<{ success: boolean; data: PerformanceReview[] }> {
+getMyPerformanceReviews(staffId?: number, status?: string): Observable<{ success: boolean; data: PerformanceReview[] }> {
   let params = new HttpParams();
   if (staffId) params = params.set('staffId', staffId.toString());
   if (status) params = params.set('status', status);
 
-  return this.http.get<{ success: boolean; data: PerformanceReview[] }>(`${this.apiUrl}/performance/reviews`, { params });
+  return this.http.get<{ success: boolean; data: PerformanceReview[] }>(`${this.apiUrl}/myPerformance/reviews`, { params });
+}
+getPerformanceReviews(staffId?: number, status?: string): Observable<{ success: boolean; data: PerformanceReview[] }> {
+  // let params = new HttpParams();
+  // if (staffId) params = params.set('staffId', staffId.toString());
+  // console.log(staffId)
+ // if (status) params = params.set('status', status);
+
+  return this.http.get<{ success: boolean; data: PerformanceReview[] }>(`${this.apiUrl}/performance/reviews/${staffId}`);
 }
 
 getPerformanceReviewById(reviewId: number): Observable<{ success: boolean; data: PerformanceReview }> {

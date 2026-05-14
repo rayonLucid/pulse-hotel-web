@@ -1,4 +1,4 @@
-<!-- src/app/modules/staff/pages/shift-schedule/shift-schedule.component.html -->
+<!-- shift-schedule.component.html -->
 <div class="shift-schedule-container">
   <!-- Header -->
   <div class="page-header">
@@ -11,7 +11,7 @@
         <i class="fas fa-plus"></i>
         New Shift
       </button>
-      <button class="btn-secondary" (click)="openCreateModal()">
+      <button class="btn-secondary" (click)="openAssignModal()">
         <i class="fas fa-calendar-plus"></i>
         Assign Shift
       </button>
@@ -59,7 +59,6 @@
 
       <!-- Schedule Grid -->
       <div class="schedule-grid">
-        <!-- Time Column Header -->
         <div class="grid-header time-header">Shift</div>
         @for (day of selectedWeek; track day; let i = $index) {
           <div class="grid-header" [class.today]="isToday(day)">
@@ -68,7 +67,6 @@
           </div>
         }
 
-        <!-- Shift Rows -->
         @for (shift of shifts; track shift.shiftId) {
           <div class="grid-row">
             <div class="shift-cell">
@@ -77,7 +75,7 @@
                 <span class="shift-time">{{ shift.startTime }} - {{ shift.endTime }}</span>
               </div>
               <div class="shift-actions">
-                <button class="icon-btn edit" (click)="openShiftModal(shift)">
+                <button class="icon-btn edit" (click)="openEditShiftModal(shift)">
                   <i class="fas fa-edit"></i>
                 </button>
                 <button class="icon-btn delete" (click)="deleteShift(shift.shiftId)">
@@ -86,13 +84,11 @@
               </div>
             </div>
             @for (day of selectedWeek; track day) {
-              <div class="assignment-cell" (click)="openCreateModal(day)">
+              <div class="assignment-cell" (click)="openAssignModalForDate(day)">
                 @for (assignment of getAssignmentsForShiftAndDate(shift.shiftId, day); track assignment.assignmentId) {
-                  <div class="assignment-badge"
-                       [style.border-left-color]="getShiftColor(shift.shiftName)">
+                  <div class="assignment-badge" [style.border-left-color]="getShiftColor(shift.shiftName)">
                     <div class="staff-name">{{ getStaffName(assignment.staffId) }}</div>
-                    <button class="cancel-assignment"
-                            (click)="$event.stopPropagation(); cancelAssignment(assignment.assignmentId)">
+                    <button class="cancel-assignment" (click)="$event.stopPropagation(); cancelAssignment(assignment.assignmentId)">
                       <i class="fas fa-times"></i>
                     </button>
                   </div>
@@ -116,10 +112,10 @@
                 {{ getStaffInitials() }}
               </div>
               <div class="staff-info">
-                <h3 class="staff-name">{{ staffMember.firstName }} {{ staffMember.lastName }}</h3>
+                <h3 class="staff-name">{{ staffMember.firstName }} {{staffMember.lastName}}</h3>
                 <p class="staff-role">{{ staffMember.position }} • {{ staffMember.department }}</p>
               </div>
-              <button class="assign-btn" (click)="openCreateModalForStaff(staffMember)">
+              <button class="assign-btn" (click)="openAssignModalForStaff(staffMember)">
                 <i class="fas fa-plus"></i>
               </button>
             </div>
@@ -130,11 +126,9 @@
                   <div class="day-shift">
                     @let assignment = getStaffShiftForDate(staffMember.staffId, day);
                     @if (assignment) {
-                      <div class="shift-badge"
-                           [style.background]="getShiftColor(getShiftName(assignment.shiftId))">
+                      <div class="shift-badge" [style.background]="getShiftColor(getShiftName(assignment.shiftId))">
                         {{ getShiftName(assignment.shiftId) }}
-                        <button class="remove-shift"
-                                (click)="$event.stopPropagation(); cancelAssignment(assignment.assignmentId)">
+                        <button class="remove-shift" (click)="$event.stopPropagation(); cancelAssignment(assignment.assignmentId)">
                           <i class="fas fa-times-circle"></i>
                         </button>
                       </div>
@@ -167,7 +161,7 @@
             @if (shift.shiftAllowance > 0) {
               <div class="detail">
                 <i class="fas fa-money-bill-wave"></i>
-                Allowance: {{ formatPrice(shift.shiftAllowance) }}
+                Allowance: ₦{{ shift.shiftAllowance | number }}
               </div>
             }
             @if (shift.overnightShift) {
@@ -181,6 +175,146 @@
       }
     </div>
   </div>
-</div>
 
-<!-- Rest of the modals remain the same -->
+  <!-- ==================== CREATE/EDIT SHIFT MODAL ==================== -->
+  @if (showShiftModal) {
+    <div class="modal-overlay" (click)="closeShiftModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ editingShift ? 'Edit Shift' : 'Create New Shift' }}</h3>
+          <button class="modal-close" (click)="closeShiftModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="shiftForm" class="shift-form">
+            <div class="form-group">
+              <label>Shift Name *</label>
+              <input type="text" formControlName="shiftName" class="form-control" placeholder="e.g., Morning Shift">
+              @if (shiftForm.get('shiftName')?.invalid && shiftForm.get('shiftName')?.touched) {
+                <div class="error-message">Shift name is required</div>
+              }
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Start Time *</label>
+                <input type="time" formControlName="startTime" class="form-control">
+                @if (shiftForm.get('startTime')?.invalid && shiftForm.get('startTime')?.touched) {
+                  <div class="error-message">Start time is required</div>
+                }
+              </div>
+              <div class="form-group">
+                <label>End Time *</label>
+                <input type="time" formControlName="endTime" class="form-control">
+                @if (shiftForm.get('endTime')?.invalid && shiftForm.get('endTime')?.touched) {
+                  <div class="error-message">End time is required</div>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Break Duration (minutes)</label>
+                <input type="number" formControlName="breakDuration" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Shift Allowance (₦)</label>
+                <input type="number" formControlName="shiftAllowance" class="form-control">
+              </div>
+            </div>
+
+            <div class="form-group checkbox">
+              <label>
+                <input type="checkbox" formControlName="overnightShift">
+                Overnight Shift
+              </label>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeShiftModal()">Cancel</button>
+          <button class="btn-primary" (click)="saveShift()" [disabled]="isSaving || shiftForm.invalid">
+            @if (isSaving) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Saving...
+            } @else {
+              <i class="fas fa-save"></i>
+              {{ editingShift ? 'Update' : 'Create' }}
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== ASSIGN SHIFT MODAL ==================== -->
+  @if (showAssignModal) {
+    <div class="modal-overlay" (click)="closeAssignModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Assign Shift</h3>
+          <button class="modal-close" (click)="closeAssignModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="assignmentForm" class="assignment-form">
+            <div class="form-group">
+              <label>Staff Member *</label>
+              <select formControlName="staffId" class="form-control">
+                <option value="">Select staff member</option>
+                @for (staffMember of staff; track staffMember.staffId) {
+                  <option [value]="staffMember.staffId">{{ staffMember.firstName }} {{staffMember.lastName}}</option>
+                }
+              </select>
+              @if (assignmentForm.get('staffId')?.invalid && assignmentForm.get('staffId')?.touched) {
+                <div class="error-message">Please select a staff member</div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>Shift *</label>
+              <select formControlName="shiftId" class="form-control">
+                <option value="">Select shift</option>
+                @for (shift of availableShifts; track shift.shiftId) {
+                  <option [value]="shift.shiftId">
+                    {{ shift.shiftName }} ({{ shift.startTime }} - {{ shift.endTime }})
+                  </option>
+                }
+              </select>
+              @if (assignmentForm.get('shiftId')?.invalid && assignmentForm.get('shiftId')?.touched) {
+                <div class="error-message">Please select a shift</div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>Date *</label>
+              <input type="date" formControlName="assignmentDate" class="form-control">
+              @if (assignmentForm.get('assignmentDate')?.invalid && assignmentForm.get('assignmentDate')?.touched) {
+                <div class="error-message">Please select a date</div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>Notes (Optional)</label>
+              <textarea formControlName="notes" rows="2" class="form-control" placeholder="Any special notes..."></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeAssignModal()">Cancel</button>
+          <button class="btn-primary" (click)="createAssignment()" [disabled]="isSaving || assignmentForm.invalid">
+            @if (isSaving) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Assigning...
+            } @else {
+              <i class="fas fa-check"></i>
+              Assign Shift
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

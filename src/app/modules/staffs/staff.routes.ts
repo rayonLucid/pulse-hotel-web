@@ -14,6 +14,7 @@ export const STAFF_ROUTES: Routes = [
    { path: 'list', component: StaffListComponent },
    { path: 'add', component: StaffDetailComponent },
    { path: 'detail/:id', component: StaffDetailComponent },
+    { path: 'detail/:id/:action', component: StaffDetailComponent },
 
    { path: 'schedules', component: ShiftScheduleComponent },
    { path: 'attendance', component: AttendanceComponent },

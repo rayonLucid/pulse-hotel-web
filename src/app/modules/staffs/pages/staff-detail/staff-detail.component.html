@@ -33,7 +33,7 @@
     </div>
 
     <!-- ==================== VIEW MODE ==================== -->
-    @if (!isEditing && !isAddMode) {
+    @if (isEditing ==false && isAddMode ==false) {
       <!-- Profile Header -->
       <div class="profile-header">
         <div class="profile-avatar">
@@ -449,7 +449,7 @@
     }
 
     <!-- ==================== EDIT / ADD MODE ==================== -->
-    @if (isEditing || isAddMode) {
+    @if (isEditing ==true || isAddMode==true) {
       <div class="edit-form-container">
         <div class="edit-header">
           <h3>{{ isAddMode ? 'Add New Staff Member' : 'Edit Staff Profile' }}</h3>
@@ -542,7 +542,7 @@
                 <div class="form-group">
                   <label for="password">Password *</label>
                   <input
-                    type="password"
+                    type="text"
                     id="password"
                     formControlName="password"
                     class="form-control"
@@ -561,10 +561,11 @@
                     id="confirmPassword"
                     formControlName="confirmPassword"
                     class="form-control"
-                    [class.is-invalid]="editForm.hasError('mismatch') && editForm.get('confirmPassword')?.touched"
+                    (input)="passwordMatchValidator(editForm)"
+                    [class.is-invalid]="mismatch"
                     placeholder="Confirm password"
                   >
-                  @if (editForm.hasError('mismatch') && editForm.get('confirmPassword')?.touched) {
+                  @if (mismatch) {
                     <div class="error-message">Passwords do not match</div>
                   }
                 </div>

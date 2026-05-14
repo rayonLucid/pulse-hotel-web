@@ -136,6 +136,7 @@ export class PerformanceComponent implements OnInit {
       salaryIncreasePercentage: 0
     });
     this.metrics = JSON.parse(JSON.stringify(this.metricTemplates));
+    this.selectedTab ='new'
     this.showCreateModal = true;
   }
 

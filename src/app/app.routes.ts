@@ -2,6 +2,7 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './core/auth/auth.guard';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component/main-layout.component';
+import { SingleTabGuard } from './core/auth/single-tab.guard';
 
 
 export const routes: Routes = [
@@ -17,7 +18,7 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayoutComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard,SingleTabGuard],
     children: [
       {
         path: 'dashboard',

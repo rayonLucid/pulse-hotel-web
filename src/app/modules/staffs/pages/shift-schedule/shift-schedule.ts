@@ -1,5 +1,5 @@
 // src/app/modules/staff/pages/shift-schedule/shift-schedule.component.ts
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -21,6 +21,7 @@ export class ShiftScheduleComponent implements OnInit {
   isLoading = true;
   isSaving = false;
   showCreateModal = false;
+  showAssignModal=false
   showShiftModal = false;
   selectedDate: Date = new Date();
   selectedWeek: Date[] = [];
@@ -31,15 +32,15 @@ export class ShiftScheduleComponent implements OnInit {
   viewMode: 'week' | 'month' | 'staff' = 'week';
 
   // Form
-  shiftForm: FormGroup;
-  assignmentForm: FormGroup;
+  shiftForm!: FormGroup;
+  assignmentForm!: FormGroup;
 
   // Calendar data
   calendarDays: { date: Date; assignments: ShiftAssignment[] }[] = [];
 
   // Available shifts for dropdown
   availableShifts: Shift[] = [];
-
+private changeDet = inject(ChangeDetectorRef)
   constructor(
     private staffService: StaffService,
     private fb: FormBuilder,
@@ -61,6 +62,8 @@ export class ShiftScheduleComponent implements OnInit {
       assignmentDate: ['', [Validators.required]],
       notes: ['']
     });
+
+
   }
 
   ngOnInit(): void {
@@ -75,6 +78,7 @@ export class ShiftScheduleComponent implements OnInit {
         if (response.success) {
           this.shifts = response.data;
           this.availableShifts = this.shifts.filter(s => s.isActive);
+          this.changeDet.detectChanges()
         }
       },
       error: (error) => {
@@ -162,6 +166,7 @@ export class ShiftScheduleComponent implements OnInit {
   }
 
   openShiftModal(shift?: Shift): void {
+    console.log(shift)
     this.editingShift = shift || null;
     if (shift) {
       this.shiftForm.patchValue({
@@ -181,6 +186,7 @@ export class ShiftScheduleComponent implements OnInit {
       });
     }
     this.showShiftModal = true;
+     this.changeDet.detectChanges()
   }
 
   closeShiftModal(): void {
@@ -283,12 +289,14 @@ export class ShiftScheduleComponent implements OnInit {
           this.toastr.success('Shift assigned successfully', 'Success');
           this.closeCreateModal();
           this.loadShiftAssignments();
+          this.changeDet.detectChanges()
         } else {
           this.toastr.error(response.message || 'Assignment failed', 'Error');
         }
       },
       error: (error) => {
         this.isSaving = false;
+         this.changeDet.detectChanges()
         this.toastr.error(error.message || 'Failed to assign shift', 'Error');
       }
     });
@@ -402,6 +410,59 @@ formatPrice(price: number): string {
 }
 
 
+// Open assign modal for specific staff
+  openAssignModalForStaff(staff: Staff): void {
+    this.assignmentForm.reset({
+      staffId: staff.staffId,
+      shiftId: '',
+      assignmentDate: new Date().toISOString().split('T')[0],
+      notes: ''
+    });
+    this.showAssignModal = true;
+  }
+
+  // Close assign modal
+  closeAssignModal(): void {
+    this.showAssignModal = false;
+  }
+
+  // Open assign modal for specific date
+  openAssignModalForDate(date: Date): void {
+    this.assignmentForm.reset({
+      staffId: '',
+      shiftId: '',
+      assignmentDate: date.toISOString().split('T')[0],
+      notes: ''
+    });
+    this.showAssignModal = true;
+    this.changeDet.detectChanges()
+  }
+   // Open edit shift modal
+  openEditShiftModal(shift: Shift): void {
+    this.editingShift = shift;
+    this.shiftForm.patchValue({
+      shiftName: shift.shiftName,
+      startTime: shift.startTime,
+      endTime: shift.endTime,
+      breakDuration: shift.breakDuration,
+      overnightShift: shift.overnightShift,
+      shiftAllowance: shift.shiftAllowance,
+      departmentId: shift.departmentId || ''
+    });
+    this.showShiftModal = true;
+  }
+
+
+  // Open assign shift modal
+  openAssignModal(): void {
+    this.assignmentForm.reset({
+      staffId: '',
+      shiftId: '',
+      assignmentDate: '',
+      notes: ''
+    });
+    this.showAssignModal = true;
+  }
 //-------------------------------------
 
 }

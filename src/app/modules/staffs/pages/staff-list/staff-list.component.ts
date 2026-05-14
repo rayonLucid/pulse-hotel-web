@@ -142,6 +142,7 @@ private changeDet =inject(ChangeDetectorRef);
 
   getIntials(): string {
     const name = this.staff[0]?.firstName + ' ' + this.staff[0]?.lastName;
+    console.log(this.staff)
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '';
   }
 

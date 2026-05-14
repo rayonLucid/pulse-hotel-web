@@ -1,5 +1,5 @@
 // src/app/modules/staff/pages/attendance/attendance.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -49,7 +49,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   // Report generation
   isGeneratingReport = false;
-
+changDet =inject(ChangeDetectorRef)
   constructor(
     private staffService: StaffService,
     private fb: FormBuilder,
@@ -88,6 +88,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.staff = response.data;
         this.stats.totalStaff = this.staff.length;
+        this.changDet.detectChanges()
       },
       error: (error) => {
         console.error('Error loading staff:', error);
@@ -100,17 +101,21 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.staffService.getAttendance(0, this.startDate, this.endDate).subscribe({
       next: (response) => {
+       // console.log(response)
         if (response.success) {
           this.attendanceLogs = response.data;
           this.applyFilters();
           this.calculateStatistics();
+
         }
         this.isLoading = false;
+          this.changDet.detectChanges()
       },
       error: (error) => {
         console.error('Error loading attendance:', error);
         this.toastr.error('Failed to load attendance', 'Error');
-        this.isLoading = false;
+        this.isLoading = false
+        this.changDet.detectChanges()
       }
     });
   }

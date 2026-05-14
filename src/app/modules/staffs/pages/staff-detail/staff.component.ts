@@ -43,7 +43,7 @@ export class StaffDetailComponent implements OnInit {
   scheduleEndDate: Date;
   attendanceStartDate: Date;
   attendanceEndDate: Date;
-
+mismatch:boolean =false
   departments: string[] = ['Front Desk', 'Housekeeping', 'Maintenance', 'Food & Beverage', 'Security', 'Administration', 'Sales & Marketing', 'Spa & Wellness'];
   employmentTypes: string[] = ['Full-Time', 'Part-Time', 'Contract', 'Casual'];
   positions: string[] = ['Manager', 'Supervisor', 'Senior Staff', 'Junior Staff', 'Trainee'];
@@ -80,21 +80,39 @@ private changeDet =inject(ChangeDetectorRef);
       accountNumber: [''],
       emergencyContactName: [''],
       emergencyContactPhone: [''],
-      Password: [''],
-      SalaryGrade: [ '' ]
-    });
+     password: ['', [Validators.required]],
+    confirmPassword: ['', [Validators.required]] ,
+      salaryGrade: [ '' ]
+    } );
   }
 
   ngOnInit(): void {
      this.banks = this.bankService.getBanks();
     const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.loadStaff(parseInt(id));
+    const action = this.route.snapshot.paramMap.get('action');
+    if(action && id){
+      console.log(action)
+      if(action =='view'){
+        this.isEditing=false
+        this.isAddMode =false
+         this.setActiveTab('profile');
+      this.changeDet.detectChanges();
+      }
+      else if(action =='edit'){
+        this.isEditing=true
+        this.isAddMode =false
+        //  this.setActiveTab('profile');
+      this.changeDet.detectChanges();
+      }
+    }
+    if (id && action) {
+      console.log("Editing")
+      this.loadStaff(parseInt(id),action);
       this.loadShiftAssignments(parseInt(id));
       this.loadAttendanceLogs(parseInt(id));
       this.loadLeaveRequests(parseInt(id));
       this.loadPerformanceReviews(parseInt(id));
-    } else {
+    } else if(!action && !id) {
       this.isAddMode = true;
       this.isLoading = false;
       this.setActiveTab('profile');
@@ -103,14 +121,35 @@ private changeDet =inject(ChangeDetectorRef);
     }
   }
 
-  loadStaff(id: number): void {
+  passwordMatchValidator = (form: FormGroup) => {
+
+  const password = form.get('password')?.value;
+  const confirm = form.get('confirmPassword')?.value;
+console.log(password)
+  if (password !== confirm) {
+  //  form.get('confirmPassword')?.setErrors({ mismatch: true });
+  this.mismatch =true
+  this.changeDet.detectChanges()
+  } else {
+   // form.get('confirmPassword')?.setErrors(null);
+   this.mismatch =false
+   this.changeDet.detectChanges()
+  }
+  return null;
+}
+
+
+  loadStaff(id: number,action:string): void {
     this.isLoading = true;
     this.staffService.getStaffById(id).subscribe({
       next: (response) => {
+      //  console.log(response)
         if (response.success) {
+          this.isEditing =(action=='edit')
           this.staff = response.data;
           this.populateForm();
           this.isLoading = false;
+          this.changeDet.detectChanges()
         } else {
           this.toastr.error('Staff member not found', 'Error');
           this.router.navigate(['/staff']);
@@ -133,7 +172,7 @@ private changeDet =inject(ChangeDetectorRef);
         }
       },
       error: (error) => {
-        console.error('Error loading shift assignments:', error);
+        console.error('loading shift assignments:', error);
       }
     });
   }
@@ -146,7 +185,7 @@ private changeDet =inject(ChangeDetectorRef);
         }
       },
       error: (error) => {
-        console.error('Error loading attendance logs:', error);
+        console.error('Error loading attendance:', error);
       }
     });
   }
@@ -159,7 +198,7 @@ private changeDet =inject(ChangeDetectorRef);
         }
       },
       error: (error) => {
-        console.error('Error loading leave requests:', error);
+        console.error('Error loading leave:', error);
       }
     });
   }
@@ -172,7 +211,7 @@ private changeDet =inject(ChangeDetectorRef);
         }
       },
       error: (error) => {
-        console.error('Error loading performance reviews:', error);
+        console.error('Error  performance reviews:', error);
       }
     });
   }
@@ -330,8 +369,8 @@ createStaff(): void {
   }
 
   this.isSaving = true;
-  const staffData = this.editForm.value;
-
+  const { confirmPassword, ...staffData } = this.editForm.value;
+//console.log(staffData)
   this.staffService.createStaff(staffData).subscribe({
     next: (response:any) => {
       this.isSaving = false;
@@ -366,7 +405,7 @@ updateStaff(): void {
       if (response.success) {
         this.toastr.success('Staff member updated successfully', 'Success');
         this.isEditing = false;
-        this.loadStaff(this.staff!.staffId);
+        this.loadStaff(this.staff!.staffId,'');
         this.changeDet.detectChanges();
       } else {
         this.toastr.error(response.message || 'Update failed', 'Error');
@@ -493,4 +532,6 @@ console.log('Local validation result:', localValidation);
     const bank = this.banks.find(b => b.code === bankCode);
     return bank ? bank.name : '';
   }
+
+  
 }

@@ -116,7 +116,7 @@
             }
           </div>
           <div class="staff-info">
-            <h3 class="staff-name">{{ member?.firstName }}</h3>
+            <h3 class="staff-name">{{ member?.firstName }} {{member?.lastName}}</h3>
             <p class="staff-role">{{ member?.position }}</p>
             <p class="staff-department">{{ member?.department }}</p>
           </div>
@@ -149,7 +149,11 @@
           <span class="status-badge" [class]="getStatusClass(member?.isActive)">
             {{ getStatusText(member?.isActive) }}
           </span>
-          <a [routerLink]="['/staff/detail', member?.staffId]" class="btn-view">
+           <a [routerLink]="['/staff/detail', member?.staffId,'edit']" class="btn-view">
+            <i class="fas fa-eye"></i>
+            Edit Details
+          </a>
+          <a [routerLink]="['/staff/detail', member?.staffId,'view']" class="btn-view">
             <i class="fas fa-eye"></i>
             View Details
           </a>
