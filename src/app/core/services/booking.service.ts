@@ -77,4 +77,6 @@ export class BookingService {
   getTodaysDepartures(): Observable<{ success: boolean; data: Booking[] }> {
     return this.http.get<{ success: boolean; data: Booking[] }>(`${this.apiUrl}/today-departures`);
   }
+
+ 
 }

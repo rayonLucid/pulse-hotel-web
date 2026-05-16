@@ -11,7 +11,7 @@
         <i class="fas fa-calendar-alt"></i>
         <span>{{ currentDate | date: 'EEEE, MMMM d, yyyy' }}</span>
         <i class="fas fa-clock ml-3"></i>
-        <span>{{ currentTime }}</span>
+        <span>{{ currentTime |date:'shortTime' }}</span>
       </div>
     </div>
   </div>
@@ -129,13 +129,13 @@
         <a routerLink="/bookings" class="view-all-link">View All →</a>
       </div>
       <div class="activity-list">
-        <div class="activity-item" *ngFor="let booking of recentBookings">
+        <div class="activity-item" *ngFor="let booking of dashboardData?.recentBookings">
           <div class="activity-avatar" [class]="getBookingStatusClass(booking.status)">
             <i [class]="getBookingIcon(booking.status)"></i>
           </div>
           <div class="activity-details">
             <p class="activity-title">{{ booking.guestName }}</p>
-            <p class="activity-subtitle">Room {{ booking.roomNumber }} • {{ booking.dates }}</p>
+            <p class="activity-subtitle">Room {{ booking.roomNumber }} • {{ booking.checkOutDate }}</p>
           </div>
           <div class="activity-time">
             <span class="status-badge" [class]="getBookingStatusClass(booking.status)">
@@ -143,7 +143,7 @@
             </span>
           </div>
         </div>
-        <div class="empty-state" *ngIf="!recentBookings.length">
+        <div class="empty-state" *ngIf="!dashboardData?.recentBookings">
           <i class="fas fa-calendar-alt"></i>
           <p>No recent bookings</p>
         </div>
@@ -160,7 +160,7 @@
         <a routerLink="/bookings/checkouts" class="view-all-link">View All →</a>
       </div>
       <div class="activity-list">
-        <div class="activity-item" *ngFor="let checkout of upcomingCheckouts">
+        <div class="activity-item" *ngFor="let checkout of dashboardData?.upcomingCheckouts">
           <div class="activity-avatar bg-yellow-100">
             <i class="fas fa-clock text-yellow-600"></i>
           </div>
@@ -169,10 +169,10 @@
             <p class="activity-subtitle">Room {{ checkout.roomNumber }} • Check-out today</p>
           </div>
           <div class="activity-time">
-            <span class="time-text">{{ checkout.time }}</span>
+            <span class="time-text">{{ checkout.checkOutDate|date:'shortTime'}}</span>
           </div>
         </div>
-        <div class="empty-state" *ngIf="!upcomingCheckouts.length">
+        <div class="empty-state" *ngIf="!dashboardData?.upcomingCheckouts">
           <i class="fas fa-clock"></i>
           <p>No upcoming check-outs</p>
         </div>
@@ -189,7 +189,7 @@
         <a routerLink="/staff/schedule" class="view-all-link">View Schedule →</a>
       </div>
       <div class="staff-list">
-        <div class="staff-item" *ngFor="let staff of staffOnDuty">
+        <div class="staff-item" *ngFor="let staff of dashboardData?.staffOnDuty">
           <div class="staff-avatar">
             <img [src]="staff?.avatar || 'assets/images/default-avatar.png'" [alt]="staff.name">
             <span class="online-status" [class.online]="staff.isOnline"></span>
@@ -200,7 +200,7 @@
           </div>
           <div class="staff-shift">{{ staff.shift }}</div>
         </div>
-        <div class="empty-state" *ngIf="!staffOnDuty.length">
+        <div class="empty-state" *ngIf="!dashboardData?.staffOnDuty">
           <i class="fas fa-users"></i>
           <p>No staff on duty</p>
         </div>

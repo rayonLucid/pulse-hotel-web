@@ -53,6 +53,7 @@ export class SidebarComponent implements OnInit {
       },
       error: (error:any) => {
         console.error('Error loading menus:', error);
+        this.loadMenus()
       }
     });
   }

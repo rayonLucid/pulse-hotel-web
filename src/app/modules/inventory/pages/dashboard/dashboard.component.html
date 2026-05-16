@@ -1,0 +1,167 @@
+<!-- src/app/modules/inventory/pages/dashboard/dashboard.component.html -->
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Inventory Dashboard</h1>
+      <p class="page-subtitle">Real-time stock levels and inventory management</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary" routerLink="/inventory/items/new">
+        <i class="fas fa-plus"></i>
+        Add Item
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading dashboard data...</p>
+    </div>
+  }
+
+  <!-- Dashboard Content -->
+  @if (!isLoading && stats) {
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon bg-blue-100">
+          <i class="fas fa-boxes text-blue-600"></i>
+        </div>
+        <div class="stat-info">
+          <h3>Total Items</h3>
+          <p>{{ stats.totalItems }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-red-100">
+          <i class="fas fa-exclamation-triangle text-red-600"></i>
+        </div>
+        <div class="stat-info">
+          <h3>Low Stock Items</h3>
+          <p>{{ stats.lowStockItems }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-orange-100">
+          <i class="fas fa-times-circle text-orange-600"></i>
+        </div>
+        <div class="stat-info">
+          <h3>Out of Stock</h3>
+          <p>{{ stats.outOfStockItems }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-green-100">
+          <i class="fas fa-chart-line text-green-600"></i>
+        </div>
+        <div class="stat-info">
+          <h3>Inventory Value</h3>
+          <p>₦{{ stats.totalInventoryValue | number }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stock Alerts -->
+    <div class="alerts-section">
+      <div class="section-header">
+        <h3>
+          <i class="fas fa-bell"></i>
+          Stock Alerts
+        </h3>
+        <a routerLink="/inventory/stock" class="view-all">View All →</a>
+      </div>
+
+      @if (stockAlerts.length === 0) {
+        <div class="no-alerts">
+          <i class="fas fa-check-circle"></i>
+          <p>All items are at satisfactory levels</p>
+        </div>
+      }
+
+      <div class="alerts-list">
+        @for (alert of stockAlerts; track alert.alertId) {
+          <div class="alert-item" [class]="alert.alertType === 'Critical' ? 'critical' : 'low'">
+            <div class="alert-icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="alert-info">
+              <div class="alert-title">{{ alert.itemName }} ({{ alert.itemCode }})</div>
+              <div class="alert-details">
+                Current stock: {{ alert.currentStock }} | Reorder level: {{ alert.reorderLevel }}
+              </div>
+            </div>
+            <div class="alert-action">
+              <button class="btn-order" routerLink="/inventory/purchase-orders/new">
+                <i class="fas fa-shopping-cart"></i>
+                Order {{ alert.suggestedOrderQuantity }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Stock by Category -->
+    <div class="charts-section">
+      <div class="chart-card">
+        <h3>Stock by Category</h3>
+        <div class="category-list">
+          @for (cat of stats.stockByCategory; track cat.category) {
+            <div class="category-item">
+              <span class="category-name">{{ cat.category }}</span>
+              <div class="category-bar">
+                <div class="bar-fill" [style.width.%]="(cat.count / stats.totalItems) * 100"></div>
+              </div>
+              <span class="category-count">{{ cat.count }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h3>Value by Category</h3>
+        <div class="category-list">
+          @for (cat of stats.valueByCategory; track cat.category) {
+            <div class="category-item">
+              <span class="category-name">{{ cat.category }}</span>
+              <div class="category-bar">
+                <div class="bar-fill bg-primary" [style.width.%]="(cat.value / stats.totalInventoryValue) * 100"></div>
+              </div>
+              <span class="category-value">₦{{ cat.value | number }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <h3>Quick Actions</h3>
+      <div class="actions-grid">
+        <button class="action-btn" routerLink="/inventory/items/new">
+          <i class="fas fa-plus-circle"></i>
+          Add New Item
+        </button>
+        <button class="action-btn" routerLink="/inventory/stock/adjust">
+          <i class="fas fa-exchange-alt"></i>
+          Adjust Stock
+        </button>
+        <button class="action-btn" routerLink="/inventory/purchase-orders/new">
+          <i class="fas fa-shopping-cart"></i>
+          Create Purchase Order
+        </button>
+        <button class="action-btn" routerLink="/inventory/suppliers/new">
+          <i class="fas fa-truck"></i>
+          Add Supplier
+        </button>
+        <button class="action-btn" (click)="export()">
+          <i class="fas fa-file-excel"></i>
+          Export Stock Report
+        </button>
+      </div>
+    </div>
+  }
+</div>

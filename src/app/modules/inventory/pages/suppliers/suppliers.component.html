@@ -1,0 +1,294 @@
+<!-- src/app/modules/inventory/pages/suppliers/suppliers.component.html -->
+<div class="suppliers-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Supplier Management</h1>
+      <p class="page-subtitle">Manage vendor information and supplier relationships</p>
+    </div>
+    <button class="btn-primary" (click)="openCreateModal()">
+      <i class="fas fa-plus"></i>
+      Add Supplier
+    </button>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input
+        type="text"
+        placeholder="Search by name, contact, email, or phone..."
+        [(ngModel)]="searchTerm"
+        (input)="applyFilters()"
+      >
+    </div>
+
+    <div class="filter-group">
+      <select [(ngModel)]="statusFilter" (change)="applyFilters()">
+        <option value="all">All Suppliers</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+
+    @if (hasActiveFilters()) {
+      <button class="clear-filters" (click)="clearFilters()">
+        <i class="fas fa-times"></i>
+        Clear
+      </button>
+    }
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading suppliers...</p>
+    </div>
+  }
+
+  <!-- Suppliers Grid with ngx-pagination -->
+  @if (!isLoading && filteredSuppliers.length > 0) {
+    <div class="suppliers-grid">
+      <div
+        *ngFor="let supplier of filteredSuppliers | paginate: { itemsPerPage: pageSize, currentPage: currentPage, totalItems: totalItems }; trackBy: trackBySupplierId"
+        class="supplier-card"
+      >
+        <div class="card-header">
+          <div class="supplier-avatar">
+            {{ getInitials(supplier.supplierName) }}
+          </div>
+          <div class="supplier-info">
+            <h3 class="supplier-name">{{ supplier.supplierName }}</h3>
+            <p class="supplier-contact">{{ supplier.contactPerson }}</p>
+          </div>
+          <div class="supplier-status">
+            <span class="status-badge" [class]="getStatusClass(supplier.isActive)">
+              {{ getStatusText(supplier.isActive) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="contact-details">
+            <div class="detail-item">
+              <i class="fas fa-phone"></i>
+              <span>{{ formatPhoneNumber(supplier.phoneNumber) }}</span>
+            </div>
+            <div class="detail-item">
+              <i class="fas fa-envelope"></i>
+              <span>{{ supplier.email }}</span>
+            </div>
+            <div class="detail-item">
+              <i class="fas fa-map-marker-alt"></i>
+              <span>{{ supplier.address }}</span>
+            </div>
+            @if (supplier.taxNumber) {
+              <div class="detail-item">
+                <i class="fas fa-file-invoice"></i>
+                <span>TIN: {{ supplier.taxNumber }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="supplier-metrics">
+            <div class="metric">
+              <span class="metric-label">Lead Time</span>
+              <span class="metric-value">{{ supplier.leadTimeDays }} days</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Payment Terms</span>
+              <span class="metric-value">{{ supplier.paymentTerms || 'Net 30' }}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Rating</span>
+              <div class="rating-stars">
+                @for (star of getRatingStars(supplier.rating || 0); track $index) {
+                  <i [class]="star"></i>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <button class="btn-edit" (click)="openEditModal(supplier)">
+            <i class="fas fa-edit"></i>
+            Edit
+          </button>
+          <button class="btn-toggle" (click)="toggleSupplierStatus(supplier)">
+            <i [class]="supplier.isActive ? 'fas fa-ban' : 'fas fa-check-circle'"></i>
+            {{ supplier.isActive ? 'Deactivate' : 'Activate' }}
+          </button>
+          <button class="btn-delete" (click)="deleteSupplier(supplier)">
+            <i class="fas fa-trash-alt"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading && filteredSuppliers.length === 0) {
+    <div class="empty-state">
+      <i class="fas fa-truck"></i>
+      <h3>No suppliers found</h3>
+      <p>Try adjusting your filters or add a new supplier</p>
+      <button class="btn-primary" (click)="openCreateModal()">
+        <i class="fas fa-plus"></i>
+        Add Supplier
+      </button>
+    </div>
+  }
+
+  <!-- ngx-pagination Controls -->
+  @if (totalItems > pageSize) {
+    <div class="pagination-wrapper">
+      <pagination-controls
+        (pageChange)="onPageChange($event)"
+        [autoHide]="true"
+        [responsive]="true"
+        previousLabel="Previous"
+        nextLabel="Next"
+        [maxSize]="5"
+      ></pagination-controls>
+
+      <div class="pagination-info">
+        Showing {{ ((currentPage - 1) * pageSize) + 1 }} to
+        {{ Math.min(currentPage * pageSize, totalItems) }} of
+        {{ totalItems }} suppliers
+      </div>
+    </div>
+  }
+
+  <!-- Create/Edit Supplier Modal -->
+  @if (showSupplierModal) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-container modal-large" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ editingSupplier ? 'Edit Supplier' : 'Add New Supplier' }}</h3>
+          <button class="modal-close" (click)="closeModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <form [formGroup]="supplierForm" class="supplier-form">
+            <!-- Basic Information -->
+            <div class="form-section">
+              <h4 class="section-title">
+                <i class="fas fa-building"></i>
+                Basic Information
+              </h4>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Supplier Name *</label>
+                  <input type="text" formControlName="supplierName" class="form-control" placeholder="Enter supplier name">
+                  @if (supplierForm.get('supplierName')?.invalid && supplierForm.get('supplierName')?.touched) {
+                    <div class="error-message">Supplier name is required</div>
+                  }
+                </div>
+                <div class="form-group">
+                  <label>Contact Person *</label>
+                  <input type="text" formControlName="contactPerson" class="form-control" placeholder="Enter contact person name">
+                  @if (supplierForm.get('contactPerson')?.invalid && supplierForm.get('contactPerson')?.touched) {
+                    <div class="error-message">Contact person is required</div>
+                  }
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Phone Number *</label>
+                  <input type="tel" formControlName="phoneNumber" class="form-control" placeholder="08012345678">
+                  @if (supplierForm.get('phoneNumber')?.invalid && supplierForm.get('phoneNumber')?.touched) {
+                    <div class="error-message">Valid phone number is required</div>
+                  }
+                </div>
+                <div class="form-group">
+                  <label>Email *</label>
+                  <input type="email" formControlName="email" class="form-control" placeholder="supplier@example.com">
+                  @if (supplierForm.get('email')?.invalid && supplierForm.get('email')?.touched) {
+                    <div class="error-message">Valid email is required</div>
+                  }
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Address *</label>
+                <textarea formControlName="address" rows="2" class="form-control" placeholder="Enter complete address"></textarea>
+                @if (supplierForm.get('address')?.invalid && supplierForm.get('address')?.touched) {
+                  <div class="error-message">Address is required</div>
+                }
+              </div>
+            </div>
+
+            <!-- Business Information -->
+            <div class="form-section">
+              <h4 class="section-title">
+                <i class="fas fa-briefcase"></i>
+                Business Information
+              </h4>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Tax Identification Number (TIN)</label>
+                  <input type="text" formControlName="taxNumber" class="form-control" placeholder="Enter TIN">
+                </div>
+                <div class="form-group">
+                  <label>Payment Terms</label>
+                  <select formControlName="paymentTerms" class="form-control">
+                    <option value="">Select Payment Terms</option>
+                    <option value="Net 15">Net 15</option>
+                    <option value="Net 30">Net 30</option>
+                    <option value="Net 45">Net 45</option>
+                    <option value="Net 60">Net 60</option>
+                    <option value="Cash on Delivery">Cash on Delivery</option>
+                    <option value="Prepaid">Prepaid</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Lead Time (Days) *</label>
+                  <input type="number" formControlName="leadTimeDays" class="form-control" min="1" max="90">
+                  @if (supplierForm.get('leadTimeDays')?.invalid && supplierForm.get('leadTimeDays')?.touched) {
+                    <div class="error-message">Lead time must be between 1 and 90 days</div>
+                  }
+                </div>
+                <div class="form-group">
+                  <label>Rating</label>
+                  <div class="rating-input">
+                    @for (rating of ratingOptions; track rating) {
+                      <i class="fas fa-star"
+                         [class.active]="rating <= (supplierForm.get('rating')?.value || 0)"
+                         (click)="supplierForm.patchValue({ rating: rating })">
+                      </i>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">Cancel</button>
+          <button class="btn-primary" (click)="saveSupplier()" [disabled]="isSaving || supplierForm.invalid">
+            @if (isSaving) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Saving...
+            } @else {
+              <i class="fas fa-save"></i>
+              {{ editingSupplier ? 'Update' : 'Create' }}
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
