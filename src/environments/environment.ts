@@ -1,8 +1,8 @@
 // src/environments/environment.ts
 export const environment = {
   production: false,
-  apiUrl: 'https://localhost:44384/api',
-  rootUrl : 'https://localhost:44384',
+  apiUrl: 'http://pulsehotel.runasp.net/api',
+  rootUrl : 'http://pulsehotel.runasp.net',
   appName: 'Pulse Hotel',
   appVersion: '1.0.0',
   tokenKey: 'access_token',

@@ -1,0 +1,420 @@
+<!-- src/app/modules/housekeeping/pages/lost-found/lost-found.component.html -->
+<div class="lost-found-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Lost & Found</h1>
+      <p>Manage lost items reported by guests and staff</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-refresh" (click)="refreshData()" [disabled]="isLoading">
+        🔄 {{ isLoading ? 'Loading...' : 'Refresh' }}
+      </button>
+      <button class="btn-primary" (click)="openCreateModal()">
+        + Report Item
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-message" *ngIf="errorMessage">
+    <div class="alert alert-danger">
+      <strong>Error:</strong> {{ errorMessage }}
+      <button class="close-btn" (click)="dismissError()">×</button>
+    </div>
+  </div>
+
+  <!-- Statistics Summary -->
+  <div class="stats-summary" *ngIf="!isLoading && statistics">
+    <div class="stat-card total">
+      <div class="stat-value">{{ statistics.total }}</div>
+      <div class="stat-label">Total Items</div>
+    </div>
+    <div class="stat-card pending">
+      <div class="stat-value">{{ statistics.pending }}</div>
+      <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat-card claimed">
+      <div class="stat-value">{{ statistics.claimed }}</div>
+      <div class="stat-label">Claimed</div>
+    </div>
+    <div class="stat-card donated">
+      <div class="stat-value">{{ statistics.donated }}</div>
+      <div class="stat-label">Donated</div>
+    </div>
+    <div class="stat-card disposed">
+      <div class="stat-value">{{ statistics.disposed }}</div>
+      <div class="stat-label">Disposed</div>
+    </div>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="filters">
+      <select class="filter-select" [(ngModel)]="selectedStatus" (change)="onFilterChange()">
+        <option value="all">All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Claimed">Claimed</option>
+        <option value="Donated">Donated</option>
+        <option value="Disposed">Disposed</option>
+      </select>
+
+      <select class="filter-select" [(ngModel)]="selectedCategory" (change)="onFilterChange()">
+        <option value="all">All Categories</option>
+        <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+      </select>
+
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (input)="applyFilters()"
+          placeholder="Search by name, description, room..."
+          class="search-input"
+        />
+      </div>
+
+      <div class="date-range">
+        <input type="date" [(ngModel)]="startDate" (change)="applyFilters()" placeholder="Start Date" class="date-input" />
+        <span>to</span>
+        <input type="date" [(ngModel)]="endDate" (change)="applyFilters()" placeholder="End Date" class="date-input" />
+        <button class="btn-clear" (click)="clearDateRange()" *ngIf="startDate || endDate">Clear</button>
+      </div>
+
+      <button class="btn-secondary" (click)="resetFilters()">
+        Reset Filters
+      </button>
+    </div>
+
+    <div class="view-toggle">
+      <button class="toggle-btn" [class.active]="viewMode === 'list'" (click)="viewMode = 'list'">
+        📋 List
+      </button>
+      <button class="toggle-btn" [class.active]="viewMode === 'grid'" (click)="viewMode = 'grid'">
+        ▦ Grid
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading items...</p>
+  </div>
+
+  <!-- List View -->
+  <div class="items-list" *ngIf="!isLoading && viewMode === 'list' && filteredItems.length > 0">
+    <div class="list-header">
+      <div class="col-item">Item</div>
+      <div class="col-category">Category</div>
+      <div class="col-room">Room</div>
+      <div class="col-date">Found Date</div>
+      <div class="col-status">Status</div>
+      <div class="col-actions">Actions</div>
+    </div>
+
+    <div *ngFor="let item of getPaginatedItems()" class="list-row">
+      <div class="col-item">
+        <strong>{{ item.itemName }}</strong>
+        <span class="item-desc">{{ item.itemDescription | slice:0:50 }}{{ item.itemDescription.length > 50 ? '...' : '' }}</span>
+      </div>
+      <div class="col-category">
+        <span class="category-badge">{{ item.category }}</span>
+      </div>
+      <div class="col-room">{{ item.roomNumber || 'N/A' }}</div>
+      <div class="col-date">{{ formatDateOnly(item.foundDate) }}</div>
+      <div class="col-status">
+        <span class="status-badge" [class]="getStatusClass(item.status)">
+          {{ getStatusIcon(item.status) }} {{ item.status }}
+        </span>
+      </div>
+      <div class="col-actions">
+        <button class="action-btn view" (click)="viewItemDetails(item)" title="View Details">👁</button>
+        <button *ngIf="item.status === 'Pending'" class="action-btn claim" (click)="openClaimModal(item)" title="Claim Item">✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid View -->
+  <div class="items-grid" *ngIf="!isLoading && viewMode === 'grid' && filteredItems.length > 0">
+    <div *ngFor="let item of getPaginatedItems()" class="item-card" [class.claimed]="item.status === 'Claimed'">
+      <div class="card-header">
+        <div class="item-name">{{ item.itemName }}</div>
+        <div class="item-category">{{ item.category }}</div>
+      </div>
+
+      <div class="card-content">
+        <div class="item-description">
+          <span class="label">Description:</span>
+          <p>{{ item.itemDescription }}</p>
+        </div>
+
+        <div class="item-details">
+          <div class="detail">
+            <span class="label">Room:</span>
+            <span class="value">{{ item.roomNumber || 'N/A' }}</span>
+          </div>
+          <div class="detail">
+            <span class="label">Found By:</span>
+            <span class="value">{{ item.foundByName }}</span>
+          </div>
+          <div class="detail">
+            <span class="label">Location:</span>
+            <span class="value">{{ item.location }}</span>
+          </div>
+          <div class="detail">
+            <span class="label">Found Date:</span>
+            <span class="value">{{ formatDateOnly(item.foundDate) }}</span>
+          </div>
+        </div>
+
+        <div class="claimed-info" *ngIf="item.status === 'Claimed'">
+          <span class="claimed-icon">✓</span>
+          <span class="claimed-text">Claimed by {{ item.claimedByName }} on {{ formatDateOnly(item.claimedDate) }}</span>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <span class="status-badge" [class]="getStatusClass(item.status)">
+          {{ getStatusIcon(item.status) }} {{ item.status }}
+        </span>
+        <div class="card-actions">
+          <button class="action-icon view" (click)="viewItemDetails(item)" title="View Details">👁</button>
+          <button *ngIf="item.status === 'Pending'" class="action-icon claim" (click)="openClaimModal(item)" title="Claim Item">✓</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && filteredItems.length === 0 && items.length > 0">
+    <div class="empty-icon">🔍</div>
+    <h3>No Items Found</h3>
+    <p>No lost and found items match your current filters. Try adjusting your search criteria.</p>
+    <button class="btn-secondary" (click)="resetFilters()">Reset Filters</button>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && items.length === 0 && !errorMessage">
+    <div class="empty-icon">📦</div>
+    <h3>No Lost & Found Items</h3>
+    <p>No items have been reported yet. Use the button above to report a lost item.</p>
+    <button class="btn-primary" (click)="openCreateModal()">Report First Item</button>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button class="page-btn" (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1">
+      ← Previous
+    </button>
+    <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+    <button class="page-btn" (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages">
+      Next →
+    </button>
+    <select class="page-size-select" [(ngModel)]="pageSize" (change)="changePageSize(pageSize)">
+      <option [value]="10">10 per page</option>
+      <option [value]="25">25 per page</option>
+      <option [value]="50">50 per page</option>
+    </select>
+  </div>
+</div>
+
+<!-- Create Item Modal -->
+<div class="modal-overlay" *ngIf="showCreateModal" (click)="showCreateModal = false">
+  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Report Lost Item</h2>
+      <button class="modal-close" (click)="showCreateModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Item Name *</label>
+          <input type="text" [(ngModel)]="newItem.itemName" class="form-control" placeholder="e.g., iPhone 13, Gold Ring" />
+        </div>
+        <div class="form-group">
+          <label>Category *</label>
+          <select [(ngModel)]="newItem.category" class="form-control">
+            <option [value]="null">Select category...</option>
+            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Description *</label>
+        <textarea [(ngModel)]="newItem.itemDescription" class="form-control" rows="3"
+                  placeholder="Describe the item in detail..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Room Number</label>
+          <select [(ngModel)]="newItem.roomId" class="form-control">
+            <option [value]="null">Select room (optional)</option>
+            <option *ngFor="let room of availableRooms" [value]="room.roomId">
+              Room {{ room.roomNumber }} - {{ room.roomType }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Room Number Display</label>
+          <input type="text" [(ngModel)]="newItem.roomNumber" class="form-control" placeholder="Room number" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Found By Name *</label>
+          <input type="text" [(ngModel)]="newItem.foundByName" class="form-control" placeholder="Staff or guest name" />
+        </div>
+        <div class="form-group">
+          <label>Found By ID *</label>
+          <input type="number" [(ngModel)]="newItem.foundBy" class="form-control" placeholder="Staff ID" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Location Found *</label>
+        <input type="text" [(ngModel)]="newItem.location" class="form-control" placeholder="e.g., Under bed, Bathroom sink, Lobby" />
+      </div>
+
+      <div class="form-group">
+        <label>Photo URL (Optional)</label>
+        <input type="text" [(ngModel)]="newItem.photoUrl" class="form-control" placeholder="https://..." />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showCreateModal = false">Cancel</button>
+      <button class="btn-primary" (click)="createItem()" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Creating...' : 'Report Item' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Item Details Modal -->
+<div class="modal-overlay" *ngIf="showDetailsModal" (click)="showDetailsModal = false">
+  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Lost Item Details</h2>
+      <button class="modal-close" (click)="showDetailsModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="details-grid">
+        <div class="detail-item">
+          <label>Item ID:</label>
+          <span>{{ selectedItem?.itemId }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Item Name:</label>
+          <span>{{ selectedItem?.itemName }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Category:</label>
+          <span class="category-badge">{{ selectedItem?.category }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Status:</label>
+          <span class="status-badge" [class]="getStatusClass(selectedItem?.status || 'Pending')">
+            {{ getStatusIcon(selectedItem?.status || 'Pending') }} {{ selectedItem?.status }}
+          </span>
+        </div>
+        <div class="detail-item full-width">
+          <label>Description:</label>
+          <p class="description-text">{{ selectedItem?.itemDescription }}</p>
+        </div>
+        <div class="detail-item">
+          <label>Room Number:</label>
+          <span>{{ selectedItem?.roomNumber || 'N/A' }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Found By:</label>
+          <span>{{ selectedItem?.foundByName }} (ID: {{ selectedItem?.foundBy }})</span>
+        </div>
+        <div class="detail-item">
+          <label>Found Date:</label>
+          <span>{{ formatDate(selectedItem?.foundDate) }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Location:</label>
+          <span>{{ selectedItem?.location }}</span>
+        </div>
+        <div class="detail-item full-width" *ngIf="selectedItem?.photoUrl">
+          <label>Photo:</label>
+          <img [src]="selectedItem?.photoUrl" alt="Item photo" class="item-photo" />
+        </div>
+        <div class="detail-item full-width" *ngIf="selectedItem?.status === 'Claimed'">
+          <label>Claim Information:</label>
+          <div class="claim-info">
+            <div>Claimed By: {{ selectedItem?.claimedByName }} (ID: {{ selectedItem?.claimedBy }})</div>
+            <div>Claimed Date: {{ formatDate(selectedItem?.claimedDate) }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Related Room Information -->
+      <div class="section-divider" *ngIf="relatedRoom">
+        <h3>Room Information</h3>
+        <div class="related-info-grid">
+          <div class="info-item">
+            <label>Room Type:</label>
+            <span>{{ relatedRoom.roomType }}</span>
+          </div>
+          <div class="info-item">
+            <label>Floor:</label>
+            <span>{{ relatedRoom.floorNumber }}</span>
+          </div>
+          <div class="info-item">
+            <label>Status:</label>
+            <span class="status-badge" [class]="getRoomStatusClass(relatedRoom.status)">
+              {{ getRoomStatusDisplay(relatedRoom.status) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showDetailsModal = false">Close</button>
+      <button *ngIf="selectedItem?.status === 'Pending'" class="btn-primary" (click)="showDetailsModal = false; openClaimModal(selectedItem!)">
+        Claim Item
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Claim Item Modal -->
+<div class="modal-overlay" *ngIf="showClaimModal" (click)="showClaimModal = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Claim Item - {{ selectedItem?.itemName }}</h2>
+      <button class="modal-close" (click)="showClaimModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="claim-notice">
+        <p><strong>Item:</strong> {{ selectedItem?.itemName }}</p>
+        <p><strong>Description:</strong> {{ selectedItem?.itemDescription }}</p>
+        <p><strong>Found Date:</strong> {{ formatDate(selectedItem?.foundDate) }}</p>
+        <hr />
+        <p>Please verify the claimant's identity before processing this claim.</p>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Claimant Name *</label>
+          <input type="text" [(ngModel)]="claimData.claimedByName" class="form-control" placeholder="Full name of claimant" />
+        </div>
+        <div class="form-group">
+          <label>Claimant ID *</label>
+          <input type="number" [(ngModel)]="claimData.claimedBy" class="form-control" placeholder="Claimant ID or guest ID" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showClaimModal = false">Cancel</button>
+      <button class="btn-primary" (click)="claimItem()" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Processing...' : 'Confirm Claim' }}
+      </button>
+    </div>
+  </div>
+</div>
