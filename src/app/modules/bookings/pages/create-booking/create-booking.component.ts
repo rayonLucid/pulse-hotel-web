@@ -1,6 +1,6 @@
 // src/app/modules/bookings/pages/create-booking/create-booking.component.ts
-import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { CommonModule, formatDate } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
@@ -8,6 +8,8 @@ import { BookingService } from '../../../../core/services/booking.service';
 
 import { CreateBookingRequest } from '../../../../core/models/booking.model';
 import { RoomService } from '../../../../core/services/room.service';
+import { NgxPaginationModule } from 'ngx-pagination';
+import { FilterRoomsPipe } from '../../../../core/pipes/filter-rooms-pipe';
 
 interface Room {
   roomId: number;
@@ -18,11 +20,11 @@ interface Room {
   maxChildren: number;
   amenities: string[];
 }
-
+import  PaystackPop from '@paystack/inline-js';
 @Component({
   selector: 'app-create-booking',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule,NgxPaginationModule, FilterRoomsPipe],
   templateUrl: './create-booking.component.html',
   styleUrls: ['./create-booking.component.scss']
 })
@@ -43,8 +45,15 @@ export class CreateBookingComponent implements OnInit {
   subtotal = 0;
   taxAmount = 0;
   totalAmount = 0;
+
+  currentPage = 1;
+  itemsPerPage = 6;
+  pageSizeOptions = [6, 12, 24, 48];
+
   private bookingService: BookingService = inject(BookingService);
     private roomService: RoomService = inject(RoomService);
+    cdr =inject(ChangeDetectorRef)
+    searchTerm:string = '';
   constructor(
     private fb: FormBuilder,
 
@@ -62,11 +71,14 @@ export class CreateBookingComponent implements OnInit {
       // Step 1: Search Criteria
       checkInDate: ['', [Validators.required]],
       checkOutDate: ['', [Validators.required]],
-      adults: [2, [Validators.required, Validators.min(1), Validators.max(10)]],
-      children: [0, [Validators.min(0), Validators.max(5)]],
 
+
+       numberOfAdults:[2, [Validators.required, Validators.min(1), Validators.max(10)]] ,
+      numberOfChildren:  [0, [Validators.min(0), Validators.max(5)]],
+      roomId: [0],
       // Step 3: Guest Details
-      guestName: ['', [Validators.required, Validators.minLength(3)]],
+      guestFirstName: ['', [Validators.required, Validators.minLength(3)]],
+      guestLastName: ['', [Validators.required, Validators.minLength(3)]],
       guestEmail: ['', [Validators.required, Validators.email]],
       guestPhone: ['', [Validators.required, Validators.pattern('^[0-9]{10,15}$')]],
       specialRequests: [''],
@@ -90,13 +102,13 @@ export class CreateBookingComponent implements OnInit {
       }
     });
 
-    this.bookingForm.get('adults')?.valueChanges.subscribe(() => {
+    this.bookingForm.get('numberOfAdults')?.valueChanges.subscribe(() => {
       if (this.selectedRoom) {
         this.validateRoomCapacity();
       }
     });
 
-    this.bookingForm.get('children')?.valueChanges.subscribe(() => {
+    this.bookingForm.get('numberOfChildren')?.valueChanges.subscribe(() => {
       if (this.selectedRoom) {
         this.validateRoomCapacity();
       }
@@ -113,7 +125,10 @@ export class CreateBookingComponent implements OnInit {
       checkInDate: today.toISOString().split('T')[0],
       checkOutDate: tomorrow.toISOString().split('T')[0]
     });
+
+
   }
+
 
   validateDates(): void {
     const checkIn = this.bookingForm.get('checkInDate')?.value;
@@ -126,6 +141,15 @@ export class CreateBookingComponent implements OnInit {
     }
   }
 
+
+
+ onPageChange(page: number): void {
+    this.currentPage = page;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+
+
   searchRooms(): void {
     if (this.bookingForm.get('checkInDate')?.invalid ||
         this.bookingForm.get('checkOutDate')?.invalid) {
@@ -135,25 +159,28 @@ export class CreateBookingComponent implements OnInit {
 
     this.isSearching = true;
     const searchCriteria = {
-      checkInDate: new Date(this.bookingForm.get('checkInDate')?.value),
-      checkOutDate: new Date(this.bookingForm.get('checkOutDate')?.value),
-      adults: this.bookingForm.get('adults')?.value,
-      children: this.bookingForm.get('children')?.value
+      checkIn: formatDate(this.bookingForm.get('checkInDate')?.value, 'yyyy-MM-dd', 'en-US'),
+      checkOut: formatDate(this.bookingForm.get('checkOutDate')?.value, 'yyyy-MM-dd', 'en-US'),
+      adults: this.bookingForm.get('numberOfAdults')?.value,
+      children: this.bookingForm.get('numberOfChildren')?.value,
+      roomTypeId:null
     };
-
+//console.log('Searching rooms with criteria:', searchCriteria);
     this.roomService.checkAvailability(searchCriteria).subscribe({
       next: (response:any) => {
         this.availableRooms = response.data;
         this.isSearching = false;
         this.step = 2;
-
+this.cdr.detectChanges();
         if (this.availableRooms.length === 0) {
           this.toastr.warning('No rooms available for selected dates', 'No Availability');
         }
       },
       error: (error) => {
         this.isSearching = false;
+        this.cdr.detectChanges();
         this.toastr.error(error.message || 'Failed to search rooms', 'Error');
+        console.error('Error searching rooms:', error);
       }
     });
   }
@@ -166,8 +193,8 @@ export class CreateBookingComponent implements OnInit {
   }
 
   validateRoomCapacity(): boolean {
-    const adults = this.bookingForm.get('adults')?.value;
-    const children = this.bookingForm.get('children')?.value;
+    const adults = this.bookingForm.get('numberOfAdults')?.value;
+    const children = this.bookingForm.get('numberOfChildren')?.value;
 
     if (this.selectedRoom) {
       if (adults > this.selectedRoom.maxAdults) {
@@ -203,7 +230,11 @@ export class CreateBookingComponent implements OnInit {
   }
 
   proceedToPayment(): void {
-    if (this.bookingForm.get('guestName')?.invalid) {
+    if (this.bookingForm.get('guestFirstName')?.invalid) {
+      this.toastr.warning('Please enter guest name', 'Missing Information');
+      return;
+    }
+     if (this.bookingForm.get('guestLastName')?.invalid) {
       this.toastr.warning('Please enter guest name', 'Missing Information');
       return;
     }
@@ -230,23 +261,21 @@ export class CreateBookingComponent implements OnInit {
       roomId: this.selectedRoom!.roomId,
       checkInDate: new Date(this.bookingForm.get('checkInDate')?.value),
       checkOutDate: new Date(this.bookingForm.get('checkOutDate')?.value),
-      numberOfAdults: this.bookingForm.get('adults')?.value,
-      numberOfChildren: this.bookingForm.get('children')?.value,
+      numberOfAdults: this.bookingForm.get('numberOfAdults')?.value,
+      numberOfChildren: this.bookingForm.get('numberOfChildren')?.value,
       specialRequests: this.bookingForm.get('specialRequests')?.value
     };
-
-    this.bookingService.createBooking(bookingRequest).subscribe({
+     this.bookingForm.value.roomId = this.selectedRoom!.roomId;
+    this.bookingService.createBooking(this.bookingForm.value).subscribe({
       next: (response:any) => {
+        console.log('Create Booking Response:', response);
         this.isLoading = false;
         if (response.success) {
           this.toastr.success('Booking created successfully!', 'Success');
+  this.cdr.detectChanges();
 
-          // If there's a payment URL, redirect to payment
-          if (response.paymentUrl) {
-            window.location.href = response.paymentUrl;
-          } else {
-            this.router.navigate(['/bookings/detail', response.data.bookingId]);
-          }
+            this.payWithPaystack(response.data);
+
         } else {
           this.toastr.error(response.message || 'Failed to create booking', 'Error');
         }
@@ -254,10 +283,76 @@ export class CreateBookingComponent implements OnInit {
       error: (error) => {
         this.isLoading = false;
         this.toastr.error(error.message || 'Failed to create booking', 'Error');
+        this.cdr.detectChanges();
+        console.error('Error creating booking:', error);
+      }
+    });
+  }
+payWithPaystack(bookingData: any): void {
+ // console.log('Initiating Paystack payment with data:', bookingData);
+    const paystack = new PaystackPop();
+
+    paystack.newTransaction({
+      key:bookingData.paystackKey , // Replace with your Public Key
+      email: this.bookingForm.get('guestEmail')?.value,
+      amount: Math.round(this.totalAmount * 100), // Paystack operates strictly in minor unit variants (kobo for NGN)
+      currency: 'NGN',
+      reference: bookingData.bookingReference || 'BK-' + bookingData.bookingId + '-' + Date.now(),
+      metadata: {
+        custom_fields: [
+          {
+            display_name: "Guest Name",
+            variable_name: "guest_name",
+            value: `${this.bookingForm.get('guestFirstName')?.value} ${this.bookingForm.get('guestLastName')?.value}`
+          },
+          {
+            display_name: "Booking ID",
+            variable_name: "booking_id",
+            value: bookingData.bookingId
+          }
+        ]
+      },
+      onSuccess: (transaction: any) => {
+        this.isLoading = false;
+        this.toastr.success('Payment successful!', 'Success');
+        // Redirect to detail page for verification routing state updates
+        this.confirmAndMarkAsPaid(bookingData.bookingId, transaction.reference);
+        // this.router.navigate(['/bookings/detail', bookingData.bookingId], {
+        //   queryParams: { reference: transaction.reference }
+        // });
+      },
+      onCancel: () => {
+        this.isLoading = false;
+        this.toastr.info('Payment window closed. You can fulfill this payment via your dashboard later.', 'Payment Cancelled');
+        this.router.navigate(['/bookings/detail', bookingData.bookingId]);
+        this.cdr.detectChanges();
       }
     });
   }
 
+  private confirmAndMarkAsPaid(bookingId: number, transactionReference: string): void {
+  // 4. Send a localized update or verification ping immediately to update paymentStatus as paid
+  this.bookingService.updatePaymentStatus( bookingId,{
+    record:"New Payment",
+    paymentStatus:"Paid",
+    status: 'Success',
+    reference: transactionReference
+  }).subscribe({
+    next: (updateResponse: any) => {
+      this.isLoading = false;
+      this.toastr.success('Payment successfully authorized & validated!', 'Success');
+
+      // Send them straight to their finalized reservation receipt dashboard view
+      this.router.navigate(['/bookings/detail', bookingId]);
+    },
+    error: (err: any) => {
+      this.isLoading = false;
+      this.toastr.warning('Payment was processed but verification failed. Our team will review your order.', 'Verification Warning');
+      this.router.navigate(['/bookings/detail', bookingId]);
+      console.error('Error updating payment status:', err);
+    }
+  });
+}
   formatPrice(price: number): string {
     return `₦${price.toLocaleString()}`;
   }

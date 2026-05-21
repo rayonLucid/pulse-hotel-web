@@ -6,16 +6,18 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ToastrService } from 'ngx-toastr';
 import { BookingService } from '../../../../core/services/booking.service';
 import { Booking } from '../../../../core/models/booking.model';
+import  PaystackPop from '@paystack/inline-js';
 
 interface CheckInData {
   bookingId: number;
-  guestName: string;
+  // guestName: string;
   roomNumber: string;
   checkInDate: Date;
   checkOutDate: Date;
   idCardNumber?: string;
   vehicleNumber?: string;
   specialNotes?: string;
+  guestId: number;
 }
 
 interface CheckOutData {
@@ -43,7 +45,7 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
   isCheckingIn = false;
   isSearchingCheckIn = false;
   checkInSearchTerm = '';
-
+isLoading =false
   // Check-out Data
   checkOutBookings: Booking[] = [];
   selectedCheckOutBooking: Booking | null = null;
@@ -55,6 +57,7 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
   private refreshInterval: any;
  private bookingService: BookingService= inject(BookingService);
   private changeDet = inject(ChangeDetectorRef);
+  cdr = inject(ChangeDetectorRef);
   constructor(
     private fb: FormBuilder,
 
@@ -97,8 +100,9 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
     this.isSearchingCheckIn = true;
     this.bookingService.getTodaysArrivals().subscribe({
       next: (response:any) => {
+      //  console.log('Check-in Bookings:', response.data);
         if (response.success) {
-          this.checkInBookings = response.data;
+          this.checkInBookings = response.data.filter((booking:any) => booking.bookingStatus === 'Confirmed' || booking.bookingStatus === 'Pending');
         }
         this.isSearchingCheckIn = false;
         this.changeDet.detectChanges();
@@ -156,6 +160,10 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
   }
 
   confirmCheckIn(): void {
+    if (!confirm('Are you sure you want to check in this guest?')) {
+      return;
+    }
+
     if (!this.selectedCheckInBooking) return;
 
     if (this.checkInForm.get('idCardNumber')?.invalid) {
@@ -165,17 +173,18 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
 
     const checkInData: CheckInData = {
       bookingId: this.selectedCheckInBooking.bookingId,
-      guestName: this.selectedCheckInBooking.guestName,
-      roomNumber: this.selectedCheckInBooking.roomNumber,
+      // guestName: this.selectedCheckInBooking.guestName,
+       roomNumber: this.selectedCheckInBooking.roomNumber,
       checkInDate: new Date(),
       checkOutDate: this.selectedCheckInBooking.checkOutDate,
       idCardNumber: this.checkInForm.get('idCardNumber')?.value,
       vehicleNumber: this.checkInForm.get('vehicleNumber')?.value,
-      specialNotes: this.checkInForm.get('specialNotes')?.value
+      specialNotes: this.checkInForm.get('specialNotes')?.value,
+      guestId: this.selectedCheckInBooking.userId
     };
 
     this.isCheckingIn = true;
-    this.bookingService.checkIn(this.selectedCheckInBooking.bookingId).subscribe({
+    this.bookingService.checkIn(this.selectedCheckInBooking.bookingId, checkInData).subscribe({
       next: (response:any) => {
         this.isCheckingIn = false;
         if (response.success) {
@@ -189,7 +198,8 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
       },
       error: (error:any) => {
         this.isCheckingIn = false;
-        this.toastr.error(error.message || 'Failed to check in guest', 'Error');
+        this.toastr.error(error.error.message || 'Failed to check in guest', 'Error');
+        console.error('Error during check-in:', error);
       }
     });
   }
@@ -326,4 +336,97 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
   viewBookingDetail(bookingId: number): void {
     this.router.navigate(['/bookings/detail', bookingId]);
   }
+  MakePayment(bookingId: number): void {
+    // Trigger payStack Gateway
+    let extraCharges = this.checkOutForm.get('extraCharges')?.value || 0;
+    if (extraCharges <= 0) {
+      this.toastr.warning('No extra charges to pay', 'Payment Not Required');
+      return;
+    }
+    this.isLoading = true;
+    this.bookingService.makePayment(bookingId,extraCharges).subscribe({
+      next: (response:any) => {
+         console.log('Payment initiation response:', response);
+        if (response.success) {
+
+         this. payWithPaystack(response.data,extraCharges)
+        } else {
+          this.toastr.error('Failed to initiate payment', 'Error');
+        }
+      },
+      error: (error:any) => {
+        this.toastr.error(error.message || 'Failed to initiate payment', 'Error');
+         this.isLoading = false;
+        console.error('Error initiating payment:', error);
+       this.cdr.detectChanges();
+      }
+    });
+
+
+  }
+
+
+  payWithPaystack(bookingData: any,extraCharges: number): void {
+  console.log('Initiating Paystack payment with data:', bookingData);
+    const payStack = new PaystackPop();
+
+    payStack.newTransaction({
+      key:bookingData.paystackKey , // Replace with your Public Key
+      email: bookingData.guestEmail,
+      amount: Math.round(extraCharges * 100), // Paystack operates strictly in minor unit variants (kobo for NGN)
+      currency: 'NGN',
+      reference: bookingData.bookingReference || 'BK-' + bookingData.bookingId + '-' + Date.now(),
+      metadata: {
+        custom_fields: [
+          {
+            display_name: "Guest Name",
+            variable_name: "guest_name",
+            value: `${bookingData.guestFirstName} ${bookingData.guestLastName}`
+          },
+          {
+            display_name: "Booking ID",
+            variable_name: "booking_id",
+            value: bookingData.bookingId
+          }
+        ]
+      },
+      onSuccess: (transaction: any) => {
+        this.isLoading = false;
+        this.toastr.success('Payment successful!', 'Success');
+        // Redirect to detail page for verification routing state updates
+        this.confirmAndMarkAsPaid(bookingData.bookingId, transaction.reference);
+
+      },
+      onCancel: () => {
+        this.isLoading = false;
+        this.toastr.info('Payment window closed. You can fulfill this payment via your dashboard later.', 'Payment Cancelled');
+        this.router.navigate(['/bookings/check-in-out']);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private confirmAndMarkAsPaid(bookingId: number, transactionReference: string): void {
+  // 4. Send a localized update or verification ping immediately to update paymentStatus as paid
+  this.bookingService.updatePaymentStatus( bookingId,{
+   record:"Additional Payment",
+    paymentStatus: 'Paid',
+    status: 'Success',
+    reference: transactionReference
+  }).subscribe({
+    next: (updateResponse: any) => {
+      this.isLoading = false;
+      this.toastr.success('Payment successfully authorized & validated!', 'Success');
+
+      // Send them straight to their finalized reservation receipt dashboard view
+      this.router.navigate(['/bookings/check-in-out']);
+    },
+    error: (err: any) => {
+      this.isLoading = false;
+      this.toastr.warning('Payment was processed but verification failed. Our team will review your order.', 'Verification Warning');
+      this.router.navigate(['/bookings/check-in-out']);
+      console.error('Error updating payment status:', err);
+    }
+  });
+}
 }

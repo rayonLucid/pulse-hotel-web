@@ -103,10 +103,10 @@
                   Amenities ({{ roomType.amenities.length }})
                 </div>
                 <div class="amenities-list">
-                  @for (amenity of roomType.amenities.slice(0, 6); track amenity) {
+                  @for (amenity of roomType.amenities; track amenity) {
                     <span class="amenity-tag">
                       <i class="fas fa-check-circle"></i>
-                      {{ amenity }}
+                      {{ amenity.amenityName }}
                     </span>
                   }
                   @if (roomType.amenities.length > 6) {
@@ -202,10 +202,8 @@
                 <label>Room Size (m²) *</label>
                 <input type="number" formControlName="roomSize" class="form-control">
               </div>
-            </div>
 
-            <div class="form-row">
-              <div class="form-group">
+               <div class="form-group">
                 <label>Bed Type *</label>
                 <select formControlName="bedType" class="form-control">
                   @for (option of bedTypeOptions; track option.value) {
@@ -213,12 +211,24 @@
                   }
                 </select>
               </div>
+            </div>
+
+            <div class="form-row">
+
               <div class="form-group">
                 <label>View Type *</label>
                 <select formControlName="viewType" class="form-control">
                   @for (option of viewTypeOptions; track option.value) {
                     <option [value]="option.value">{{ option.label }}</option>
                   }
+                </select>
+              </div>
+
+               <div class="form-group">
+                <label>Is Active *</label>
+                <select formControlName="isActive" class="form-control">
+                  <option [value]="true">Active</option>
+                  <option [value]="false">Inactive</option>
                 </select>
               </div>
             </div>
@@ -229,7 +239,8 @@
                 @for (amenity of amenityOptions; track amenity) {
                   <label class="checkbox-label">
                     <input type="checkbox" [checked]="isAmenitySelected(amenity)" (change)="toggleAmenity(amenity)">
-                    <span>{{ amenity }}</span>
+                    <i class="fas" [class]="amenity.icon"></i>
+                    <span>{{ amenity.amenityName }}</span>
                   </label>
                 }
               </div>

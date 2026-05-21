@@ -1,12 +1,33 @@
 <!-- src/app/layouts/header/header.component.html -->
 <header class="app-header">
   <div class="header-left">
-    <button class="mobile-menu-btn" (click)="toggleMobileMenu()">
+    <!-- <button class="mobile-menu-btn" (click)="toggleMobileMenu()">
       <i class="fas fa-bars"></i>
-    </button>
-    <div class="page-title">
+    </button> -->
+      @if (isMobile) {
+      <button class="mobile-menu-btn" (click)="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+      </button>
+    }
+    <!-- <div class="page-title">
       <h1>{{ router.url | titlecase }}</h1>
-    </div>
+    </div> -->
+
+      <div class="breadcrumb-container">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+              <a routerLink="/dashboard">Home</a>
+            </li>
+            @for (crumb of breadcrumbs; track crumb.path) {
+              <li class="breadcrumb-item" [class.active]="$last">
+                <a [routerLink]="crumb.path">{{ crumb.label }}</a>
+              </li>
+            }
+          </ol>
+        </nav>
+      </div>
+
   </div>
 
   <div class="header-right">

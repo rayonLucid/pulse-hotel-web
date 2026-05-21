@@ -38,6 +38,13 @@ export class BookingService {
     return this.http.get<{ success: boolean; data: Booking }>(`${this.apiUrl}/reference/${reference}`);
   }
 
+
+  updatePaymentStatus(bookingId: number, paymentData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${bookingId}/payment-status`, paymentData);
+  }
+verifyPayment(bookingId: number): Observable<{ success: boolean; data: Booking }> {
+    return this.http.get<{ success: boolean; data: Booking }>(`${this.apiUrl}/${bookingId}/verify-payment`);
+  }
   // Create new booking
   createBooking(request: CreateBookingRequest): Observable<{ success: boolean; data: Booking; paymentUrl?: string }> {
     return this.http.post<{ success: boolean; data: Booking; paymentUrl?: string }>(this.apiUrl, request);
@@ -54,8 +61,9 @@ export class BookingService {
   }
 
   // Check-in guest
-  checkIn(id: number): Observable<{ success: boolean; message: string }> {
-    return this.http.put<{ success: boolean; message: string }>(`${this.apiUrl}/${id}/checkin`, {});
+  checkIn(id: number, checkInData: any): Observable<{ success: boolean; message: string }> {
+    console.log('Check-in data being sent to API:', checkInData);
+    return this.http.post<{ success: boolean; message: string }>(`${this.apiUrl}/${id}/checkin`, checkInData);
   }
 
   // Check-out guest
@@ -63,6 +71,9 @@ export class BookingService {
     return this.http.put<{ success: boolean; message: string }>(`${this.apiUrl}/${id}/checkout`, {});
   }
 
+  makePayment(bookingId: number, Amount: number): Observable<{ success: boolean; message: string; data?: Booking }> {
+    return this.http.post<{ success: boolean; message: string; data?: Booking }>(`${this.apiUrl}/${bookingId}/make-payment`, { amount: Amount });
+  }
   // Get booking statistics
   getBookingStats(): Observable<{ success: boolean; data: BookingStats }> {
     return this.http.get<{ success: boolean; data: BookingStats }>(`${this.apiUrl}/stats`);
@@ -78,5 +89,5 @@ export class BookingService {
     return this.http.get<{ success: boolean; data: Booking[] }>(`${this.apiUrl}/today-departures`);
   }
 
- 
+
 }

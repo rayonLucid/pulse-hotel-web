@@ -1,0 +1,129 @@
+<!-- src/app/modules/settings/pages/security/security.component.html -->
+<div class="security-container">
+  <div class="settings-layout" [class.is-not-admin]="user?.role !== 'Admin'">
+    <app-settings-sidebar ></app-settings-sidebar>
+
+    <div class="settings-content">
+      <div class="settings-header">
+        <h1>Security Settings</h1>
+        <p>Manage your password and security preferences</p>
+      </div>
+
+      <!-- Change Password -->
+      <div class="form-card">
+        <h3>Change Password</h3>
+        <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
+          <div class="form-group">
+            <label for="currentPassword">Current Password</label>
+            <input type="password" id="currentPassword" formControlName="currentPassword" class="form-control">
+            @if (passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched) {
+              <div class="error-message">Current password is required</div>
+            }
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="newPassword">New Password</label>
+              <input type="password" id="newPassword" formControlName="newPassword" class="form-control">
+              @if (passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched) {
+                <div class="error-message">Password must be at least 6 characters</div>
+              }
+            </div>
+            <div class="form-group">
+              <label for="confirmPassword">Confirm New Password</label>
+              <input type="password" id="confirmPassword" formControlName="confirmPassword" class="form-control">
+              @if (passwordForm.hasError('mismatch') && passwordForm.get('confirmPassword')?.touched) {
+                <div class="error-message">Passwords do not match</div>
+              }
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="isSaving || passwordForm.invalid">
+              @if (isSaving) {
+                <i class="fas fa-spinner fa-spin"></i>
+                Updating...
+              } @else {
+                <i class="fas fa-key"></i>
+                Change Password
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Two-Factor Authentication -->
+      <div class="form-card">
+        <h3>Two-Factor Authentication</h3>
+        <div class="two-factor-setting">
+          <div class="setting-info">
+            <i class="fas fa-shield-alt"></i>
+            <div>
+              <strong>Two-Factor Authentication</strong>
+              <p>Add an extra layer of security to your account</p>
+            </div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="twoFactorEnabled" (change)="toggleTwoFactor()">
+            <span class="slider round"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Session Management -->
+      <div class="form-card">
+        <h3>Active Sessions</h3>
+        <div class="session-list">
+          <div class="session-item">
+            <div class="session-info">
+              <i class="fas fa-laptop"></i>
+              <div>
+                <strong>Chrome on Windows</strong>
+                <p>Last active: Today, 2:30 PM</p>
+              </div>
+            </div>
+            <button class="btn-revoke">Revoke</button>
+          </div>
+          <div class="session-item">
+            <div class="session-info">
+              <i class="fas fa-mobile-alt"></i>
+              <div>
+                <strong>Safari on iPhone</strong>
+                <p>Last active: Yesterday, 8:15 PM</p>
+              </div>
+            </div>
+            <button class="btn-revoke">Revoke</button>
+          </div>
+        </div>
+        <button class="btn-revoke-all">Revoke All Other Sessions</button>
+      </div>
+
+      <!-- Login History -->
+      <div class="form-card">
+        <h3>Recent Login History</h3>
+        <div class="login-history">
+          <div class="history-item">
+            <div class="history-info">
+              <i class="fas fa-check-circle success"></i>
+              <div>
+                <strong>Successful login</strong>
+                <p>Today, 09:15 AM - Chrome on Windows</p>
+              </div>
+            </div>
+            <span class="ip-address">192.168.1.100</span>
+          </div>
+          <div class="history-item">
+            <div class="history-info">
+              <i class="fas fa-check-circle success"></i>
+              <div>
+                <strong>Successful login</strong>
+                <p>Yesterday, 08:30 PM - Safari on iPhone</p>
+              </div>
+            </div>
+            <span class="ip-address">192.168.1.101</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -3,7 +3,9 @@ import { Component, OnInit, Output, EventEmitter, Inject, ChangeDetectorRef, inj
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
-import { MenuItem, MenuService } from '../../../core/services/Menu.service';
+import { MenuItem } from '../../../core/models/menu.model';
+import { MenuService } from '../../../core/services/Menu.service';
+
 
 
 @Component({

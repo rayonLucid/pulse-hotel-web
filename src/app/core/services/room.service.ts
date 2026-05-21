@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { RoomFilter, Room, RoomStatus, RoomType } from '../models/room.model';
+import { RoomFilter, Room, RoomStatus, RoomType, BedTypes } from '../models/room.model';
 
 @Injectable({
   providedIn: 'root'
@@ -19,6 +19,9 @@ export class RoomService {
     return this.http.get<{ success: boolean; data: Room }>(`${this.apiUrl}/${id}`);
   }
 
+    getBedTypes(): Observable<{ success: boolean; data: BedTypes[] }> {
+    return this.http.get<{ success: boolean; data: BedTypes[] }>(`${this.apiUrl}/bedTypes`);
+  }
   // Get all room statuses
   getRoomStatuses(): Observable<{ success: boolean; data: RoomStatus[] }> {
     return this.http.get<{ success: boolean; data: RoomStatus[] }>(`${this.apiUrl}/status`);
@@ -36,7 +39,7 @@ export class RoomService {
 
 
   checkAvailability(criteria: any): Observable<{ success: boolean; data: any[] }> {
-    return this.http.post<{ success: boolean; data: any[] }>(`${this.apiUrl}/availability`, criteria);
+    return this.http.post<{ success: boolean; data: any[] }>(`${this.apiUrl}/available`, criteria);
   }
 
    // Get available rooms for date range

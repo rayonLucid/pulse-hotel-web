@@ -21,7 +21,7 @@ export interface Booking {
   totalAmount: number;
   specialRequests: string;
   bookingStatus: 'Pending' | 'Confirmed' | 'CheckedIn' | 'CheckedOut' | 'Cancelled' | 'NoShow';
-  paymentStatus: 'Pending' | 'Paid' | 'PartiallyPaid' | 'Refunded' | 'Failed';
+  paymentStatus: 'Pending' | 'Paid' | 'PartiallyPaid' | 'Refunded' | 'Failed'| 'Success';
   bookingDate: Date;
   checkInTime?: Date;
   checkOutTime?: Date;

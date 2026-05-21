@@ -5,6 +5,7 @@ import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, 
 import { Router, RouterModule } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../app/core/auth/auth.service';
+import { MenuService } from '../app/core/services/Menu.service';
 
 
 interface PasswordRules {
@@ -53,8 +54,9 @@ isPasswordValid(rule: keyof PasswordRules): boolean {
   return this.passwordValidRules()[rule];
 }
  private authService = inject(AuthService);
- private toaStr = inject(ToastrService);
- private changeDet = inject(ChangeDetectorRef);
+ private menuService =inject(MenuService);
+ private toastr = inject(ToastrService);
+ private changeDetector = inject(ChangeDetectorRef);
   constructor(
     private fb: FormBuilder,
 
@@ -99,15 +101,15 @@ isPasswordValid(rule: keyof PasswordRules): boolean {
       next: (response) => {
         this.isLoading = false;
         if (response.success) {
-          this.toaStr.success('Account created successfully! Please login.', 'Registration Successful');
+          this.toastr.success('Account created successfully! Please login.', 'Registration Successful');
           this.router.navigate(['/auth/login']);
         }
       },
       error: (error) => {
         this.isLoading = false;
-         this.toaStr.error(error.message, 'Validation Error');
+         this.toastr.error(error.message, 'Validation Error');
        // this.handleRegistrationError(error);
-        this.changeDet.detectChanges(); // Ensure UI updates with error messages
+        this.changeDetector.detectChanges(); // Ensure UI updates with error messages
       }
     });
   }
@@ -118,7 +120,7 @@ isPasswordValid(rule: keyof PasswordRules): boolean {
     // Handle different error scenarios
     if (error.status === 0) {
       this.generalError = 'Unable to connect to the server. Please check your internet connection.';
-      this.toaStr.error(this.generalError, 'Connection Error');
+      this.toastr.error(this.generalError, 'Connection Error');
     }
     else if (error.status === 400 || error.status === 422) {
       // console.error('Validation errors:', error.message);
@@ -129,21 +131,21 @@ isPasswordValid(rule: keyof PasswordRules): boolean {
         this.handleErrorMessage(error.error.message);
       } else {
         this.generalError = 'Invalid registration data. Please check your input.';
-        this.toaStr.error(this.generalError, 'Validation Error');
+        this.toastr.error(this.generalError, 'Validation Error');
       }
     }
     else if (error.status === 409) {
       this.fieldErrors['email'] = 'An account with this email already exists. Please use a different email or login.';
-      this.toaStr.error(this.fieldErrors['email'], 'Email Already Exists');
+      this.toastr .error(this.fieldErrors['email'], 'Email Already Exists');
       this.registerForm.get('email')?.reset();
     }
     else if (error.status === 500) {
       this.generalError = 'Server error. Please try again later.';
-      this.toaStr.error(this.generalError, 'Server Error');
+      this.toastr.error(this.generalError, 'Server Error');
     }
     else {
       this.generalError = error.message || 'An unexpected error occurred. Please try again.';
-      this.toaStr.error(this.generalError!, 'Registration Failed');
+      this.toastr.error(this.generalError!, 'Registration Failed');
     }
   }
 
@@ -152,7 +154,7 @@ isPasswordValid(rule: keyof PasswordRules): boolean {
     if (typeof errors === 'string') {
       console.error('Server error message:', errors);
       this.generalError = errors;
-      this.toaStr.error(errors, 'Validation Error');
+      this.toastr.error(errors, 'Validation Error');
       return;
     }
 
@@ -180,11 +182,11 @@ isPasswordValid(rule: keyof PasswordRules): boolean {
     });
 
     if (hasFieldErrors) {
-      this.toaStr.warning('Please correct the highlighted fields.', 'Validation Error');
+      this.toastr.warning('Please correct the highlighted fields.', 'Validation Error');
     } else if (Object.keys(this.serverErrors).length > 0) {
       const firstError = Object.values(this.serverErrors)[0]?.[0];
       this.generalError = firstError || 'Please check your input and try again.';
-      this.toaStr.error(this.generalError, 'Validation Error');
+      this.toastr.error(this.generalError, 'Validation Error');
     }
   }
 
@@ -200,7 +202,7 @@ isPasswordValid(rule: keyof PasswordRules): boolean {
       this.generalError = message;
     }
 
-    this.toaStr.error(message, 'Registration Failed');
+    this.toastr.error(message, 'Registration Failed');
   }
 
   private showValidationErrors(): void {
@@ -247,7 +249,7 @@ isPasswordValid(rule: keyof PasswordRules): boolean {
     }
 
     if (Object.keys(this.fieldErrors).length > 0) {
-      this.toaStr.warning('Please fix the errors before submitting.', 'Validation Error');
+      this.toastr.warning('Please fix the errors before submitting.', 'Validation Error');
     }
   }
 

@@ -26,3 +26,91 @@
     padding: 16px;
   }
 }
+// Fixed Breadcrumb Styles
+// src/app/layouts/breadcrumb/breadcrumb.component.scss
+
+.breadcrumb-container {
+  width: 100%;
+  overflow-x: auto; // Enables horizontal scrolling on mobile if breadcrumbs are deep
+  white-space: nowrap; // Prevents items from wrapping into an ugly multi-line block
+  margin-bottom: 20px;
+
+  // Custom subtle scrollbar cleanup for a sleek mobile presentation
+  &::-webkit-scrollbar {
+    display: none; // Hides visible scrollbars on mobile to keep things looking clean
+  }
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+
+  @media (max-width: 767.98px) {
+    margin-bottom: 16px;
+    // Creates a minor padding offset on mobile so text doesn't clip hard at the screen edge
+    padding: 4px 0;
+  }
+}
+
+.breadcrumb {
+  list-style: none;
+  display: inline-flex; // Switches to inline-flex to work smoothly with container's white-space rule
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  gap: 8px;
+
+  .breadcrumb-item {
+    color: #888;
+    font-size: 14px; // Refined baseline for modern, balanced typography
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+
+    a {
+      color: #6b7280;
+      text-decoration: none;
+      transition: color 0.2s ease;
+      display: inline-block;
+
+      // Expands the functional tapping area on touch screens without visually sizing up the text
+      @media (max-width: 991.98px) {
+        padding: 6px 2px;
+      }
+
+      &:hover {
+        color: #c49a6c;
+      }
+    }
+
+    &.active {
+      color: #1f2937;
+      font-weight: 500;
+      pointer-events: none; // Stops needless user tap events on the page they are currently visiting
+    }
+
+    // Separator styling using flex order logic to protect the layout structure
+    &:not(:last-child)::after {
+      content: '/';
+      color: #9ca3af;
+      font-size: 13px;
+      line-height: 1;
+    }
+  }
+
+  // ==========================================
+  // RESPONSIVE BREAKPOINTS
+  // ==========================================
+
+  // Mobile View (< 768px)
+  @media (max-width: 767.98px) {
+    gap: 6px;
+
+    .breadcrumb-item {
+      font-size: 13px; // Dropping below 13px hinders WCAG mobile readability guidelines
+      gap: 6px;
+
+      &:not(:last-child)::after {
+        font-size: 11px;
+      }
+    }
+  }
+}

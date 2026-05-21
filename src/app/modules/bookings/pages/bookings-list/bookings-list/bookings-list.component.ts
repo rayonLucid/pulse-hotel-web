@@ -88,6 +88,7 @@ export class BookingsListComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.bookingService.getBookings(filters).subscribe({
         next: (response) => {
+          console.log('Bookings:', response.data);
           this.bookings = response.data;
           this.totalItems = response.pagination.totalItems;
           this.totalPages = response.pagination.totalPages;
@@ -111,7 +112,7 @@ export class BookingsListComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.bookingService.getBookingStats().subscribe({
         next: (response) => {
-          console.log('Stats response:', response);
+          //console.log('Stats response:', response);
           if (response.success) {
             this.stats = response.data;
             this.changeDet.detectChanges();

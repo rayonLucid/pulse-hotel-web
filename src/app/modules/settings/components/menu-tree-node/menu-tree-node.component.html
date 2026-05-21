@@ -1,0 +1,50 @@
+<div class="menu-node"
+     [class.active]="isSelected"
+     [class.inactive]="!menuItem.isActive"
+     cdkDrag>
+  <div class="menu-node-content" (click)="onSelect()">
+    <div class="drag-handle" cdkDragHandle>
+      <i class="fas fa-grip-vertical"></i>
+    </div>
+    <div class="menu-icon">
+      <i [class]="menuItem.menuIcon || 'fas fa-link'"></i>
+    </div>
+    <div class="menu-info">
+      <div class="menu-title">{{ menuItem.menuTitle }}</div>
+      <div class="menu-path">{{ menuItem.routerLink || menuItem.urlPath || 'No link' }}</div>
+    </div>
+    <div class="menu-status">
+      <span class="badge" [class.badge-success]="menuItem.isVisible" [class.badge-secondary]="!menuItem.isVisible">
+        {{ menuItem.isVisible ? 'Visible' : 'Hidden' }}
+      </span>
+    </div>
+    <div class="menu-actions">
+      <button class="action-btn" (click)="$event.stopPropagation(); onToggleStatus()" title="Toggle Status">
+        <i [class]="menuItem.isActive ? 'fas fa-eye' : 'fas fa-eye-slash'"></i>
+      </button>
+      <button class="action-btn" (click)="$event.stopPropagation(); onEdit()" title="Edit">
+        <i class="fas fa-edit"></i>
+      </button>
+      <button class="action-btn delete" (click)="$event.stopPropagation(); onDelete()" title="Delete">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Children -->
+  <div class="menu-children" *ngIf="menuItem.children && menuItem.children.length > 0">
+    <div cdkDropList
+         [cdkDropListData]="menuItem.children"
+         (cdkDropListDropped)="onChildDrop($event)">
+      <app-menu-tree-node
+        *ngFor="let child of menuItem.children"
+        [menuItem]="child"
+        [isSelected]="false"
+        (select)="onChildSelect($event)"
+        (edit)="onEditChild($event)"
+        (delete)="onDeleteChild($event)"
+        (toggleStatus)="onToggleChildStatus($event)">
+      </app-menu-tree-node>
+    </div>
+  </div>
+</div>

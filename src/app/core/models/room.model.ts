@@ -1,3 +1,4 @@
+
 // src/app/core/models/room.model.ts
 
 export interface Room {
@@ -13,7 +14,7 @@ export interface Room {
   roomSize: number; // in square meters
   bedType: BedType;
   viewType: ViewType;
-  amenities: string[];
+  amenities: Amenity[];
   images: string[];
   description: string;
   isActive: boolean;
@@ -32,7 +33,7 @@ export interface RoomType {
   roomSize: number;
   bedType: BedType;
   viewType: ViewType;
-  amenities: string[];
+  amenities: Amenity[];
   images: string[];
   isActive: boolean;
   createdAt: Date;
@@ -203,4 +204,17 @@ export function getViewTypeLabel(viewType: ViewType): string {
 
 export function formatPrice(price: number): string {
   return `₦${price.toLocaleString()}`;
+}
+
+export interface Amenity {
+  amenityId?: number; // Optional because the DB generates it during POST
+  amenityName: string;
+  icon?: string | null;
+  isActive: boolean;
+}
+
+export interface BedTypes{
+  id: number;
+ value: string;
+ label: string
 }

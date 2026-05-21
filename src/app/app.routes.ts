@@ -46,10 +46,14 @@ export const routes: Routes = [
         path: 'rooms',
         loadChildren: () => import('./modules/rooms/rooms.routes').then(m => m.ROOMS_ROUTES)
       },
-      // {
-      //   path: 'settings',
-      //   loadChildren: () => import('./modules/settings/settings.routes').then(m => m.SETTINGS_ROUTES)
-      // }
+       {
+        path: 'reports',
+        loadChildren: () => import('./modules/reports/reports.routes').then(m => m.REPORTS_ROUTES)
+      },
+      {
+        path: 'settings',
+        loadChildren: () => import('./modules/settings/settings.routes').then(m => m.SETTINGS_ROUTES)
+      }
     ]
   },
 

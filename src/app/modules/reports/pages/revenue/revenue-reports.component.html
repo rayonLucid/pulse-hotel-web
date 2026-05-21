@@ -1,0 +1,266 @@
+<!-- src/app/modules/reports/pages/revenue/revenue-reports.component.html -->
+<div class="revenue-reports">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Revenue Reports</h1>
+      <p class="page-subtitle">Track revenue performance and analytics</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-export" (click)="exportData()">
+        <i class="fas fa-file-excel"></i>
+        Export Report
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label>Date Range</label>
+      <div class="date-range">
+        <input type="date" [(ngModel)]="startDate" (change)="onDateRangeChange()">
+        <span>to</span>
+        <input type="date" [(ngModel)]="endDate" (change)="onDateRangeChange()">
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label>Report Type</label>
+      <div class="report-toggle">
+        <button class="toggle-btn" [class.active]="reportType === 'daily'" (click)="reportType = 'daily'; onReportTypeChange()">
+          Daily
+        </button>
+        <button class="toggle-btn" [class.active]="reportType === 'weekly'" (click)="reportType = 'weekly'; onReportTypeChange()">
+          Weekly
+        </button>
+        <button class="toggle-btn" [class.active]="reportType === 'monthly'" (click)="reportType = 'monthly'; onReportTypeChange()">
+          Monthly
+        </button>
+        <button class="toggle-btn" [class.active]="reportType === 'yearly'" (click)="reportType = 'yearly'; onReportTypeChange()">
+          Yearly
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading revenue data...</p>
+    </div>
+  }
+
+  <!-- Main Content -->
+  @if (!isLoading) {
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      @for (kpi of kpis; track kpi.label) {
+        <div class="kpi-card" [class]="kpi.color">
+          <div class="kpi-icon">
+            <i [class]="kpi.icon"></i>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-label">{{ kpi.label }}</span>
+            <span class="kpi-value">{{ formatCurrency(kpi.value) }}</span>
+            <span class="kpi-trend positive">
+              <i class="fas fa-arrow-up"></i>
+              {{ kpi.change }}% vs last period
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Revenue Trend Chart -->
+    <div class="chart-card large">
+      <div class="card-header">
+        <h3>Revenue Trend</h3>
+        <div class="chart-controls">
+          <div class="chart-type-toggle">
+            <button class="type-btn" [class.active]="chartType === 'line'" (click)="chartType = 'line'; onChartTypeChange()">
+              <i class="fas fa-chart-line"></i>
+            </button>
+            <button class="type-btn" [class.active]="chartType === 'bar'" (click)="chartType = 'bar'; onChartTypeChange()">
+              <i class="fas fa-chart-bar"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="revenueTrendChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Revenue Breakdown Section -->
+    <div class="breakdown-section">
+      <!-- Revenue by Source -->
+      <div class="chart-card">
+        <div class="card-header">
+          <h3>Revenue by Source</h3>
+        </div>
+        <div class="chart-container small">
+          <canvas id="sourceBreakdownChart"></canvas>
+        </div>
+        <div class="source-list">
+          @for (source of revenueBySource; track source.source) {
+            <div class="source-item">
+              <div class="source-color" [style.background]="source.color"></div>
+              <div class="source-name">{{ source.source }}</div>
+              <div class="source-value">{{ formatCurrency(source.amount) }}</div>
+              <div class="source-percentage">{{ source.percentage }}%</div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Revenue by Room Type -->
+      <div class="chart-card">
+        <div class="card-header">
+          <h3>Revenue by Room Type</h3>
+        </div>
+        <div class="chart-container small">
+          <canvas id="roomTypeChart"></canvas>
+        </div>
+        <div class="room-type-stats">
+          @for (room of revenueByRoomType; track room.roomType) {
+            <div class="room-stat">
+              <div class="room-name">{{ room.roomType }}</div>
+              <div class="room-revenue">{{ formatCurrency(room.revenue) }}</div>
+              <div class="room-adr">ADR: {{ formatCurrency(room.adr) }}</div>
+              <div class="room-occupancy">Occ: {{ room.occupancyRate }}%</div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Metrics Cards -->
+    <div class="metrics-section">
+      <div class="metric-card">
+        <div class="metric-header">
+          <i class="fas fa-chart-line"></i>
+          <span>Revenue Growth</span>
+        </div>
+        <div class="metric-value">{{ stats.growthVsLastPeriod }}%</div>
+        <div class="metric-trend positive">↑ 2.3% from target</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-header">
+          <i class="fas fa-chart-bar"></i>
+          <span>Projected Revenue</span>
+        </div>
+        <div class="metric-value">{{ formatCurrency(stats.projectedRevenue) }}</div>
+        <div class="metric-trend positive">↑ 12% from current</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-header">
+          <i class="fas fa-percent"></i>
+          <span>Profit Margin</span>
+        </div>
+        <div class="metric-value">45%</div>
+        <div class="metric-trend positive">↑ 3% vs last period</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-header">
+          <i class="fas fa-calendar-week"></i>
+          <span>Peak Day Revenue</span>
+        </div>
+        <div class="metric-value">{{ formatCurrency(Math.max(...revenueData.map(d => d.totalRevenue))) }}</div>
+        <div class="metric-label">{{ getPeakDay() }}</div>
+      </div>
+    </div>
+
+    <!-- Daily Breakdown Table -->
+    <div class="data-table-section">
+      <div class="section-header">
+        <h3>Revenue Breakdown</h3>
+        <button class="btn-expand" (click)="exportData()">
+          <i class="fas fa-download"></i>
+          Export Data
+        </button>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Room Revenue</th>
+              <th>F&B Revenue</th>
+              <th>Spa Revenue</th>
+              <th>Other Revenue</th>
+              <th>Total Revenue</th>
+              <th>% of Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of revenueData; track item.date; let idx = $index) {
+              <tr>
+                <td class="date-cell">{{ formatDate(item.date) }}</td>
+                <td class="amount-cell">{{ formatCurrency(item.roomRevenue) }}</td>
+                <td class="amount-cell">{{ formatCurrency(item.fbRevenue) }}</td>
+                <td class="amount-cell">{{ formatCurrency(item.spaRevenue) }}</td>
+                <td class="amount-cell">{{ formatCurrency(item.otherRevenue) }}</td>
+                <td class="total-cell">{{ formatCurrency(item.totalRevenue) }}</td>
+                <td class="percentage-cell">
+                  {{ (item.totalRevenue / stats.totalRevenue * 100) | number:'1.1-1' }}%
+                </td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td><strong>Total</strong></td>
+              <td class="amount-cell"><strong>{{ formatCurrency(revenueData.reduce((sum, d) => sum + d.roomRevenue, 0)) }}</strong></td>
+              <td class="amount-cell"><strong>{{ formatCurrency(revenueData.reduce((sum, d) => sum + d.fbRevenue, 0)) }}</strong></td>
+              <td class="amount-cell"><strong>{{ formatCurrency(revenueData.reduce((sum, d) => sum + d.spaRevenue, 0)) }}</strong></td>
+              <td class="amount-cell"><strong>{{ formatCurrency(revenueData.reduce((sum, d) => sum + d.otherRevenue, 0)) }}</strong></td>
+              <td class="total-cell"><strong>{{ formatCurrency(stats.totalRevenue) }}</strong></td>
+              <td><strong>100%</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Revenue Insights -->
+    <div class="insights-card">
+      <h3>
+        <i class="fas fa-lightbulb"></i>
+        Revenue Insights
+      </h3>
+      <div class="insights-list">
+        <div class="insight">
+          <i class="fas fa-chart-line"></i>
+          <div>
+            <strong>Peak Performance</strong>
+            <p>{{ getPeakDate() }} generated the highest revenue at {{ formatCurrency(getPeakRevenue()) }}</p>
+          </div>
+        </div>
+        <div class="insight">
+          <i class="fas fa-chart-bar"></i>
+          <div>
+            <strong>Revenue Mix</strong>
+            <p>Room revenue accounts for {{ (revenueData.reduce((sum, d) => sum + d.roomRevenue, 0) / stats.totalRevenue * 100) | number:'1.0-0' }}% of total revenue</p>
+          </div>
+        </div>
+        <div class="insight">
+          <i class="fas fa-trend-up"></i>
+          <div>
+            <strong>Growth Opportunity</strong>
+            <p>Weekend revenue is {{ getWeekendRevenuePercentage() }}% higher than weekdays - consider dynamic pricing</p>
+          </div>
+        </div>
+        <div class="insight">
+          <i class="fas fa-chart-pie"></i>
+          <div>
+            <strong>Channel Performance</strong>
+            <p>Direct bookings generate {{ (revenueBySource.find(s => s.source === 'Direct Booking')?.percentage || 0) }}% of revenue with higher margins</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -67,7 +67,7 @@ private changeDet = inject(ChangeDetectorRef);
         this.changeDet.detectChanges();
       },
       error: (error) => {
-        console.error('Error loading rooms:', error);
+        console.error('Error:', error);
         this.isLoading = false;
         this.changeDet.detectChanges();
 

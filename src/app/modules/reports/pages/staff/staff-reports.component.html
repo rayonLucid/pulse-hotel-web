@@ -1,0 +1,400 @@
+<!-- src/app/modules/reports/pages/staff/staff-reports.component.html -->
+<div class="staff-reports">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Staff Performance Reports</h1>
+      <p class="page-subtitle">Track staff performance, attendance, and productivity metrics</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-export" (click)="exportData()">
+        <i class="fas fa-file-excel"></i>
+        Export Report
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label>Date Range</label>
+      <div class="date-range">
+        <input type="date" [(ngModel)]="startDate" (change)="onDateRangeChange()">
+        <span>to</span>
+        <input type="date" [(ngModel)]="endDate" (change)="onDateRangeChange()">
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label>Report Type</label>
+      <div class="report-toggle">
+        <button class="toggle-btn" [class.active]="reportType === 'performance'" (click)="reportType = 'performance'; onReportTypeChange()">
+          <i class="fas fa-chart-line"></i>
+          Performance
+        </button>
+        <button class="toggle-btn" [class.active]="reportType === 'attendance'" (click)="reportType = 'attendance'; onReportTypeChange()">
+          <i class="fas fa-calendar-check"></i>
+          Attendance
+        </button>
+        <button class="toggle-btn" [class.active]="reportType === 'productivity'" (click)="reportType = 'productivity'; onReportTypeChange()">
+          <i class="fas fa-chart-bar"></i>
+          Productivity
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label>Department</label>
+      <select [(ngModel)]="selectedDepartment" (change)="onDepartmentFilter()">
+        @for (dept of departments; track dept) {
+          <option [value]="dept">{{ dept }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading staff data...</p>
+    </div>
+  }
+
+  <!-- Main Content -->
+  @if (!isLoading) {
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon bg-blue-100">
+          <i class="fas fa-users text-blue-600"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Total Staff</span>
+          <span class="stat-value">{{ stats.totalStaff }}</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-green-100">
+          <i class="fas fa-star text-green-600"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Avg Rating</span>
+          <span class="stat-value">{{ stats.averageRating | number:'1.1-1' }}</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-purple-100">
+          <i class="fas fa-tasks text-purple-600"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Tasks Completed</span>
+          <span class="stat-value">{{ stats.totalTasks | number }}</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon bg-orange-100">
+          <i class="fas fa-clock text-orange-600"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Overtime Hours</span>
+          <span class="stat-value">{{ stats.overtimeHours }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Tab -->
+    @if (reportType === 'performance') {
+      <div class="performance-tab">
+        <!-- Charts Row -->
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="card-header">
+              <h3>Staff Performance Metrics</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="performanceChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="card-header">
+              <h3>Task Distribution by Department</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="departmentChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Department Summary -->
+        @if (departmentSummary) {
+          <div class="summary-card">
+            <h3>Department Summary</h3>
+            <div class="summary-grid">
+              <div class="summary-item">
+                <span class="summary-label">Department</span>
+                <span class="summary-value">{{ departmentSummary.department }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Staff Count</span>
+                <span class="summary-value">{{ departmentSummary.staffCount }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Total Tasks</span>
+                <span class="summary-value">{{ departmentSummary.totalTasks | number }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Completion Rate</span>
+                <span class="summary-value">{{ departmentSummary.completionRate | number:'1.1-1' }}%</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Avg Rating</span>
+                <span class="summary-value">{{ departmentSummary.averageRating | number:'1.1-1' }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Total Overtime</span>
+                <span class="summary-value">{{ departmentSummary.totalOvertime }} hrs</span>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Staff Performance Table -->
+        <div class="data-table-section">
+          <div class="section-header">
+            <h3>Staff Performance Details</h3>
+            <button class="btn-expand" (click)="exportData()">
+              <i class="fas fa-download"></i>
+              Export Data
+            </button>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Staff Name</th>
+                  <th>Department</th>
+                  <th>Position</th>
+                  <th>Tasks Completed</th>
+                  <th>Completion Rate</th>
+                  <th>Rating</th>
+                  <th>Attendance</th>
+                  <th>Late Days</th>
+                  <th>Overtime</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (staff of staffPerformance; track staff.staffName) {
+                  <tr>
+                    <td class="staff-name">{{ staff.staffName }}</td>
+                    <td>{{ staff.department }}</td>
+                    <td>{{ staff.position || 'Staff' }}</td>
+                    <td class="number-cell">{{ staff.tasksCompleted | number }}</td>
+                    <td class="percentage-cell">
+                      <div class="progress-bar">
+                        <div class="progress-fill" [style.width.%]="staff.completionRate"></div>
+                        <span>{{ staff.completionRate | number:'1.0-0' }}%</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="rating-badge" [class]="getRatingClass(staff.averageRating)">
+                        {{ staff.averageRating | number:'1.1-1' }}
+                      </span>
+                    </td>
+                    <td class="number-cell">{{ staff.attendanceDays || 22 }} days</td>
+                    <td class="number-cell" [class.warning]="staff.lateDays > 2">{{ staff.lateDays || 0 }}</td>
+                    <td class="number-cell">{{ staff.overtimeHours || 0 }} hrs</td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot>
+                <tr class="total-row">
+                  <td colspan="3"><strong>Average / Total</strong></td>
+                  <td class="number-cell"><strong>{{ staffPerformance.reduce((sum, s) => sum + s.tasksCompleted, 0) | number }}</strong></td>
+                  <td class="percentage-cell"><strong>{{ staffPerformance.reduce((sum, s) => sum + s.completionRate, 0) / staffPerformance.length | number:'1.1-1' }}%</strong></td>
+                  <td><strong>{{ staffPerformance.reduce((sum, s) => sum + s.averageRating, 0) / staffPerformance.length | number:'1.1-1' }}</strong></td>
+                  <td colspan="3"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Attendance Tab -->
+    @if (reportType === 'attendance') {
+      <div class="attendance-tab">
+        <!-- Attendance Chart -->
+        <div class="chart-card">
+          <div class="card-header">
+            <h3>Staff Attendance Rate</h3>
+          </div>
+          <div class="chart-container">
+            <canvas id="attendanceChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Attendance Summary Stats -->
+        <div class="attendance-stats">
+          <div class="stat-card small">
+            <div class="stat-value">{{ stats.attendanceRate | number:'1.1-1' }}%</div>
+            <div class="stat-label">Overall Attendance Rate</div>
+          </div>
+          <div class="stat-card small">
+            <div class="stat-value">{{ attendanceSummary.filter(s => s.attendanceRate >= 95).length }}</div>
+            <div class="stat-label">Staff with 95%+ Attendance</div>
+          </div>
+          <div class="stat-card small">
+            <div class="stat-value">{{ attendanceSummary.reduce((sum, s) => sum + (s.late || 0), 0) }}</div>
+            <div class="stat-label">Total Late Days</div>
+          </div>
+        </div>
+
+        <!-- Attendance Details Table -->
+        <div class="data-table-section">
+          <div class="section-header">
+            <h3>Staff Attendance Details</h3>
+            <button class="btn-expand" (click)="exportData()">
+              <i class="fas fa-download"></i>
+              Export Data
+            </button>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Staff Name</th>
+                  <th>Present</th>
+                  <th>Absent</th>
+                  <th>Late</th>
+                  <th>Leave</th>
+                  <th>Attendance Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (staff of attendanceSummary; track staff.staffName) {
+                  <tr>
+                    <td class="staff-name">{{ staff.staffName }}</td>
+                    <td class="number-cell">{{ staff.present }}</td>
+                    <td class="number-cell" [class.warning]="staff.absent > 2">{{ staff.absent }}</td>
+                    <td class="number-cell" [class.warning]="staff.late > 2">{{ staff.late }}</td>
+                    <td class="number-cell">{{ staff.leave }}</td>
+                    <td>
+                      <div class="progress-bar">
+                        <div class="progress-fill" [style.width.%]="staff.attendanceRate"></div>
+                        <span>{{ staff.attendanceRate | number:'1.1-1' }}%</span>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Productivity Tab -->
+    @if (reportType === 'productivity') {
+      <div class="productivity-tab">
+        <!-- Productivity Metrics Cards -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon">
+              <i class="fas fa-broom"></i>
+            </div>
+            <div class="metric-info">
+              <span class="metric-value">{{ productivity?.roomsCleanedPerStaff | number:'1.1-1' }}</span>
+              <span class="metric-label">Rooms Cleaned per Staff (Daily)</span>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">
+              <i class="fas fa-sign-in-alt"></i>
+            </div>
+            <div class="metric-info">
+              <span class="metric-value">{{ productivity?.checkInsPerFrontDesk | number:'1.0-0' }}</span>
+              <span class="metric-label">Check-ins per Front Desk Staff</span>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="metric-info">
+              <span class="metric-value">{{ formatCurrency(productivity?.revenuePerStaff || 0) }}</span>
+              <span class="metric-label">Revenue per Staff</span>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">
+              <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="metric-info">
+              <span class="metric-value">{{ formatCurrency(productivity?.costPerOccupiedRoom || 0) }}</span>
+              <span class="metric-label">Cost per Occupied Room</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Productivity Insights -->
+        <div class="insights-card">
+          <h3>
+            <i class="fas fa-lightbulb"></i>
+            Productivity Insights
+          </h3>
+          <div class="insights-list">
+            <div class="insight">
+              <i class="fas fa-chart-line"></i>
+              <div>
+                <strong>Housekeeping Efficiency</strong>
+                <p>Average cleaning time per room: 32 minutes - {{ productivity?.roomsCleanedPerStaff > 12 ? 'Above' : 'Below' }} target</p>
+              </div>
+            </div>
+            <div class="insight">
+              <i class="fas fa-chart-bar"></i>
+              <div>
+                <strong>Front Desk Performance</strong>
+                <p>Average check-in time: 3.5 minutes - {{ productivity?.checkInsPerFrontDesk > 40 ? 'Efficient' : 'Needs improvement' }}</p>
+              </div>
+            </div>
+            <div class="insight">
+              <i class="fas fa-trend-up"></i>
+              <div>
+                <strong>Revenue Efficiency</strong>
+                <p>Revenue per staff increased by 8% compared to last quarter</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="recommendations-card">
+          <h3>
+            <i class="fas fa-clipboard-list"></i>
+            Recommendations
+          </h3>
+          <div class="recommendations-list">
+            <div class="recommendation">
+              <i class="fas fa-chart-line"></i>
+              <span>Recognize top performers in weekly team meetings to boost morale</span>
+            </div>
+            <div class="recommendation">
+              <i class="fas fa-chart-bar"></i>
+              <span>Provide additional training for staff with attendance below 90%</span>
+            </div>
+            <div class="recommendation">
+              <i class="fas fa-trend-up"></i>
+              <span>Implement incentive program for departments exceeding productivity targets</span>
+            </div>
+            <div class="recommendation">
+              <i class="fas fa-clock"></i>
+              <span>Review overtime allocation in departments with high overtime hours</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

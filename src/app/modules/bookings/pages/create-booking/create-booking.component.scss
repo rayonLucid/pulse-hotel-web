@@ -636,3 +636,114 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+
+// Variables for easy customization (adjust these to match your theme)
+$primary-color: #3b82f6;      // Accent/Focus color
+$text-muted: #9ca3af;         // Icon & placeholder color
+$text-main: #1f2937;          // Input text color
+$border-color: #e5e7eb;       // Default border color
+$bg-color: #ffffff;           // Input background color
+$radius: 8px;                 // Rounded corners
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  max-width: 500px;           // Prevents the search bar from stretching too wide
+  margin: 1.5rem 0;           // Spacing above and below the search bar
+  background-color: $bg-color;
+  border: 1px solid $border-color;
+  border-radius: $radius;
+  padding: 0 1rem;
+  transition: all 0.25s ease-in-out;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  // The Search Icon
+  i.fa-search {
+    color: $text-muted;
+    font-size: 1rem;
+    margin-right: 0.75rem;     // Space between icon and input text
+    pointer-events: none;      // Ensures clicking the icon focuses the input field
+    transition: color 0.25s ease;
+  }
+
+  // The Input Field
+  .search-input {
+    flex: 1;                   // Takes up the remaining width of the wrapper
+    border: none;
+    outline: none;
+    padding: 0.75rem 0;        // Vertical padding
+    font-size: 0.95rem;
+    color: $text-main;
+    background: transparent;
+
+    &::placeholder {
+      color: $text-muted;
+      opacity: 1;              // Firefox fix
+    }
+  }
+
+  // Hover State for the entire wrapper
+  &:hover {
+    border-color: darken($border-color, 10%);
+
+    i.fa-search {
+      color: darken($text-muted, 15%);
+    }
+  }
+
+  // Focus State (Triggered when the input inside is focused)
+  &:focus-within {
+    border-color: $primary-color;
+    box-shadow: 0 0 0 3px rgba($primary-color, 0.15); // Subtle outer glow
+
+    i.fa-search {
+      color: $primary-color;   // Light up the icon on focus
+    }
+  }
+}
+.pagination-controls{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+
+  .page-info {
+    font-size: 14px;
+    color: #6b7280;
+  }
+
+  .pagination-buttons {
+    display: flex;
+    gap: 8px;
+
+    button {
+      padding: 6px 12px;
+      background: #f3f4f6;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+
+      &:disabled {
+        background: #e5e7eb;
+        cursor: not-allowed;
+        color: #9ca3af;
+      }
+
+      &:not(:disabled):hover {
+        background: #c49a6c;
+        color: white;
+      }
+
+      &.active {
+        background: #c49a6c;
+        color: white;
+      }
+    }
+  }
+}
+
+

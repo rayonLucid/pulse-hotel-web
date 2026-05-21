@@ -1,0 +1,188 @@
+<div class="menu-manager-container">
+  <!-- Categories Sidebar -->
+  <div class="categories-sidebar">
+    <div class="categories-header">
+      <h3>Menu Categories</h3>
+      <button class="btn-add-category" (click)="openCreateCategoryModal()">
+        <i class="fas fa-plus"></i>
+      </button>
+    </div>
+    <div class="categories-list">
+      <!-- <pre>{{ categories | json }}</pre> -->
+      <div
+        *ngFor="let category of categories"
+        class="category-item"
+        [class.active]="selectedCategoryId === category.categoryId"
+        (click)="selectCategory(category.categoryId)">
+        <i [class]="category.categoryIcon || 'fas fa-folder'"></i>
+        <span>{{ category.categoryName }}</span>
+        <i class="fas fa-chevron-right arrow"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="menu-main-content" *ngIf="selectedCategoryId">
+    <div class="content-header">
+      <div class="header-title">
+        <h2>{{ getSelectedCategoryName() }} Menu</h2>
+        <p>Manage menu items and their hierarchy</p>
+      </div>
+      <button class="btn-primary" (click)="openCreateMenuItemModal()">
+        <i class="fas fa-plus"></i> Add Menu Item
+      </button>
+    </div>
+
+    <!-- Menu Tree -->
+    <div class="menu-tree-container" cdkDropListGroup>
+      <div class="menu-tree">
+        <div *ngFor="let menuItem of getMenuItemsForSelectedCategory()" class="menu-tree-item">
+          <app-menu-tree-node
+            [menuItem]="menuItem"
+            (edit)="openEditMenuItemModal($event)"
+            (delete)="deleteMenuItem($event)"
+            (toggleStatus)="toggleMenuItemStatus($event)"
+            (select)="selectMenuItem($event)">
+          </app-menu-tree-node>
+        </div>
+      </div>
+    </div>
+
+    <!-- Role Permissions Panel -->
+    <div class="permissions-panel" *ngIf="selectedMenuItem">
+      <div class="permissions-header">
+        <h3>Role Permissions: {{ selectedMenuItem.menuTitle }}</h3>
+        <button class="btn-close" (click)="selectedMenuItem = null">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="permissions-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Role</th>
+              <th>Can View</th>
+              <th>Can Access</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let role of availableRoles">
+              <td>{{ role }}</td>
+              <td>
+                <label class="toggle-switch">
+                  <input type="checkbox"
+                         [checked]="getPermissionForMenuItem(selectedMenuItem.menuItemId, role)?.canView || false"
+                         (change)="updateRolePermission(selectedMenuItem.menuItemId, role, 'canView', $event)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </td>
+              <td>
+                <label class="toggle-switch">
+                  <input type="checkbox"
+                         [checked]="getPermissionForMenuItem(selectedMenuItem.menuItemId, role)?.canAccess || false"
+                         (change)="updateRolePermission(selectedMenuItem.menuItemId, role, 'canAccess', $event)">
+                  <span class="toggle-slider"></span>
+                </label>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!selectedCategoryId">
+    <i class="fas fa-folder-open"></i>
+    <h3>Select a Category</h3>
+    <p>Choose a menu category from the left to start managing menu items</p>
+  </div>
+</div>
+
+<!-- Menu Item Modal -->
+<div class="modal" *ngIf="showMenuItemModal" (click)="showMenuItemModal = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ isEditing ? 'Edit' : 'Create' }} Menu Item</h3>
+      <button class="btn-close" (click)="showMenuItemModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Menu Title *</label>
+        <input type="text" [(ngModel)]="menuItemForm.menuTitle" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Menu Icon</label>
+        <input type="text" [(ngModel)]="menuItemForm.menuIcon" placeholder="fas fa-icon-name" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Router Link</label>
+        <input type="text" [(ngModel)]="menuItemForm.routerLink" placeholder="/path/to/page" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>URL Path</label>
+        <input type="text" [(ngModel)]="menuItemForm.urlPath" placeholder="https://external-url.com" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Parent Menu Item</label>
+        <select [(ngModel)]="menuItemForm.parentMenuItemId" class="form-control">
+          <option [value]="null">None (Root Level)</option>
+          <option *ngFor="let item of getParentMenuItems()" [value]="item.menuItemId">
+            {{ item.menuTitle }}
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Permission Key</label>
+        <input type="text" [(ngModel)]="menuItemForm.permissionKey" placeholder="permission.key" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Target</label>
+        <select [(ngModel)]="menuItemForm.target" class="form-control">
+          <option value="_self">Same Window</option>
+          <option value="_blank">New Window</option>
+        </select>
+      </div>
+      <div class="form-check">
+        <input type="checkbox" [(ngModel)]="menuItemForm.isActive" id="isActive">
+        <label for="isActive">Active</label>
+      </div>
+      <div class="form-check">
+        <input type="checkbox" [(ngModel)]="menuItemForm.isVisible" id="isVisible">
+        <label for="isVisible">Visible in Menu</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showMenuItemModal = false">Cancel</button>
+      <button class="btn-primary" (click)="saveMenuItem()">Save</button>
+    </div>
+  </div>
+</div>
+<!-- Category Modal -->
+<div class="modal" *ngIf="showCategoryModal" (click)="closeModals()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ isEditing ? 'Edit' : 'Create' }} Category</h3>
+      <button class="btn-close" (click)="closeModals()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Category Name *</label>
+        <input type="text" [(ngModel)]="categoryForm.categoryName" class="form-control" placeholder="e.g., Main Menu">
+      </div>
+      <div class="form-group">
+        <label>Category Icon</label>
+        <input type="text" [(ngModel)]="categoryForm.categoryIcon" class="form-control" placeholder="fas fa-folder">
+        <small class="form-text">Font Awesome icon class (e.g., fas fa-users)</small>
+      </div>
+      <div class="form-check">
+        <input type="checkbox" [(ngModel)]="categoryForm.isActive" id="categoryActive">
+        <label for="categoryActive">Active</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModals()">Cancel</button>
+      <button class="btn-primary" (click)="saveCategory()">Save</button>
+    </div>
+  </div>
+</div>
