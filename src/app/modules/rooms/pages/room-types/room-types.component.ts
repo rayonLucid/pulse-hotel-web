@@ -1,3 +1,4 @@
+
 // src/app/modules/rooms/pages/room-types/room-types.component.ts
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -5,7 +6,8 @@ import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { RoomService } from '../../../../core/services/room.service';
-import { RoomType, BedType, ViewType, getBedTypeLabel, getViewTypeLabel, formatPrice } from '../../../../core/models/room.model';
+import { RoomType, BedType, ViewType, getBedTypeLabel, getViewTypeLabel, formatPrice, Amenity } from '../../../../core/models/room.model';
+import { AmenityService } from '../../../../core/services/amenity.service';
 
 @Component({
   selector: 'app-room-types',
@@ -46,15 +48,11 @@ export class RoomTypesComponent implements OnInit {
     { value: 'No View', label: 'No View' }
   ];
 
-  amenityOptions: string[] = [
-    'Free WiFi', 'Air Conditioning', 'Flat-screen TV', 'Mini Bar',
-    'Room Service', 'Coffee/Tea Maker', 'Safe Deposit Box', 'Work Desk',
-    'Ironing Facilities', 'Hair Dryer', 'Bathrobe', 'Slippers',
-    'Bath Tub', 'Separate Shower', 'Balcony', 'Ocean View',
-    'Sea View', 'Mountain View', 'Soundproofing', 'Executive Lounge Access'
-  ];
+  amenityOptions!: Amenity[];
 private roomService: RoomService = inject(RoomService);
   private changeDet = inject(ChangeDetectorRef);
+  amenityService = inject(AmenityService);
+  cdr = inject(ChangeDetectorRef);
   constructor(
     private fb: FormBuilder,
 
@@ -70,12 +68,29 @@ private roomService: RoomService = inject(RoomService);
       roomSize: ['', [Validators.required, Validators.min(10)]],
       bedType: ['', [Validators.required]],
       viewType: ['', [Validators.required]],
-      amenities: [[]]
+      amenities: [[]],
+      isActive: [false, [Validators.required]]
+
     });
   }
 
   ngOnInit(): void {
+     this.loadAmenities();
     this.loadRoomTypes();
+
+  }
+  loadAmenities() {
+    this.amenityService.getAmenities().subscribe({
+      next: (amenities:Amenity[]) => {
+      //  this.amenityOptions = amenities;
+        this.amenityOptions = amenities.map(({ roomAmenities, roomTypeAmenities, ...cleanAmenity }: any) => cleanAmenity);
+      //  console.log('Loaded amenities:', this.amenityOptions);
+      },
+      error: (error) => {
+        console.error('Error loading amenities:', error.message || error);
+        this.toastr.error('Failed to load amenities', 'Error');
+      }
+    });
   }
 
   loadRoomTypes(): void {
@@ -85,6 +100,7 @@ private roomService: RoomService = inject(RoomService);
         if (response.success) {
           this.roomTypes = response.data;
           this.isLoading = false;
+          console.log('Loaded room types:', this.roomTypes);
           this.changeDet.detectChanges();
         } else {
           this.toastr.error('Failed to load room types', 'Error');
@@ -114,12 +130,14 @@ private roomService: RoomService = inject(RoomService);
       roomSize: '',
       bedType: 'Queen',
       viewType: 'City View',
-      amenities: []
+      amenities: [],
+      isActive: false
     });
   }
 
   openEditModal(roomType: RoomType): void {
     this.isEditing = true;
+    console.log('Editing room type:', roomType);
     this.selectedRoomType = roomType;
     this.roomTypeForm.patchValue({
       typeName: roomType.typeName,
@@ -131,7 +149,8 @@ private roomService: RoomService = inject(RoomService);
       roomSize: roomType.roomSize,
       bedType: roomType.bedType,
       viewType: roomType.viewType,
-      amenities: roomType.amenities || []
+      amenities: roomType.amenities || [],
+      isActive: roomType.isActive
     });
   }
 
@@ -149,7 +168,8 @@ private roomService: RoomService = inject(RoomService);
 
     this.isSaving = true;
     const formValue = this.roomTypeForm.value;
-
+console.log('Form Value:', formValue);
+ //   return;
     if (this.selectedRoomType) {
       // Update existing
       this.roomService.updateRoomType(this.selectedRoomType.roomTypeId, formValue).subscribe({
@@ -161,11 +181,14 @@ private roomService: RoomService = inject(RoomService);
             this.loadRoomTypes();
           } else {
             this.toastr.error(response.message || 'Update failed', 'Error');
+
           }
         },
         error: (error:any) => {
           this.isSaving = false;
           this.toastr.error(error.message || 'Failed to update room type', 'Error');
+       //   console.log(error)
+this.cdr.detectChanges();
         }
       });
     } else {
@@ -216,15 +239,15 @@ private roomService: RoomService = inject(RoomService);
     });
   }
 
-  isAmenitySelected(amenity: string): boolean {
+  isAmenitySelected(amenity: Amenity): boolean {
     const amenities = this.roomTypeForm.get('amenities')?.value || [];
     return amenities.includes(amenity);
   }
 
-  toggleAmenity(amenity: string): void {
+  toggleAmenity(amenity: Amenity): void {
     const amenities = this.roomTypeForm.get('amenities')?.value || [];
     if (amenities.includes(amenity)) {
-      this.roomTypeForm.patchValue({ amenities: amenities.filter((a: string) => a !== amenity) });
+      this.roomTypeForm.patchValue({ amenities: amenities.filter((a: Amenity) => a !== amenity) });
     } else {
       this.roomTypeForm.patchValue({ amenities: [...amenities, amenity] });
     }

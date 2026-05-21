@@ -65,7 +65,12 @@ export class BookingCardComponent {
 
     if (confirm(`Check in guest ${this.booking.guestName}?`)) {
       this.isProcessing = true;
-      this.bookingService.checkIn(this.booking.bookingId).subscribe({
+      this.bookingService.checkIn(this.booking.bookingId, {
+        roomNumber: this.booking.roomNumber,
+        checkInDate: new Date(),
+        checkOutDate: this.booking.checkOutDate,
+        guestId: this.booking.userId
+       }).subscribe({
         next: (response) => {
           this.isProcessing = false;
           if (response.success) {

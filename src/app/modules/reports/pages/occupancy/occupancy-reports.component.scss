@@ -1,0 +1,525 @@
+// src/app/modules/reports/pages/occupancy/occupancy-reports.component.scss
+.occupancy-reports {
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: 100vh;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+}
+
+// Page Header
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 8px;
+
+    @media (max-width: 768px) {
+      font-size: 22px;
+    }
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+  }
+
+  .btn-export {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+
+    &:hover {
+      background: #059669;
+    }
+  }
+}
+
+// Filters Bar
+.filters-bar {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 24px;
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  flex-wrap: wrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .date-range {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      input {
+        padding: 8px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+
+        &:focus {
+          outline: none;
+          border-color: #c49a6c;
+        }
+      }
+    }
+
+    select {
+      padding: 8px 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+    }
+
+    .view-toggle {
+      display: flex;
+      gap: 4px;
+      background: #f3f4f6;
+      padding: 4px;
+      border-radius: 10px;
+
+      .toggle-btn {
+        padding: 6px 16px;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 13px;
+
+        &.active {
+          background: #c49a6c;
+          color: white;
+        }
+
+        &:hover:not(.active) {
+          background: #e5e7eb;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+
+    .filter-group {
+      width: 100%;
+
+      .date-range {
+        flex-wrap: wrap;
+
+        input {
+          flex: 1;
+        }
+      }
+
+      select {
+        width: 100%;
+      }
+    }
+  }
+}
+
+// Stats Grid
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+
+  .stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+    .stat-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      i {
+        font-size: 24px;
+      }
+
+      &.bg-blue-100 { background: #dbeafe; i { color: #2563eb; } }
+      &.bg-green-100 { background: #d1fae5; i { color: #10b981; } }
+      &.bg-red-100 { background: #fee2e2; i { color: #dc2626; } }
+      &.bg-purple-100 { background: #f3e8ff; i { color: #9333ea; } }
+    }
+
+    .stat-info {
+      flex: 1;
+
+      .stat-label {
+        font-size: 12px;
+        color: #6b7280;
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1f2937;
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .stat-trend {
+        font-size: 11px;
+
+        &.positive { color: #10b981; }
+        &.negative { color: #ef4444; }
+      }
+    }
+  }
+}
+
+// Loading State
+.loading-state {
+  text-align: center;
+  padding: 60px;
+  background: white;
+  border-radius: 16px;
+
+  .spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #c49a6c;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+}
+
+// Charts Section
+.charts-section {
+  display: grid;
+  grid-template-columns: 1fr 0.8fr;
+  gap: 20px;
+  margin-bottom: 24px;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+
+      h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+      }
+
+      .chart-controls {
+        .chart-type-toggle {
+          display: flex;
+          gap: 4px;
+          background: #f3f4f6;
+          padding: 4px;
+          border-radius: 8px;
+
+          .type-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            cursor: pointer;
+
+            &.active {
+              background: #c49a6c;
+              color: white;
+            }
+          }
+        }
+      }
+    }
+
+    .chart-container {
+      height: 350px;
+      position: relative;
+
+      &.small {
+        height: 300px;
+      }
+    }
+  }
+}
+
+// Forecast Section
+.forecast-section {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .forecast-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      label {
+        font-size: 13px;
+        color: #6b7280;
+      }
+
+      select {
+        padding: 6px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 13px;
+      }
+    }
+  }
+
+  .forecast-chart-container {
+    height: 300px;
+    margin-bottom: 20px;
+  }
+
+  .forecast-insights {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+
+    .insight-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: #f9fafb;
+      border-radius: 12px;
+
+      i {
+        font-size: 24px;
+        color: #c49a6c;
+      }
+
+      strong {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 4px;
+      }
+
+      p {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .forecast-insights {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+// Data Table Section
+.data-table-section {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .btn-expand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #f3f4f6;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+
+      &:hover {
+        background: #e5e7eb;
+      }
+    }
+  }
+
+  .table-container {
+    overflow-x: auto;
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+
+      th, td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #f0f0f0;
+      }
+
+      th {
+        font-weight: 600;
+        color: #374151;
+        background: #f9fafb;
+      }
+
+      .occupancy-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .progress-bar {
+          flex: 1;
+          height: 6px;
+          background: #e5e7eb;
+          border-radius: 3px;
+          overflow: hidden;
+
+          .progress-fill {
+            height: 100%;
+            background: #c49a6c;
+            border-radius: 3px;
+            transition: width 0.3s;
+          }
+        }
+
+        span {
+          min-width: 45px;
+          font-size: 13px;
+          font-weight: 500;
+        }
+      }
+
+      .trend {
+        font-size: 12px;
+
+        &.positive { color: #10b981; }
+        &.negative { color: #ef4444; }
+        &.neutral { color: #6b7280; }
+      }
+    }
+  }
+}
+
+// Recommendations Card
+.recommendations-card {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border-radius: 16px;
+  padding: 24px;
+  color: white;
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      color: #f59e0b;
+    }
+  }
+
+  .recommendations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .recommendation {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+
+      i {
+        font-size: 16px;
+        color: #f59e0b;
+      }
+
+      span {
+        font-size: 13px;
+        line-height: 1.4;
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

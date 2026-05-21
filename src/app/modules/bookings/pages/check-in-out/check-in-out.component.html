@@ -5,7 +5,7 @@
     <h1 class="page-title">Guest Check-in / Check-out</h1>
     <p class="page-subtitle">Manage guest arrivals and departures</p>
   </div>
-
+ 
   <!-- Tab Navigation -->
   <div class="tab-navigation">
     <button
@@ -86,7 +86,7 @@
                   </div>
                 </div>
                 <div class="arrival-status">
-                  <span class="status-badge pending">Waiting</span>
+                  <span class="status-badge pending">{{booking.bookingStatus == 'Pending' || booking.bookingStatus == 'Confirmed' ? 'Waiting' : 'Checked In'}}</span>
                 </div>
               </div>
             }
@@ -318,7 +318,10 @@
                 </div>
                 <div class="bill-row" *ngIf="checkOutForm.get('extraCharges')?.value">
                   <span>Extra Charges:</span>
-                  <span>{{ formatPrice(checkOutForm.get('extraCharges')?.value) }}</span>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span>{{ formatPrice(checkOutForm.get('extraCharges')?.value) }}</span>
+
+                  </div>
                 </div>
                 <div class="bill-row total">
                   <span>Total Amount:</span>
@@ -333,14 +336,25 @@
                     <i class="fas fa-coins"></i>
                     Extra Charges (Optional)
                   </label>
-                  <input
+                 <div style="display: flex;gap: 10px;"> <input
                     type="number"
                     formControlName="extraCharges"
                     min="0"
                     step="1000"
                     placeholder="Additional charges (if any)"
                     class="form-control"
+                    style="flex:1"
                   >
+                   <button  class="btn-gen-primary" (click)="MakePayment(selectedCheckOutBooking.bookingId)">
+@if(isLoading) {
+                      <i class="fas fa-spinner fa-spin"></i>
+                      Processing...
+                    } @else {
+                    <i class="fas fa-credit-card"></i>
+                     Make Payment
+                    }
+                    </button>
+                    </div>
                 </div>
 
                 <div class="form-group">

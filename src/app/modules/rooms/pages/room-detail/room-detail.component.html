@@ -21,12 +21,12 @@
           <i class="fas fa-exchange-alt"></i>
           Change Status
         </button>
-        @if (!isEditing) {
-          <button class="btn-edit" (click)="toggleEdit()">
+        <!-- @if (!isEditing) { -->
+          <button class="btn-edit" (click)="openEditModal(room)">
             <i class="fas fa-edit"></i>
             Edit Room
           </button>
-        }
+        <!-- } -->
         <button class="btn-delete" (click)="openDeleteModal()">
           <i class="fas fa-trash-alt"></i>
           Delete
@@ -95,12 +95,17 @@
         </div>
         <div class="card-body">
           <div class="amenities-list">
-            @for (amenity of room.amenities; track amenity) {
-              <span class="amenity-tag">
-                <i class="fas fa-check-circle"></i>
-                {{ amenity }}
-              </span>
-            }
+
+<!-- If using standalone, make sure to add RenderAmenitiesDirective to your component imports array -->
+<div [renderAmenities]="room.amenities" class="amenities-container"></div>
+
+  <!-- @for (amenity of room.amenities; track amenity.amenityId) {
+    <span class="amenity-tag">
+      <i class="fas fa-{{ amenity.icon }}"></i>
+      {{ amenity.amenityName }}
+    </span>
+  } -->
+
             @if (room.amenities.length === 0) {
               <p class="no-data">No amenities listed</p>
             }
@@ -142,17 +147,21 @@
       }
     </div>
 
+
+  }
+
     <!-- Edit Form (Visible when editing) -->
-    @if (isEditing) {
-      <div class="edit-form-container">
-        <div class="edit-header">
+<!-- @if(isEditing){ -->
+      <div class="edit-form-container modal-overlay" [class.is-visible]="isEditing==true"  >
+         <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="edit-header modal-header">
           <h3>Edit Room Details</h3>
           <button class="close-btn" (click)="toggleEdit()">
             <i class="fas fa-times"></i>
           </button>
         </div>
-
-        <form [formGroup]="roomForm" class="edit-form">
+<div class="modal-body">
+        <form [formGroup]="roomForm" class="edit-form" >
           <div class="form-row">
             <div class="form-group">
               <label>Room Number *</label>
@@ -209,39 +218,64 @@
             <label>Description</label>
             <textarea formControlName="description" rows="3" class="form-control" placeholder="Room description..."></textarea>
           </div>
+            <div class="form-row">
 
+               <div class="form-group">
+            <label>Room Type *</label>
+            <select formControlName="roomTypeId" class="form-control">
+              <option value="">Select room type...</option>
+              @for (option of roomTypeOptions; track option.roomTypeId) {
+                <option [value]="option.roomTypeId">{{ option.typeName }}</option>
+              }
+            </select>
+          </div>
+           <div class="form-group">
+            <label>Status *</label>
+            <select formControlName="status" class="form-control">
+              <option value="">Select status...</option>
+              @for (option of statusOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+          </div>
           <div class="form-group">
             <label>Amenities</label>
             <div class="amenities-checkboxes">
-              @for (amenity of amenityOptions; track amenity) {
+
+              @for (amenity of room?.amenities; track amenity.amenityId) {
                 <label class="checkbox-label">
                   <input type="checkbox" [checked]="isAmenitySelected(amenity)" (change)="toggleAmenity(amenity)">
-                  <span>{{ amenity }}</span>
+                  <span>{{ amenity.amenityName }}</span>
                 </label>
               }
             </div>
           </div>
-
+<div class="form-group-switch">
+  <label>Active</label>
+  <label class="switch">
+    <input type="checkbox" formControlName="isActive">
+    <span class="slider round"></span>
+  </label>
+</div>
           <div class="form-actions">
             <button type="button" class="btn-cancel" (click)="toggleEdit()">Cancel</button>
             <button type="button" class="btn-save" (click)="saveRoom()" [disabled]="isSaving">
-              @if (isSaving) {
-                <i class="fas fa-spinner fa-spin"></i>
-                Saving...
-              } @else {
-                <i class="fas fa-save"></i>
-                Save Changes
-              }
+
+                <i [ngClass]="isSaving ? 'fas fa-spinner fa-spin' : 'fas fa-save'"></i>
+               {{isSaving ? 'Saving...' : 'Save Changes'}}
+
             </button>
           </div>
         </form>
+</div>
       </div>
-    }
-  }
+      </div>
+    <!-- } -->
 
   <!-- Status Change Modal -->
-  @if (showStatusModal) {
-    <div class="modal-overlay" (click)="closeStatusModal()">
+  <!-- @if (showStatusModal) { -->
+    <div class="modal-overlay" [class.is-visible]="showStatusModal" (click)="closeStatusModal()">
       <div class="modal-container" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Change Room Status</h3>
@@ -278,11 +312,11 @@
         </div>
       </div>
     </div>
-  }
+  <!-- } -->
 
   <!-- Delete Confirmation Modal -->
-  @if (showDeleteModal) {
-    <div class="modal-overlay" (click)="closeDeleteModal()">
+  <!-- @if (showDeleteModal) { -->
+    <div class="modal-overlay" [class.is-visible]="showDeleteModal" (click)="closeDeleteModal()">
       <div class="modal-container" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Delete Room</h3>
@@ -308,5 +342,5 @@
         </div>
       </div>
     </div>
-  }
+  <!-- } -->
 </div>

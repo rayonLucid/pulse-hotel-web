@@ -1,5 +1,5 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, HostListener, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/auth/auth.service';
 import { ToastrService } from 'ngx-toastr';
 
@@ -10,17 +10,20 @@ import { ToastrService } from 'ngx-toastr';
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App  implements OnInit{
+export class App  implements OnInit {
    wasHidden = false;
    private authService:AuthService =inject(AuthService)
 
-   constructor( private toaStr :ToastrService){
+
+   constructor( private toaStr :ToastrService,private router: Router){
 
    }
   ngOnInit(): void {
 
 //this.setupBeforeUnload()
   }
+
+
 count=0
 private setupBeforeUnload(): void {
 
@@ -47,5 +50,7 @@ private setupBeforeUnload(): void {
     const tabs = localStorage.getItem('active_tabs');
     return tabs ? parseInt(tabs) : 0;
   }
+
+
   protected readonly title = signal('pulse-hotel-web');
 }

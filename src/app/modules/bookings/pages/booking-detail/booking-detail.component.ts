@@ -1,5 +1,5 @@
 // src/app/modules/bookings/pages/booking-detail/booking-detail.component.ts
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -23,7 +23,8 @@ export class BookingDetailComponent implements OnInit {
 
   // Timeline events
   timelineEvents: TimelineEvent[] = [];
-
+  cdr = inject(ChangeDetectorRef);
+  id: any;
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -32,9 +33,9 @@ export class BookingDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.loadBooking(parseInt(id));
+    this.id = this.route.snapshot.paramMap.get('id');
+    if (this.id) {
+      this.loadBooking(parseInt(this.id));
     } else {
       this.router.navigate(['/bookings']);
     }
@@ -48,6 +49,7 @@ export class BookingDetailComponent implements OnInit {
           this.booking = response.data;
           this.generateTimeline();
           this.isLoading = false;
+          this.cdr.detectChanges();
         } else {
           this.toastr.error('Booking not found', 'Error');
           this.router.navigate(['/bookings']);
@@ -58,6 +60,7 @@ export class BookingDetailComponent implements OnInit {
         this.toastr.error('Failed to load booking details', 'Error');
         this.isLoading = false;
         this.router.navigate(['/bookings']);
+        this.cdr.detectChanges();
       }
     });
   }
@@ -198,7 +201,7 @@ export class BookingDetailComponent implements OnInit {
 
     if (confirm(`Check in guest ${this.booking.guestName}?`)) {
       this.isProcessing = true;
-      this.bookingService.checkIn(this.booking.bookingId).subscribe({
+      this.bookingService.checkIn(this.booking.bookingId, { guestId: this.booking.userId }).subscribe({
         next: (response) => {
           this.isProcessing = false;
           if (response.success) {
@@ -282,6 +285,28 @@ export class BookingDetailComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/bookings']);
+  }
+  VerifyPayment(): void {
+    if (!this.booking) return;
+
+   this.bookingService.verifyPayment(this.booking.bookingId).subscribe({
+      next: (response:any) => {
+        this.isProcessing = true;
+        if (response.success) {
+          this.toastr.success(response.message || 'Payment verified successfully!', 'Success');
+          this.loadBooking(this.booking!.bookingId); // Refresh booking details
+        } else {
+          this.toastr.error(response.message || 'Payment verification failed', 'Error');
+          this.loadBooking(this.booking!.bookingId); // Refresh booking details to get latest payment status
+        }
+      },
+      error: (error:any) => {
+          this.isProcessing =false
+        console.error('Error verifying payment:', error);
+        this.toastr.error(error.error.message || 'Failed to verify payment', 'Error');
+         this.loadBooking(this.booking!.bookingId);
+      }
+    });
   }
 }
 

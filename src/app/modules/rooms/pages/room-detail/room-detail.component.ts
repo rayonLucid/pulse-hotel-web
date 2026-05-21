@@ -1,16 +1,17 @@
 // src/app/modules/rooms/pages/room-detail/room-detail.component.ts
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router, ActivatedRoute } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute, isActive } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { RoomService } from '../../../../core/services/room.service';
-import { Room, RoomStatusType, BedType, ViewType, getRoomStatusLabel, getBedTypeLabel, getViewTypeLabel, formatPrice } from '../../../../core/models/room.model';
+import { Room, RoomStatusType, BedType, ViewType, getRoomStatusLabel, getBedTypeLabel, getViewTypeLabel, formatPrice, Amenity, BedTypes, RoomType } from '../../../../core/models/room.model';
+import { RenderAmenitiesDirective } from '../../../../core/directives/RenderAmenities.directive';
 
 @Component({
   selector: 'app-room-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule, RenderAmenitiesDirective],
   templateUrl: './room-detail.component.html',
   styleUrls: ['./room-detail.component.scss']
 })
@@ -36,15 +37,7 @@ export class RoomDetailComponent implements OnInit {
     { value: 'OutOfService', label: 'Out of Service' }
   ];
 
-  bedTypeOptions: { value: BedType; label: string }[] = [
-    { value: 'Single', label: 'Single Bed' },
-    { value: 'Double', label: 'Double Bed' },
-    { value: 'Queen', label: 'Queen Size Bed' },
-    { value: 'King', label: 'King Size Bed' },
-    { value: 'Emperor', label: 'Emperor Size Bed' },
-    { value: 'Twin', label: 'Twin Beds' },
-    { value: 'Sofa Bed', label: 'Sofa Bed' }
-  ];
+  bedTypeOptions: BedTypes[] = [];
 
   viewTypeOptions: { value: ViewType; label: string }[] = [
     { value: 'City View', label: 'City View' },
@@ -57,13 +50,9 @@ export class RoomDetailComponent implements OnInit {
     { value: 'No View', label: 'No View' }
   ];
 
-  amenityOptions: string[] = [
-    'Free WiFi', 'Air Conditioning', 'Flat-screen TV', 'Mini Bar',
-    'Room Service', 'Coffee/Tea Maker', 'Safe Deposit Box', 'Work Desk',
-    'Ironing Facilities', 'Hair Dryer', 'Bathrobe', 'Slippers',
-    'Bath Tub', 'Separate Shower', 'Balcony', 'Ocean View'
-  ];
+  amenityOptions: Amenity[] = [];
 private changeDet = inject(ChangeDetectorRef);
+  roomTypeOptions !:RoomType[];
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -82,29 +71,62 @@ private changeDet = inject(ChangeDetectorRef);
       bedType: ['', [Validators.required]],
       viewType: ['', [Validators.required]],
       description: ['', [Validators.maxLength(500)]],
-      amenities: [[]]
+      amenities: [[]],
+      status: ['', [Validators.required]],
+      isActive: [true]
     });
   }
 
   ngOnInit(): void {
+    this.loadBedTypes();
+    this.loadRoomTypes();
     const id = this.route.snapshot.paramMap.get('id');
-    console.log('Room ID from route:', id);
+   // console.log('Room ID from route:', id);
     if (id) {
       this.loadRoom(parseInt(id));
     } else {
       this.router.navigate(['/rooms']);
     }
   }
+  loadRoomTypes() {
+    this.roomService.getRoomTypes().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.roomTypeOptions = response.data;
+          console.log('Room types loaded:', this.roomTypeOptions);
+          this.changeDet.detectChanges();
+        }
+      },
+      error: (error) => {
+        console.error('Error:', error);
+      }
+    });
+  }
+  loadBedTypes() {
+    this.roomService.getBedTypes().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.bedTypeOptions = response.data;
+          console.log('Bed types loaded:', this.bedTypeOptions);
+          this.changeDet.detectChanges();
+        }
+      },
+      error: (error) => {
+        console.error('Error:', error);
+      }
+    });
+  }
 
   loadRoom(id: number): void {
     this.isLoading = true;
     this.roomService.getRoomById(id).subscribe({
       next: (response) => {
-       // console.log('Room data loaded:', response);
+       console.log('Room data loaded:', response.data);
         if (response.success) {
           this.room = response.data;
           this.populateForm();
           this.isLoading = false;
+          this.isEditing =false
           this.changeDet.detectChanges();
         } else {
           this.toastr.error('Room not found', 'Error');
@@ -122,7 +144,7 @@ private changeDet = inject(ChangeDetectorRef);
 
   populateForm(): void {
     if (!this.room) return;
-
+// console.log('Populating form with room data:', this.room);
     this.roomForm.patchValue({
       roomNumber: this.room.roomNumber,
       roomTypeId: this.room.roomTypeId,
@@ -134,16 +156,29 @@ private changeDet = inject(ChangeDetectorRef);
       bedType: this.room.bedType,
       viewType: this.room.viewType,
       description: this.room.description || '',
-      amenities: this.room.amenities || []
+      amenities: this.room.amenities || [],
+      status: this.room.status || '',
+      isActive: this.room.isActive
     });
+ this.changeDet.detectChanges()
+   // console.log('Form values after patching:', this.roomForm.value);
   }
 
   toggleEdit(): void {
-    this.isEditing = !this.isEditing;
-    if (!this.isEditing) {
-      this.populateForm(); // Reset form on cancel
-    }
+   this.isEditing = !this.isEditing;
+
+    // if (this.isEditing && this.room) {
+    //   this.populateForm(); // Reset form on cancel
+
+    // }
   }
+  openEditModal(selectedRoom: Room) {
+  this.room = selectedRoom; // Anchor the target data
+  this.isEditing = true;
+
+  this.roomForm.patchValue(this.room); // Instantly populate the inputs
+  this.changeDet.detectChanges(); // Force update to reflect changes immediately
+}
 
   saveRoom(): void {
     if (this.roomForm.invalid) {
@@ -171,6 +206,8 @@ private changeDet = inject(ChangeDetectorRef);
       error: (error) => {
         this.isSaving = false;
         this.toastr.error(error.message || 'Failed to update room', 'Error');
+        this.changeDet.detectChanges();
+        console.error('Error updating room:', error);
       }
     });
   }
@@ -259,15 +296,15 @@ private changeDet = inject(ChangeDetectorRef);
     return formatPrice(price);
   }
 
-  isAmenitySelected(amenity: string): boolean {
+  isAmenitySelected(amenity: Amenity): boolean {
     const amenities = this.roomForm.get('amenities')?.value || [];
     return amenities.includes(amenity);
   }
 
-  toggleAmenity(amenity: string): void {
+  toggleAmenity(amenity: Amenity): void {
     const amenities = this.roomForm.get('amenities')?.value || [];
     if (amenities.includes(amenity)) {
-      this.roomForm.patchValue({ amenities: amenities.filter((a: string) => a !== amenity) });
+      this.roomForm.patchValue({ amenities: amenities.filter((a: Amenity) => a !== amenity) });
     } else {
       this.roomForm.patchValue({ amenities: [...amenities, amenity] });
     }

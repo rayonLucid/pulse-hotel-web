@@ -21,7 +21,7 @@ export interface Booking {
   totalAmount: number;
   specialRequests: string;
   bookingStatus: 'Pending' | 'Confirmed' | 'CheckedIn' | 'CheckedOut' | 'Cancelled' | 'NoShow';
-  paymentStatus: 'Pending' | 'Paid' | 'PartiallyPaid' | 'Refunded' | 'Failed';
+  paymentStatus: 'Pending' | 'Paid' | 'PartiallyPaid' | 'Refunded' | 'Failed'| 'Success';
   bookingDate: Date;
   checkInTime?: Date;
   checkOutTime?: Date;
@@ -53,6 +53,19 @@ export interface CreateBookingRequest {
   specialRequests?: string;
 }
 
+// export interface BookingStats {
+//   totalBookings: number;
+//   confirmedBookings: number;
+//   checkedIn: number;
+//   checkedOut: number;
+//   cancelled: number;
+//   pendingPayments: number;
+//   totalRevenue: number;
+//   occupancyRate: number;
+// }
+// // src/app/core/models/booking.model.ts
+// // Update the BookingStats interface
+
 export interface BookingStats {
   totalBookings: number;
   confirmedBookings: number;
@@ -62,4 +75,13 @@ export interface BookingStats {
   pendingPayments: number;
   totalRevenue: number;
   occupancyRate: number;
+  // Add these if your backend returns them
+  todayCheckIns?: number;
+  todayCheckOuts?: number;
+  pendingBookings?: number;
+  dailyRevenue?: number;
+  weeklyRevenue?: number;
+  monthlyRevenue?: number;
+  yearlyRevenue?: number;
+  cancelledBookings?:number
 }

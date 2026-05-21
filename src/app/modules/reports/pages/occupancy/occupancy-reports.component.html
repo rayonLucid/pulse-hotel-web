@@ -1,0 +1,271 @@
+<!-- src/app/modules/reports/pages/occupancy/occupancy-reports.component.html -->
+<div class="occupancy-reports">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Occupancy Reports</h1>
+      <p class="page-subtitle">Track room occupancy rates, trends, and forecasts</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-export" (click)="exportData()">
+        <i class="fas fa-file-excel"></i>
+        Export Report
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label>Date Range</label>
+      <div class="date-range">
+        <input type="date" [(ngModel)]="startDate" (change)="onDateRangeChange()">
+        <span>to</span>
+        <input type="date" [(ngModel)]="endDate" (change)="onDateRangeChange()">
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label>Room Type</label>
+      <select [(ngModel)]="selectedRoomType" (change)="onDateRangeChange()">
+        @for (type of roomTypes; track type) {
+          <option [value]="type">{{ type }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>View Type</label>
+      <div class="view-toggle">
+        <button class="toggle-btn" [class.active]="viewType === 'daily'" (click)="viewType = 'daily'; onViewTypeChange()">
+          Daily
+        </button>
+        <button class="toggle-btn" [class.active]="viewType === 'weekly'" (click)="viewType = 'weekly'; onViewTypeChange()">
+          Weekly
+        </button>
+        <button class="toggle-btn" [class.active]="viewType === 'monthly'" (click)="viewType = 'monthly'; onViewTypeChange()">
+          Monthly
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading occupancy data...</p>
+    </div>
+  }
+
+  <!-- Main Content -->
+  @if (!isLoading) {
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon bg-blue-100">
+          <i class="fas fa-chart-line text-blue-600"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Average Occupancy</span>
+          <span class="stat-value">{{ stats.averageOccupancy }}%</span>
+          <span class="stat-trend positive">↑ 5.2% vs last period</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon bg-green-100">
+          <i class="fas fa-arrow-up text-green-600"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Peak Occupancy</span>
+          <span class="stat-value">{{ stats.peakOccupancy }}%</span>
+          <span class="stat-trend positive">↑ 3% vs last period</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon bg-red-100">
+          <i class="fas fa-arrow-down text-red-600"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Lowest Occupancy</span>
+          <span class="stat-value">{{ stats.lowestOccupancy }}%</span>
+          <span class="stat-trend negative">↓ 2.1% vs last period</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon bg-purple-100">
+          <i class="fas fa-bed text-purple-600"></i>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Total Room Nights</span>
+          <span class="stat-value">{{ stats.totalRoomNights | number }}</span>
+          <span class="stat-trend positive">↑ 8% vs last period</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+      <!-- Main Occupancy Chart -->
+      <div class="chart-card large">
+        <div class="card-header">
+          <h3>Occupancy Trend</h3>
+          <div class="chart-controls">
+            <div class="chart-type-toggle">
+              <button class="type-btn" [class.active]="chartType === 'line'" (click)="chartType = 'line'; onChartTypeChange()">
+                <i class="fas fa-chart-line"></i>
+              </button>
+              <button class="type-btn" [class.active]="chartType === 'bar'" (click)="chartType = 'bar'; onChartTypeChange()">
+                <i class="fas fa-chart-bar"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="occupancyChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Room Type Breakdown -->
+      <div class="chart-card">
+        <div class="card-header">
+          <h3>Occupancy by Room Type</h3>
+        </div>
+        <div class="chart-container small">
+          <canvas id="roomTypeChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Occupancy Forecast -->
+    <div class="forecast-section">
+      <div class="section-header">
+        <h3>Occupancy Forecast</h3>
+        <div class="forecast-controls">
+          <label>Forecast Period:</label>
+          <select [(ngModel)]="forecastDays" (change)="generateForecastData(); initForecastChart()">
+            <option value="7">7 Days</option>
+            <option value="14">14 Days</option>
+            <option value="30">30 Days</option>
+            <option value="60">60 Days</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="forecast-chart-container">
+        <canvas id="forecastChart"></canvas>
+      </div>
+
+      <div class="forecast-insights">
+        <div class="insight-card">
+          <i class="fas fa-calendar-week"></i>
+          <div>
+            <strong>Peak Forecast</strong>
+            <p>{{ getPeakForecast() }}% expected next 14 days</p>
+          </div>
+        </div>
+        <div class="insight-card">
+          <i class="fas fa-chart-line"></i>
+          <div>
+            <strong>Average Forecast</strong>
+            <p>{{ getAverageForecast() }}% expected next 14 days</p>
+          </div>
+        </div>
+        <div class="insight-card">
+          <i class="fas fa-trend-up"></i>
+          <div>
+            <strong>Trend Direction</strong>
+            <p>{{ getTrendDirection() }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Breakdown Table -->
+    <div class="data-table-section">
+      <div class="section-header">
+        <h3>Daily Occupancy Breakdown</h3>
+        <button class="btn-expand" (click)="exportData()">
+          <i class="fas fa-download"></i>
+          Export Data
+        </button>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Day</th>
+              <th>Occupied Rooms</th>
+              <th>Available Rooms</th>
+              <th>Occupancy Rate</th>
+              <th>Trend</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of occupancyData; track item.date; let idx = $index) {
+              <tr>
+                <td class="date-cell">{{ formatDate(item.date) }}</td>
+                <td class="day-cell">{{ getDayOfWeek(item.date) }}</td>
+                <td class="number-cell">{{ item.occupied }}</td>
+                <td class="number-cell">{{ item.available }}</td>
+                <td class="occupancy-cell">
+                  <div class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="item.occupancyRate"></div>
+                  </div>
+                  <span class="occupancy-value">{{ item.occupancyRate }}%</span>
+                </td>
+                <td class="trend-cell">
+                  @if (idx > 0) {
+                    @let change = item.occupancyRate - occupancyData[idx - 1].occupancyRate;
+                    <span class="trend" [class.positive]="change > 0" [class.negative]="change < 0">
+                      @if (change > 0) {
+                        ↑ {{ change | number:'1.0-0' }}%
+                      } @else if (change < 0) {
+                        ↓ {{ -change | number:'1.0-0' }}%
+                      } @else {
+                        → 0%
+                      }
+                    </span>
+                  } @else {
+                    <span class="trend neutral">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="recommendations-card">
+      <h3>
+        <i class="fas fa-lightbulb"></i>
+        Recommendations
+      </h3>
+      <div class="recommendations-list">
+        <div class="recommendation">
+          <i class="fas fa-chart-line"></i>
+          <span>Increase rates by 10-15% during forecasted peak periods (weekends and holidays)</span>
+        </div>
+        <div class="recommendation">
+          <i class="fas fa-tag"></i>
+          <span>Create special packages for mid-week stays to improve occupancy during low periods</span>
+        </div>
+        <div class="recommendation">
+          <i class="fas fa-envelope"></i>
+          <span>Launch targeted email campaign for returning guests during forecasted low occupancy weeks</span>
+        </div>
+        <div class="recommendation">
+          <i class="fas fa-chart-pie"></i>
+          <span>Focus marketing efforts on Deluxe and Executive rooms which show highest occupancy rates</span>
+        </div>
+      </div>
+    </div>
+  }
+</div>

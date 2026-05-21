@@ -1,0 +1,90 @@
+<!-- src/app/modules/settings/pages/profile/profile.component.html -->
+<div class="profile-container">
+  <div class="settings-layout" [class.is-not-admin]="user?.role !== 'Admin'">
+
+      <app-settings-sidebar [ngClass]="{'display-block': user?.role == 'Admin', 'display-none': user?.role != 'Admin' }"></app-settings-sidebar>
+
+
+
+    <div class="settings-content">
+      <div class="settings-header">
+        <h1>Profile Settings</h1>
+        <p>Manage your personal information and preferences</p>
+      </div>
+
+      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
+        <!-- Avatar Section -->
+        <div class="avatar-section">
+          <div class="avatar-preview">
+            <div class="avatar-placeholder">
+              <i class="fas fa-user-circle"></i>
+            </div>
+            <button type="button" class="btn-change-avatar">
+              <i class="fas fa-camera"></i>
+              Change Photo
+            </button>
+          </div>
+        </div>
+
+        <!-- Personal Information -->
+        <div class="form-card">
+          <h3>Personal Information</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fullName">Full Name *</label>
+              <input type="text" id="fullName" formControlName="fullName" class="form-control">
+              @if (profileForm.get('fullName')?.invalid && profileForm.get('fullName')?.touched) {
+                <div class="error-message">Full name is required</div>
+              }
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address *</label>
+              <input type="email" id="email" formControlName="email" class="form-control" readonly [disabled]="true">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="phoneNumber">Phone Number *</label>
+              <input type="tel" id="phoneNumber" formControlName="phoneNumber" class="form-control">
+              @if (profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched) {
+                <div class="error-message">Valid phone number is required</div>
+              }
+            </div>
+            <div class="form-group">
+              <label for="department">Department</label>
+              <input type="text" id="department" formControlName="department" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="position">Position</label>
+              <input type="text" id="position" formControlName="position" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="bio">Bio</label>
+            <textarea id="bio" formControlName="bio" rows="4" class="form-control" placeholder="Tell us about yourself..."></textarea>
+            <div class="char-count">{{ profileForm.get('bio')?.value?.length || 0 }}/500</div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="loadUserData()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="isSaving || profileForm.invalid">
+            @if (isSaving) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Saving...
+            } @else {
+              <i class="fas fa-save"></i>
+              Save Changes
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

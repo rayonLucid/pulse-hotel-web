@@ -1,0 +1,282 @@
+<!-- src/app/modules/inventory/pages/items/items.component.html -->
+<div class="items-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Inventory Items</h1>
+      <p class="page-subtitle">Manage all stock items and their details</p>
+    </div>
+    <button class="btn-primary" (click)="openCreateModal()">
+      <i class="fas fa-plus"></i>
+      Add Item
+    </button>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input
+        type="text"
+        placeholder="Search by name or code..."
+        [(ngModel)]="filters.searchTerm"
+        (input)="applyFilters()"
+      >
+    </div>
+
+    <div class="filter-group">
+      <select [(ngModel)]="filters.categoryId" (change)="applyFilters()">
+        <option [value]="null">All Categories</option>
+        @for (category of categories; track category.categoryId) {
+          <option [value]="category.categoryId">{{ category.categoryName }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <select [(ngModel)]="filters.stockStatus" (change)="applyFilters()">
+        @for (option of stockStatusOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    @if (hasActiveFilters()) {
+      <button class="clear-filters" (click)="clearFilters()">
+        <i class="fas fa-times"></i>
+        Clear
+      </button>
+    }
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading items...</p>
+    </div>
+  }
+
+  <!-- Items Grid with ngx-pagination -->
+  @if (!isLoading && filteredItems.length > 0) {
+    <div class="items-grid">
+      <div
+        *ngFor="let item of filteredItems | paginate: { itemsPerPage: pageSize, currentPage: currentPage, totalItems: totalItems }; trackBy: trackByItemId"
+        class="item-card"
+      >
+        <div class="card-header">
+          <div class="item-info">
+            <h3 class="item-name">{{ item.itemName }}</h3>
+            <p class="item-code">{{ item.itemCode }}</p>
+          </div>
+          <div class="stock-status" [class]="getStockStatusClass(item.stockStatus)">
+            <i [class]="getStockStatusIcon(item.stockStatus)"></i>
+            {{ item.stockStatus }}
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="category">
+            <i class="fas fa-tag"></i>
+            {{ getCategoryName(item.categoryId) }}
+          </div>
+          <div class="stock-info">
+            <div class="stock-item">
+              <span class="label">Current Stock:</span>
+              <span class="value" [class.low]="item.currentStock <= item.reorderLevel">
+                {{ item.currentStock }} {{ item.unitOfMeasure }}
+              </span>
+            </div>
+            <div class="stock-item">
+              <span class="label">Unit Cost:</span>
+              <span class="value">{{ formatPrice(item.unitCost) }}</span>
+            </div>
+            <div class="stock-item">
+              <span class="label">Total Value:</span>
+              <span class="value">{{ formatPrice(item.totalValue) }}</span>
+            </div>
+            <div class="stock-item">
+              <span class="label">Location:</span>
+              <span class="value">{{ item.storageLocation || 'Not set' }}</span>
+            </div>
+          </div>
+
+          @if (item.currentStock <= item.reorderLevel) {
+            <div class="reorder-alert">
+              <i class="fas fa-bell"></i>
+              Reorder level: {{ item.reorderLevel }} {{ item.unitOfMeasure }}
+            </div>
+          }
+        </div>
+
+        <div class="card-footer">
+          <button class="btn-view" (click)="openEditModal(item)">
+            <i class="fas fa-edit"></i>
+            Edit
+          </button>
+          <button class="btn-delete" (click)="deleteItem(item)">
+            <i class="fas fa-trash-alt"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading && filteredItems.length === 0) {
+    <div class="empty-state">
+      <i class="fas fa-boxes"></i>
+      <h3>No items found</h3>
+      <p>Try adjusting your filters or add a new item</p>
+      <button class="btn-primary" (click)="openCreateModal()">
+        <i class="fas fa-plus"></i>
+        Add Item
+      </button>
+    </div>
+  }
+
+  <!-- ngx-pagination Controls -->
+  @if (totalItems > pageSize) {
+    <div class="pagination-wrapper">
+      <pagination-controls
+        (pageChange)="onPageChange($event)"
+        [autoHide]="true"
+        [responsive]="true"
+        previousLabel="Previous"
+        nextLabel="Next"
+        [maxSize]="5"
+      ></pagination-controls>
+
+      <div class="pagination-info">
+        Showing {{ ((currentPage - 1) * pageSize) + 1 }} to
+        {{ Math.min(currentPage * pageSize, totalItems) }} of
+        {{ totalItems }} items
+      </div>
+    </div>
+  }
+
+  <!-- Create/Edit Item Modal -->
+  @if (showItemModal) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-container modal-large" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ editingItem ? 'Edit Item' : 'Create New Item' }}</h3>
+          <button class="modal-close" (click)="closeModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <form [formGroup]="itemForm" class="item-form">
+            <!-- Item Code -->
+            <div class="form-row">
+              <div class="form-group">
+                <label>Item Code *</label>
+                <div class="input-with-button">
+                  <input type="text" formControlName="itemCode" class="form-control" placeholder="INV-XXXX-XXX">
+                  <button type="button" class="btn-generate" (click)="generateItemCode()">
+                    <i class="fas fa-sync-alt"></i>
+                    Generate
+                  </button>
+                </div>
+                @if (itemForm.get('itemCode')?.invalid && itemForm.get('itemCode')?.touched) {
+                  <div class="error-message">Item code is required</div>
+                }
+              </div>
+              <div class="form-group">
+                <label>Item Name *</label>
+                <input type="text" formControlName="itemName" class="form-control" placeholder="Enter item name">
+                @if (itemForm.get('itemName')?.invalid && itemForm.get('itemName')?.touched) {
+                  <div class="error-message">Item name is required</div>
+                }
+              </div>
+            </div>
+
+            <!-- Category & Unit -->
+            <div class="form-row">
+              <div class="form-group">
+                <label>Category *</label>
+                <select formControlName="categoryId" class="form-control">
+                  <option value="">Select Category</option>
+                  @for (category of categories; track category.categoryId) {
+                    <option [value]="category.categoryId">{{ category.categoryName }}</option>
+                  }
+                </select>
+                @if (itemForm.get('categoryId')?.invalid && itemForm.get('categoryId')?.touched) {
+                  <div class="error-message">Category is required</div>
+                }
+              </div>
+              <div class="form-group">
+                <label>Unit of Measure *</label>
+                <select formControlName="unitOfMeasure" class="form-control">
+                  @for (unit of unitOptions; track unit) {
+                    <option [value]="unit">{{ unit }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <!-- Pricing -->
+            <div class="form-row">
+              <div class="form-group">
+                <label>Unit Cost (₦) *</label>
+                <input type="number" formControlName="unitCost" class="form-control" placeholder="0.00">
+                @if (itemForm.get('unitCost')?.invalid && itemForm.get('unitCost')?.touched) {
+                  <div class="error-message">Unit cost is required</div>
+                }
+              </div>
+              <div class="form-group">
+                <label>Selling Price (₦)</label>
+                <input type="number" formControlName="sellingPrice" class="form-control" placeholder="0.00">
+              </div>
+            </div>
+
+            <!-- Stock Levels -->
+            <div class="form-row">
+              <div class="form-group">
+                <label>Minimum Stock</label>
+                <input type="number" formControlName="minimumStock" class="form-control" placeholder="0">
+              </div>
+              <div class="form-group">
+                <label>Maximum Stock</label>
+                <input type="number" formControlName="maximumStock" class="form-control" placeholder="Optional">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Reorder Level</label>
+                <input type="number" formControlName="reorderLevel" class="form-control" placeholder="0">
+                <small class="form-hint">Alert when stock reaches this level</small>
+              </div>
+              <div class="form-group">
+                <label>Reorder Quantity</label>
+                <input type="number" formControlName="reorderQuantity" class="form-control" placeholder="0">
+              </div>
+            </div>
+
+            <!-- Storage Location -->
+            <div class="form-group">
+              <label>Storage Location</label>
+              <input type="text" formControlName="storageLocation" class="form-control" placeholder="e.g., Warehouse A, Shelf 3">
+            </div>
+          </form>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">Cancel</button>
+          <button class="btn-primary" (click)="saveItem()" [disabled]="isSaving || itemForm.invalid">
+            @if (isSaving) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Saving...
+            } @else {
+              <i class="fas fa-save"></i>
+              {{ editingItem ? 'Update' : 'Create' }}
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

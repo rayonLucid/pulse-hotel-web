@@ -1,0 +1,480 @@
+<!-- src/app/modules/inventory/pages/reports/reports.component.html -->
+<div class="reports-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Inventory Reports</h1>
+      <p class="page-subtitle">Analytics and insights for inventory management</p>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-navigation">
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === 'stock'"
+      (click)="setActiveTab('stock')"
+    >
+      <i class="fas fa-boxes"></i>
+      Stock Report
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === 'movement'"
+      (click)="setActiveTab('movement')"
+    >
+      <i class="fas fa-exchange-alt"></i>
+      Stock Movement
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === 'valuation'"
+      (click)="setActiveTab('valuation')"
+    >
+      <i class="fas fa-chart-pie"></i>
+      Valuation
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === 'supplier'"
+      (click)="setActiveTab('supplier')"
+    >
+      <i class="fas fa-truck"></i>
+      Supplier Performance
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === 'purchase'"
+      (click)="setActiveTab('purchase')"
+    >
+      <i class="fas fa-shopping-cart"></i>
+      Purchase Orders
+    </button>
+  </div>
+
+  <!-- ==================== STOCK REPORT TAB ==================== -->
+  @if (activeTab === 'stock') {
+    <div class="report-tab">
+      <div class="filters-bar">
+        <div class="filter-group">
+          <label>Category</label>
+          <select [(ngModel)]="stockCategoryId" (change)="loadStockReport()">
+            <option [value]="null">All Categories</option>
+            @for (category of categories; track category.categoryId) {
+              <option [value]="category.categoryId">{{ category.categoryName }}</option>
+            }
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Stock Status</label>
+          <select [(ngModel)]="stockStatus" (change)="loadStockReport()">
+            @for (option of statusOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+        <button class="btn-export" (click)="exportStockReport()" [disabled]="isGenerating">
+          <i class="fas fa-file-excel"></i>
+          Export to Excel
+        </button>
+      </div>
+
+      @if (isLoading) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading stock report...</p>
+        </div>
+      }
+
+      @if (!isLoading && stockData.length > 0) {
+        <div class="table-container">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>Item Code</th>
+                <th>Item Name</th>
+                <th>Category</th>
+                <th>Current Stock</th>
+                <th>Unit Cost</th>
+                <th>Total Value</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of stockData; track item.itemId) {
+                <tr>
+                  <td class="item-code">{{ item.itemCode }}</td>
+                  <td>{{ item.itemName }}</td>
+                  <td>{{ item.categoryName }}</td>
+                  <td>{{ item.currentStock }} {{ item.unitOfMeasure }}</td>
+                  <td>{{ formatPrice(item.unitCost) }}</td>
+                  <td class="amount">{{ formatPrice(item.totalValue) }}</td>
+                  <td>
+                    <span class="status-badge" [class]="getStockStatusClass(item.stockStatus)">
+                      {{ item.stockStatus }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td colspan="5"><strong>Total Inventory Value</strong></td>
+                <td colspan="2"><strong>{{ formatPrice(stockData.reduce((sum, i) => sum + i.totalValue, 0)) }}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      }
+
+      @if (!isLoading && stockData.length === 0) {
+        <div class="empty-state">
+          <i class="fas fa-boxes"></i>
+          <p>No stock data available</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ==================== STOCK MOVEMENT TAB ==================== -->
+  @if (activeTab === 'movement') {
+    <div class="report-tab">
+      <div class="filters-bar">
+        <div class="filter-group">
+          <label>Select Item</label>
+          <select [(ngModel)]="movementItemId" (change)="onItemSelect(movementItemId)">
+            <option [value]="null">Select an item</option>
+            @for (item of items; track item.itemId) {
+              <option [value]="item.itemId">{{ item.itemName }} ({{ item.itemCode }})</option>
+            }
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>From Date</label>
+          <input type="date" [(ngModel)]="startDate" (change)="loadMovementReport()">
+        </div>
+        <div class="filter-group">
+          <label>To Date</label>
+          <input type="date" [(ngModel)]="endDate" (change)="loadMovementReport()">
+        </div>
+      </div>
+
+      @if (movementItemName) {
+        <h3 class="report-title">Movement History for: {{ movementItemName }}</h3>
+      }
+
+      @if (isLoading) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading movement history...</p>
+        </div>
+      }
+
+      @if (!isLoading && movementData.length > 0) {
+        <div class="table-container">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Quantity</th>
+                <th>Unit Cost</th>
+                <th>Total</th>
+                <th>Reference</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (transaction of movementData; track transaction.transactionId) {
+                <tr>
+                  <td>{{ formatDateTime(transaction.createdAt) }}</td>
+                  <td>
+                    <span class="transaction-badge" [class]="getTransactionTypeClass(transaction.transactionType)">
+                      {{ transaction.transactionType }}
+                    </span>
+                  </td>
+                  <td [class.negative]="transaction.transactionType === 'Issued' || transaction.transactionType === 'Damaged'">
+                    {{ transaction.transactionType === 'Issued' || transaction.transactionType === 'Damaged' ? '-' : '+' }}{{ transaction.quantity }}
+                  </td>
+                  <td>{{ formatPrice(transaction.unitCost) }}</td>
+                  <td class="amount">{{ formatPrice(transaction.totalCost) }}</td>
+                  <td>{{ transaction.reference || '-' }}</td>
+                  <td class="notes">{{ transaction.notes || '-' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (!isLoading && movementData.length === 0 && movementItemId) {
+        <div class="empty-state">
+          <i class="fas fa-history"></i>
+          <p>No movement records found for this period</p>
+        </div>
+      }
+
+      @if (!movementItemId) {
+        <div class="info-state">
+          <i class="fas fa-info-circle"></i>
+          <p>Select an item to view its stock movement history</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ==================== VALUATION TAB ==================== -->
+  @if (activeTab === 'valuation') {
+    <div class="report-tab">
+      <div class="filters-bar">
+        <button class="btn-export" (click)="exportValuationReport()" [disabled]="isGenerating">
+          <i class="fas fa-file-excel"></i>
+          Export to Excel
+        </button>
+      </div>
+
+      @if (isLoading) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading valuation data...</p>
+        </div>
+      }
+
+      @if (!isLoading && valuationData) {
+        <div class="valuation-summary">
+          <div class="summary-cards">
+            <div class="summary-card">
+              <div class="card-value">{{ valuationData.totalItems }}</div>
+              <div class="card-label">Total Items</div>
+            </div>
+            <div class="summary-card">
+              <div class="card-value">{{ formatPrice(valuationData.totalValue) }}</div>
+              <div class="card-label">Total Inventory Value</div>
+            </div>
+          </div>
+
+          <div class="valuation-breakdown">
+            <h3>Value by Category</h3>
+            <div class="category-list">
+              @for (cat of valuationData.byCategory; track cat.category) {
+                <div class="category-item">
+                  <div class="category-info">
+                    <span class="category-name">{{ cat.category }}</span>
+                    <span class="category-value">{{ formatPrice(cat.value) }}</span>
+                  </div>
+                  <div class="category-bar">
+                    <div class="bar-fill" [style.width.%]="cat.percentage"></div>
+                  </div>
+                  <div class="category-percentage">{{ cat.percentage | number:'1.1-1' }}%</div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="valuation-table">
+            <h3>Detailed Valuation by Category</h3>
+            <div class="table-container">
+              <table class="report-table">
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th>Item Count</th>
+                    <th>Total Value</th>
+                    <th>% of Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (cat of valuationData.byCategory; track cat.category) {
+                    <tr>
+                      <td>{{ cat.category }}</td>
+                      <td>{{ cat.count }}</td>
+                      <td class="amount">{{ formatPrice(cat.value) }}</td>
+                      <td>{{ cat.percentage | number:'1.1-1' }}%</td>
+                    </tr>
+                  }
+                </tbody>
+                <tfoot>
+                  <tr class="total-row">
+                    <td><strong>Total</strong></td>
+                    <td><strong>{{ valuationData.totalItems }}</strong></td>
+                    <td class="amount"><strong>{{ formatPrice(valuationData.totalValue) }}</strong></td>
+                    <td><strong>100%</strong></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ==================== SUPPLIER PERFORMANCE TAB ==================== -->
+  @if (activeTab === 'supplier') {
+    <div class="report-tab">
+      <div class="filters-bar">
+        <div class="filter-group">
+          <label>Supplier</label>
+          <select [(ngModel)]="supplierId" (change)="loadSupplierReport()">
+            <option [value]="null">All Suppliers</option>
+            @for (supplier of suppliers; track supplier.supplierId) {
+              <option [value]="supplier.supplierId">{{ supplier.supplierName }}</option>
+            }
+          </select>
+        </div>
+        <button class="btn-export" (click)="exportSupplierReport()" [disabled]="isGenerating">
+          <i class="fas fa-file-excel"></i>
+          Export to Excel
+        </button>
+      </div>
+
+      @if (isLoading) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading supplier data...</p>
+        </div>
+      }
+
+      @if (!isLoading && supplierData) {
+        <div class="table-container">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>Supplier Name</th>
+                <th>Contact Person</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Lead Time (days)</th>
+                <th>On-Time Delivery</th>
+                <th>Rating</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (supplier of supplierData; track supplier.supplierId) {
+                <tr>
+                  <td><strong>{{ supplier.supplierName }}</strong></td>
+                  <td>{{ supplier.contactPerson }}</td>
+                  <td>{{ supplier.phoneNumber }}</td>
+                  <td>{{ supplier.email }}</td>
+                  <td>{{ supplier.leadTimeDays }}</td>
+                  <td>
+                    <div class="progress-container">
+                      <div class="progress-bar" [style.width.%]="supplier.onTimeDelivery"></div>
+                      <span>{{ supplier.onTimeDelivery }}%</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="rating-stars">
+                      @for (star of [1,2,3,4,5]; track star) {
+                        <i class="fas fa-star" [class.active]="star <= (supplier.rating || 0)"></i>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ==================== PURCHASE ORDER REPORT TAB ==================== -->
+  @if (activeTab === 'purchase') {
+    <div class="report-tab">
+      <div class="filters-bar">
+        <div class="filter-group">
+          <label>Date Range</label>
+          <input type="date" [(ngModel)]="startDate">
+        </div>
+        <div class="filter-group">
+          <label>To</label>
+          <input type="date" [(ngModel)]="endDate">
+        </div>
+        <div class="filter-group">
+          <label>Status</label>
+          <select [(ngModel)]="poStatus" (change)="loadPurchaseOrderReport()">
+            @for (option of poStatusOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Supplier</label>
+          <select [(ngModel)]="poSupplierId" (change)="loadPurchaseOrderReport()">
+            <option [value]="null">All Suppliers</option>
+            @for (supplier of suppliers; track supplier.supplierId) {
+              <option [value]="supplier.supplierId">{{ supplier.supplierName }}</option>
+            }
+          </select>
+        </div>
+        <button class="btn-export" (click)="exportPurchaseOrderReport()" [disabled]="isGenerating">
+          <i class="fas fa-file-excel"></i>
+          Export to Excel
+        </button>
+      </div>
+
+      @if (isLoading) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading purchase orders...</p>
+        </div>
+      }
+
+      @if (!isLoading && purchaseData.length > 0) {
+        <div class="table-container">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>PO #</th>
+                <th>Supplier</th>
+                <th>Order Date</th>
+                <th>Expected Delivery</th>
+                <th>Subtotal</th>
+                <th>Tax</th>
+                <th>Total</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (po of purchaseData; track po.poNumber) {
+                <tr>
+                  <td class="po-number">#{{ po.poNumber }}</td>
+                  <td>{{ po.supplierName }}</td>
+                  <td>{{ formatDate(po.orderDate) }}</td>
+                  <td [class.overdue]="isDateOverdue(po.expectedDeliveryDate) && po.status !== 'Received'">
+                    {{ formatDate(po.expectedDeliveryDate) }}
+                  </td>
+                  <td>{{ formatPrice(po.subTotal) }}</td>
+                  <td>{{ formatPrice(po.taxAmount) }}</td>
+                  <td class="amount">{{ formatPrice(po.totalAmount) }}</td>
+                  <td>
+                    <span class="status-badge" [class]="getStatusClass(po.status)">
+                      {{ po.status }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td colspan="4"><strong>Totals</strong></td>
+                <td><strong>{{ formatPrice(purchaseData.reduce((sum, po) => sum + po.subTotal, 0)) }}</strong></td>
+                <td><strong>{{ formatPrice(purchaseData.reduce((sum, po) => sum + po.taxAmount, 0)) }}</strong></td>
+                <td><strong>{{ formatPrice(purchaseData.reduce((sum, po) => sum + po.totalAmount, 0)) }}</strong></td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      }
+
+      @if (!isLoading && purchaseData.length === 0) {
+        <div class="empty-state">
+          <i class="fas fa-shopping-cart"></i>
+          <p>No purchase orders found for the selected criteria</p>
+        </div>
+      }
+    </div>
+  }
+</div>

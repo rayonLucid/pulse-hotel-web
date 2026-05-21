@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { AppConfigService } from './app.config.service';
 
 export interface Bank {
   code: string;
@@ -26,9 +27,13 @@ export interface AccountValidationResponse {
   providedIn: 'root'
 })
 export class BankService {
-  private apiUrl = environment.apiUrl;
-  private rootUrl = environment.rootUrl;
-
+ // private apiUrl = environment.apiUrl;
+private rootUrl = "";
+public apiUrl = '';
+  constructor(private http: HttpClient,private readonly config:AppConfigService) {
+this.apiUrl = `${this.config.apiUrl}`;
+this.rootUrl = this.config.rootUrl;
+  }
   // Nigerian Banks List
   private nigerianBanks: Bank[] = [
     { code: '044', name: 'Access Bank', slug: 'access-bank', ussd: '*901#' },
@@ -59,7 +64,7 @@ export class BankService {
     { code: '035', name: 'Wema Bank', slug: 'wema-bank', ussd: '*945#' },
     { code: '057', name: 'Zenith Bank', slug: 'zenith-bank', ussd: '*966#' }
 ];
-  constructor(private http: HttpClient) {}
+
 
   // Get all Nigerian banks
   getBanks(): Bank[] {

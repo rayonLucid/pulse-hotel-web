@@ -73,7 +73,7 @@ export class AuthService {
   register(registerData: any): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/Auth/register`, registerData).pipe(
       tap(response => {
-        console.log('Registration response:', response);
+      //  console.log('Registration response:', response);
         if (response.success) {
           this.toastr.success('Registration successful! Please login.', 'Success');
         }
@@ -83,8 +83,8 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.userKey);
+    sessionStorage.removeItem(this.tokenKey);
+    sessionStorage.removeItem(this.userKey);
     this.currentUserSubject.next(null);
     this.isLoggedInSubject.next(false);
     this.toastr.info('You have been logged out.', 'Goodbye!');
@@ -94,7 +94,7 @@ export class AuthService {
   // ==================== TOKEN METHODS ====================
 
   getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
+    return sessionStorage.getItem(this.tokenKey);
   }
 
   isAuthenticated(): boolean {
@@ -246,15 +246,15 @@ export class AuthService {
       isActive: true
     };
 
-    localStorage.setItem(this.tokenKey, authData.token);
-    localStorage.setItem(this.userKey, JSON.stringify(user));
+    sessionStorage.setItem(this.tokenKey, authData.token);
+    sessionStorage.setItem(this.userKey, JSON.stringify(user));
 
     this.currentUserSubject.next(user);
     this.isLoggedInSubject.next(true);
   }
 
   private loadStoredUser(): void {
-    const storedUser = localStorage.getItem(this.userKey);
+    const storedUser = sessionStorage.getItem(this.userKey);
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser);
@@ -268,7 +268,7 @@ export class AuthService {
   }
 
   private hasToken(): boolean {
-    return !!localStorage.getItem(this.tokenKey);
+    return !!sessionStorage.getItem(this.tokenKey);
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
@@ -279,30 +279,30 @@ export class AuthService {
 
     switch (error.status) {
       case 0:
-        errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+        errorMessage = error.error?.message|| 'Unable to connect to the server. Please check your internet connection.';
         errorTitle = 'Connection Error';
         break;
       case 400:
         errorMessage = error.error?.message || 'Invalid request. Please check your input.';
         break;
       case 401:
-        errorMessage = 'Invalid email or password. Please try again.';
+        errorMessage = error.error?.message||'Invalid email or password. Please try again.';
         errorTitle = 'Login Failed';
         break;
       case 403:
-        errorMessage = 'You do not have permission to perform this action.';
+        errorMessage = error.error?.message || 'You do not have permission to perform this action.';
         errorTitle = 'Access Denied';
         break;
       case 404:
-        errorMessage = 'The requested resource was not found.';
+        errorMessage = error.error?.message || 'The requested resource was not found.';
         errorTitle = 'Not Found';
         break;
       case 409:
-        errorMessage = 'User with this email already exists.';
+        errorMessage = error.error?.message || 'User with this email already exists.';
         errorTitle = 'Registration Failed';
         break;
       case 500:
-        errorMessage = 'Server error. Please try again later.';
+        errorMessage = error.error?.message || 'Server error. Please try again later.';
         errorTitle = 'Server Error';
         break;
       default:

@@ -85,7 +85,7 @@
               </label>
               <input
                 type="number"
-                formControlName="adults"
+                formControlName="numberOfAdults"
                 min="1"
                 max="10"
                 class="form-control"
@@ -99,7 +99,7 @@
               </label>
               <input
                 type="number"
-                formControlName="children"
+                formControlName="numberOfChildren"
                 min="0"
                 max="5"
                 class="form-control"
@@ -139,6 +139,16 @@
             <p>Searching for available rooms...</p>
           </div>
         }
+ <!-- Search Bar -->
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="currentPage = 1"
+            placeholder="Search by room type or room number..."
+            class="search-input">
+        </div>
 
         @if (!isSearching && availableRooms.length === 0) {
           <div class="empty-state">
@@ -153,7 +163,7 @@
         }
 
         <div class="rooms-grid">
-          @for (room of availableRooms; track room.roomId) {
+           @for (room of availableRooms | filterRooms: searchTerm | paginate: { itemsPerPage: itemsPerPage, currentPage: currentPage }; track room.roomId) {
             <div class="room-card" (click)="selectRoom(room)">
               <div class="room-header">
                 <div>
@@ -172,7 +182,7 @@
                 </div>
                 <div class="amenities">
                   @for (amenity of room.amenities.slice(0, 3); track amenity) {
-                    <span class="amenity-tag">{{ amenity }}</span>
+                    <span class="amenity-tag">{{ amenity.amenityName }}</span>
                   }
                   @if (room.amenities.length > 3) {
                     <span class="amenity-tag">+{{ room.amenities.length - 3 }} more</span>
@@ -184,6 +194,17 @@
           }
         </div>
       </div>
+       <div class="pagination-controls">
+            <pagination-controls
+              (pageChange)="onPageChange($event)"
+        [autoHide]="true"
+        [responsive]="true"
+        previousLabel="Previous"
+        nextLabel="Next"
+        [maxSize]="5"
+              [autoHide]="true">
+            </pagination-controls>
+          </div>
     </div>
   }
 
@@ -226,16 +247,32 @@
             <div class="form-group">
               <label>
                 <i class="fas fa-user"></i>
-                Full Name *
+                First Name *
               </label>
               <input
                 type="text"
-                formControlName="guestName"
-                placeholder="Enter guest full name"
+                formControlName="guestFirstName"
+                placeholder="Enter guest first name"
                 class="form-control"
               >
-              @if (bookingForm.get('guestName')?.invalid && bookingForm.get('guestName')?.touched) {
-                <div class="error">Full name is required</div>
+              @if (bookingForm.get('guestFirstName')?.invalid && bookingForm.get('guestFirstName')?.touched) {
+                <div class="error">First name is required</div>
+              }
+            </div>
+
+             <div class="form-group">
+              <label>
+                <i class="fas fa-user"></i>
+                Last Name *
+              </label>
+              <input
+                type="text"
+                formControlName="guestLastName"
+                placeholder="Enter guest last name"
+                class="form-control"
+              >
+              @if (bookingForm.get('guestLastName')?.invalid && bookingForm.get('guestLastName')?.touched) {
+                <div class="error">Last name is required</div>
               }
             </div>
 

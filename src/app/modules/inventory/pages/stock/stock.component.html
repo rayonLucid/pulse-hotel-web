@@ -1,0 +1,343 @@
+<!-- src/app/modules/inventory/pages/stock/stock.component.html -->
+<div class="stock-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Stock Management</h1>
+      <p class="page-subtitle">Monitor stock levels and manage inventory transactions</p>
+    </div>
+    <button class="btn-primary" routerLink="/inventory/items">
+      <i class="fas fa-boxes"></i>
+      Manage Items
+    </button>
+  </div>
+
+  <!-- Stock Alerts Banner -->
+  @if (stockAlerts.length > 0) {
+    <div class="alerts-banner">
+      <div class="alerts-header">
+        <i class="fas fa-bell"></i>
+        <span>Stock Alerts</span>
+        <span class="alert-count">{{ stockAlerts.length }}</span>
+      </div>
+      <div class="alerts-list">
+        @for (alert of stockAlerts; track alert.itemId) {
+          <div class="alert-item">
+            <div class="alert-info">
+              <strong>{{ alert.itemName }}</strong> ({{ alert.itemCode }})
+              <span>Current stock: {{ alert.currentStock }} | Reorder level: {{ alert.reorderLevel }}</span>
+            </div>
+            <button class="btn-resolve" (click)="resolveAlert(alert.alertId)">
+              <i class="fas fa-check"></i>
+              Resolve
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input
+        type="text"
+        placeholder="Search by name or code..."
+        [(ngModel)]="filters.searchTerm"
+        (input)="applyFilters()"
+      >
+    </div>
+
+    <div class="filter-group">
+      <select [(ngModel)]="filters.categoryId" (change)="applyFilters()">
+        <option [value]="null">All Categories</option>
+        @for (category of categories; track category.categoryId) {
+          <option [value]="category.categoryId">{{ category.categoryName }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <select [(ngModel)]="filters.stockStatus" (change)="applyFilters()">
+        @for (option of stockStatusOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    @if (hasActiveFilters()) {
+      <button class="clear-filters" (click)="clearFilters()">
+        <i class="fas fa-times"></i>
+        Clear
+      </button>
+    }
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading stock items...</p>
+    </div>
+  }
+
+  <!-- Stock Grid with ngx-pagination -->
+  @if (!isLoading && filteredItems.length > 0) {
+    <div class="stock-grid">
+      <div
+        *ngFor="let item of filteredItems | paginate: { itemsPerPage: pageSize, currentPage: currentPage, totalItems: totalItems }; trackBy: trackByItemId"
+        class="stock-card"
+      >
+        <div class="card-header">
+          <div class="item-info">
+            <h3 class="item-name">{{ item.itemName }}</h3>
+            <p class="item-code">{{ item.itemCode }}</p>
+          </div>
+          <div class="stock-status" [class]="getStockStatusClass(item.stockStatus)">
+            <i [class]="getStockStatusIcon(item.stockStatus)"></i>
+            {{ item.stockStatus }}
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="stock-level">
+            <div class="stock-current">
+              <span class="label">Current Stock:</span>
+              <span class="value" [class.low]="item.currentStock <= item.reorderLevel">
+                {{ item.currentStock }} {{ item.unitOfMeasure }}
+              </span>
+            </div>
+            <div class="progress-container">
+              <div class="progress-bar"
+                   [style.width.%]="getStockPercentage(item.currentStock, item.maximumStock || item.currentStock * 2)">
+              </div>
+            </div>
+            @if (item.maximumStock) {
+              <div class="stock-limits">
+                <span>Min: {{ item.minimumStock }}</span>
+                <span>Max: {{ item.maximumStock }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="stock-details">
+            <div class="detail-item">
+              <span class="label">Unit Cost:</span>
+              <span class="value">{{ formatPrice(item.unitCost) }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Total Value:</span>
+              <span class="value">{{ formatPrice(item.totalValue) }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Reorder Level:</span>
+              <span class="value">{{ item.reorderLevel }} {{ item.unitOfMeasure }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Location:</span>
+              <span class="value">{{ item.storageLocation || 'Not set' }}</span>
+            </div>
+          </div>
+
+          @if (item.currentStock <= item.reorderLevel) {
+            <div class="reorder-alert">
+              <i class="fas fa-bell"></i>
+              Reorder suggested: {{ item.reorderQuantity }} {{ item.unitOfMeasure }}
+            </div>
+          }
+        </div>
+
+        <div class="card-footer">
+          <button class="btn-adjust" (click)="openAdjustModal(item)">
+            <i class="fas fa-sliders-h"></i>
+            Adjust Stock
+          </button>
+          <button class="btn-history" (click)="openTransactionsModal(item)">
+            <i class="fas fa-history"></i>
+            View History
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading && filteredItems.length === 0) {
+    <div class="empty-state">
+      <i class="fas fa-boxes"></i>
+      <h3>No stock items found</h3>
+      <p>Try adjusting your filters or add new inventory items</p>
+      <button class="btn-primary" routerLink="/inventory/items/new">
+        <i class="fas fa-plus"></i>
+        Add Item
+      </button>
+    </div>
+  }
+
+  <!-- ngx-pagination Controls -->
+  @if (totalItems > pageSize) {
+    <div class="pagination-wrapper">
+      <pagination-controls
+        (pageChange)="onPageChange($event)"
+        [autoHide]="true"
+        [responsive]="true"
+        previousLabel="Previous"
+        nextLabel="Next"
+        [maxSize]="5"
+      ></pagination-controls>
+
+      <div class="pagination-info">
+        Showing {{ ((currentPage - 1) * pageSize) + 1 }} to
+        {{ Math.min(currentPage * pageSize, totalItems) }} of
+        {{ totalItems }} items
+      </div>
+    </div>
+  }
+
+  <!-- Stock Adjustment Modal -->
+  @if (showAdjustModal && selectedItem) {
+    <div class="modal-overlay" (click)="closeAdjustModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Adjust Stock - {{ selectedItem.itemName }}</h3>
+          <button class="modal-close" (click)="closeAdjustModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="current-stock-info">
+            <div class="info-row">
+              <span>Current Stock:</span>
+              <strong>{{ selectedItem.currentStock }} {{ selectedItem.unitOfMeasure }}</strong>
+            </div>
+            <div class="info-row">
+              <span>Reorder Level:</span>
+              <strong>{{ selectedItem.reorderLevel }} {{ selectedItem.unitOfMeasure }}</strong>
+            </div>
+          </div>
+
+          <form [formGroup]="adjustForm" class="adjust-form">
+            <div class="form-group">
+              <label>Transaction Type *</label>
+              <div class="transaction-types">
+                @for (type of transactionTypes; track type.value) {
+                  <label class="transaction-option">
+                    <input type="radio" formControlName="transactionType" [value]="type.value">
+                    <div class="transaction-card" [style.border-color]="type.color">
+                      <i [class]="type.icon" [style.color]="type.color"></i>
+                      <span>{{ type.label }}</span>
+                    </div>
+                  </label>
+                }
+              </div>
+              @if (adjustForm.get('transactionType')?.invalid && adjustForm.get('transactionType')?.touched) {
+                <div class="error-message">Please select transaction type</div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>Quantity *</label>
+              <input type="number" formControlName="quantity" class="form-control" placeholder="Enter quantity">
+              @if (adjustForm.get('quantity')?.invalid && adjustForm.get('quantity')?.touched) {
+                <div class="error-message">Valid quantity is required</div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>Reference (Optional)</label>
+              <input type="text" formControlName="reference" class="form-control" placeholder="PO #, Invoice #, etc.">
+            </div>
+
+            <div class="form-group">
+              <label>Notes (Optional)</label>
+              <textarea formControlName="notes" rows="3" class="form-control" placeholder="Additional notes..."></textarea>
+            </div>
+          </form>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeAdjustModal()">Cancel</button>
+          <button class="btn-primary" (click)="adjustStock()" [disabled]="isSaving || adjustForm.invalid">
+            @if (isSaving) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Processing...
+            } @else {
+              <i class="fas fa-save"></i>
+              Adjust Stock
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Transaction History Modal -->
+  @if (showTransactionsModal && selectedItem) {
+    <div class="modal-overlay" (click)="closeTransactionsModal()">
+      <div class="modal-container modal-large" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Transaction History - {{ selectedItem.itemName }}</h3>
+          <button class="modal-close" (click)="closeTransactionsModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Date Range Filter -->
+          <div class="date-range">
+            <div class="date-group">
+              <label>From:</label>
+              <input type="date" [(ngModel)]="transactionStartDate" (change)="updateTransactionDateRange()">
+            </div>
+            <div class="date-group">
+              <label>To:</label>
+              <input type="date" [(ngModel)]="transactionEndDate" (change)="updateTransactionDateRange()">
+            </div>
+          </div>
+
+          <!-- Transactions List -->
+          @if (transactions.length === 0) {
+            <div class="no-transactions">
+              <i class="fas fa-exchange-alt"></i>
+              <p>No transactions found for this period</p>
+            </div>
+          }
+
+          <div class="transactions-list">
+            @for (transaction of transactions; track transaction.transactionId) {
+              <div class="transaction-item">
+                <div class="transaction-icon" [style.background]="getTransactionColor(transaction.transactionType)">
+                  <i [class]="getTransactionIcon(transaction.transactionType)"></i>
+                </div>
+                <div class="transaction-details">
+                  <div class="transaction-header">
+                    <span class="transaction-type">{{ getTransactionLabel(transaction.transactionType) }}</span>
+                    <span class="transaction-date">{{ formatDate(transaction.createdAt) }}</span>
+                  </div>
+                  <div class="transaction-info">
+                    <span>Quantity: {{ transaction.quantity }}</span>
+                    <span>Unit Cost: {{ formatPrice(transaction.unitCost) }}</span>
+                    <span>Total: {{ formatPrice(transaction.totalCost) }}</span>
+                  </div>
+                  @if (transaction.reference) {
+                    <div class="transaction-ref">Ref: {{ transaction.reference }}</div>
+                  }
+                  @if (transaction.notes) {
+                    <div class="transaction-notes">{{ transaction.notes }}</div>
+                  }
+                  <div class="transaction-by">By: {{ transaction.createdBy }}</div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeTransactionsModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

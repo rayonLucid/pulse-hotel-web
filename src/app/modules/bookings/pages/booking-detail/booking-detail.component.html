@@ -21,7 +21,13 @@
           <i class="fas fa-print"></i>
           Print
         </button>
-        @if (canCheckIn()) {
+        @if( booking.bookingStatus=='Pending'){
+          <button class="btn-edit" (click)="VerifyPayment()">
+            <i class="fas fa-handshake"></i>
+            Verify Payment
+          </button>
+        }
+        <!-- @if (canCheckIn()) {
           <button class="btn-checkin" (click)="checkIn()" [disabled]="isProcessing">
             @if (isProcessing) {
               <i class="fas fa-spinner fa-spin"></i>
@@ -40,7 +46,7 @@
             }
             Check Out
           </button>
-        }
+        } -->
         @if (canCancel()) {
           <button class="btn-cancel" (click)="openCancelModal()" [disabled]="isProcessing">
             <i class="fas fa-times"></i>

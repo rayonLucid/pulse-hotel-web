@@ -12,6 +12,7 @@
   "packageManager": "npm@11.9.0",
   "dependencies": {
     "@angular/animations": "^21.2.12",
+    "@angular/cdk": "^21.2.11",
     "@angular/common": "^21.2.0",
     "@angular/compiler": "^21.2.0",
     "@angular/core": "^21.2.0",
@@ -20,6 +21,9 @@
     "@angular/router": "^21.2.0",
     "@auth0/angular-jwt": "^5.2.0",
     "@fortawesome/fontawesome-free": "^7.2.0",
+    "@paystack/inline-js": "^2.22.8",
+    "chart.js": "^4.5.1",
+    "ngx-pagination": "^6.0.3",
     "ngx-toastr": "^20.0.5",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
@@ -29,6 +33,7 @@
     "@angular/cli": "^21.2.0",
     "@angular/compiler-cli": "^21.2.0",
     "@types/jasmine": "^6.0.0",
+    "@types/paystack__inline-js": "^1.0.2",
     "prettier": "^3.8.1",
     "tailwindcss": "^4.0.0",
     "typescript": "~5.9.2"

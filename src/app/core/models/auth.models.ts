@@ -11,7 +11,10 @@ export interface RegisterRequest {
   password: string;
   confirmPassword: string;
 }
-
+export interface Breadcrumb {
+  label: string;
+  path: string;
+}
 export interface AuthResponse {
   success: boolean;
   data: {

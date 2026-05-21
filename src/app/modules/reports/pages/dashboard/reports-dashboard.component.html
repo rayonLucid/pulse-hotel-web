@@ -1,0 +1,144 @@
+<!-- src/app/modules/reports/pages/dashboard/reports-dashboard.component.html -->
+<div class="reports-dashboard">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Reports Dashboard</h1>
+      <p class="page-subtitle">Comprehensive analytics and insights for your hotel</p>
+    </div>
+    <div class="header-actions">
+      <div class="date-range-picker">
+        <div class="date-field">
+          <label>From</label>
+          <input type="date" [(ngModel)]="startDate">
+        </div>
+        <div class="date-field">
+          <label>To</label>
+          <input type="date" [(ngModel)]="endDate">
+        </div>
+        <button class="btn-generate" (click)="generateReport()">
+          <i class="fas fa-chart-line"></i>
+          Generate Report
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Cards Grid -->
+  <div class="report-cards">
+    @for (card of reportCards; track card.title) {
+      <div class="report-card" [class]="card.color">
+        <div class="card-icon">
+          <i [class]="card.icon"></i>
+        </div>
+        <div class="card-content">
+          <h3>{{ card.title }}</h3>
+          <p>{{ card.description }}</p>
+          <a [routerLink]="card.route" class="card-link">
+            View Report
+            <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Charts Section -->
+  <div class="charts-section">
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Revenue Trend</h3>
+        <select class="chart-period">
+          <option value="week">This Week</option>
+          <option value="month" selected>This Month</option>
+          <option value="quarter">This Quarter</option>
+          <option value="year">This Year</option>
+        </select>
+      </div>
+      <div class="chart-container">
+        <canvas id="revenueTrendChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Occupancy Trend</h3>
+        <select class="chart-period">
+          <option value="week">This Week</option>
+          <option value="month" selected>This Month</option>
+          <option value="quarter">This Quarter</option>
+          <option value="year">This Year</option>
+        </select>
+      </div>
+      <div class="chart-container">
+        <canvas id="occupancyTrendChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Reports -->
+  <div class="recent-reports">
+    <div class="section-header">
+      <h3>Recently Generated Reports</h3>
+      <button class="btn-link">View All</button>
+    </div>
+    <div class="reports-list">
+      <table class="reports-table">
+        <thead>
+          <tr>
+            <th>Report Name</th>
+            <th>Date Generated</th>
+            <th>Type</th>
+            <th>Size</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (report of recentReports; track report.name) {
+            <tr>
+              <td>{{ report.name }}</td>
+              <td>{{ report.date }}</td>
+              <td><span class="badge">{{ report.type }}</span></td>
+              <td>{{ report.size }}</td>
+              <td class="actions">
+                <button class="icon-btn" title="Download">
+                  <i class="fas fa-download"></i>
+                </button>
+                <button class="icon-btn" title="View">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button class="icon-btn" title="Share">
+                  <i class="fas fa-share-alt"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="quick-stats">
+    <div class="stat-card">
+      <div class="stat-value">85%</div>
+      <div class="stat-label">Average Occupancy</div>
+      <div class="stat-trend positive">+12% vs last month</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">₦18.5M</div>
+      <div class="stat-label">Monthly Revenue</div>
+      <div class="stat-trend positive">+8.5% vs last month</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">4.6</div>
+      <div class="stat-label">Guest Rating</div>
+      <div class="stat-trend positive">+0.3 vs last month</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">45%</div>
+      <div class="stat-label">Return Guest Rate</div>
+      <div class="stat-trend positive">+5% vs last month</div>
+    </div>
+  </div>
+</div>

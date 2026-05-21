@@ -1,0 +1,404 @@
+<!-- src/app/modules/reports/pages/financial/financial-reports.component.html -->
+<div class="financial-reports">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Financial Reports</h1>
+      <p class="page-subtitle">Track revenue, expenses, and profitability metrics</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-export" (click)="exportData()">
+        <i class="fas fa-file-excel"></i>
+        Export Report
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label>Date Range</label>
+      <div class="date-range">
+        <input type="date" [(ngModel)]="startDate" (change)="onDateRangeChange()">
+        <span>to</span>
+        <input type="date" [(ngModel)]="endDate" (change)="onDateRangeChange()">
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label>Report Period</label>
+      <div class="report-toggle">
+        <button class="toggle-btn" [class.active]="reportPeriod === 'monthly'" (click)="reportPeriod = 'monthly'; onReportPeriodChange()">
+          Monthly
+        </button>
+        <button class="toggle-btn" [class.active]="reportPeriod === 'quarterly'" (click)="reportPeriod = 'quarterly'; onReportPeriodChange()">
+          Quarterly
+        </button>
+        <button class="toggle-btn" [class.active]="reportPeriod === 'yearly'" (click)="reportPeriod = 'yearly'; onReportPeriodChange()">
+          Yearly
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label>Fiscal Year</label>
+      <select [(ngModel)]="fiscalYear" (change)="onReportPeriodChange()">
+        @for (year of fiscalYears; track year) {
+          <option [value]="year">{{ year }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading financial data...</p>
+    </div>
+  }
+
+  <!-- Main Content -->
+  @if (!isLoading) {
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon bg-green-100">
+          <i class="fas fa-chart-line text-green-600"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Total Revenue</span>
+          <span class="kpi-value">{{ formatCurrency(kpis.totalRevenue) }}</span>
+          <span class="kpi-trend positive">↑ {{ kpis.revenueGrowth }}% vs last period</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon bg-red-100">
+          <i class="fas fa-chart-line text-red-600"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Total Expenses</span>
+          <span class="kpi-value">{{ formatCurrency(kpis.totalExpenses) }}</span>
+          <span class="kpi-trend positive">↑ {{ kpis.expenseGrowth }}% vs last period</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon bg-blue-100">
+          <i class="fas fa-chart-line text-blue-600"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Gross Profit</span>
+          <span class="kpi-value">{{ formatCurrency(kpis.grossProfit) }}</span>
+          <span class="kpi-trend positive">↑ 15.2% vs last period</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon bg-purple-100">
+          <i class="fas fa-chart-line text-purple-600"></i>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Net Profit</span>
+          <span class="kpi-value">{{ formatCurrency(kpis.netProfit) }}</span>
+          <span class="kpi-trend positive">↑ 18.5% vs last period</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profitability Metrics -->
+    <div class="profitability-grid">
+      <div class="metric-card">
+        <div class="metric-value">{{ formatPercentage(kpis.profitMargin) }}</div>
+        <div class="metric-label">Profit Margin</div>
+        <div class="metric-trend positive">↑ 2.5% vs last period</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">{{ formatCurrency(kpis.ebitda) }}</div>
+        <div class="metric-label">EBITDA</div>
+        <div class="metric-trend positive">↑ 12.3% vs last period</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">45%</div>
+        <div class="metric-label">Gross Margin</div>
+        <div class="metric-trend positive">↑ 1.8% vs last period</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">32%</div>
+        <div class="metric-label">Operating Margin</div>
+        <div class="metric-trend positive">↑ 2.1% vs last period</div>
+      </div>
+    </div>
+
+    <!-- Revenue & Profit Chart -->
+    <div class="chart-card large">
+      <div class="card-header">
+        <h3>Revenue & Profit Trend</h3>
+        <div class="chart-controls">
+          <div class="chart-type-toggle">
+            <button class="type-btn" [class.active]="selectedChartType === 'line'" (click)="selectedChartType = 'line'; onChartTypeChange()">
+              <i class="fas fa-chart-line"></i>
+            </button>
+            <button class="type-btn" [class.active]="selectedChartType === 'bar'" (click)="selectedChartType = 'bar'; onChartTypeChange()">
+              <i class="fas fa-chart-bar"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="revenueChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Revenue & Expense Breakdown -->
+    <div class="breakdown-section">
+      <!-- Revenue by Source -->
+      <div class="chart-card">
+        <div class="card-header">
+          <h3>Revenue by Source</h3>
+        </div>
+        <div class="chart-container small">
+          <canvas id="expenseChart"></canvas>
+        </div>
+        <div class="source-list">
+          @for (source of revenueBreakdown; track source.source) {
+            <div class="source-item">
+              <div class="source-color" [style.background]="source.color"></div>
+              <div class="source-name">{{ source.source }}</div>
+              <div class="source-value">{{ formatCurrency(source.amount) }}</div>
+              <div class="source-percentage">{{ source.percentage }}%</div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Expense Breakdown -->
+      <div class="chart-card">
+        <div class="card-header">
+          <h3>Expense Breakdown</h3>
+        </div>
+        <div class="expense-list">
+          @for (expense of expenseBreakdown; track expense.category) {
+            <div class="expense-item">
+              <div class="expense-header">
+                <div class="expense-category">
+                  <div class="expense-color" [style.background]="expense.color"></div>
+                  <span>{{ expense.category }}</span>
+                </div>
+                <div class="expense-amount">{{ formatCurrency(expense.amount) }}</div>
+                <div class="expense-percentage">{{ expense.percentage }}%</div>
+              </div>
+              <div class="expense-bar">
+                <div class="bar-fill" [style.width.%]="expense.percentage" [style.background]="expense.color"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Profit & Loss Statement -->
+    <div class="pl-statement">
+      <div class="section-header">
+        <h3>Profit & Loss Statement</h3>
+        <button class="btn-expand" (click)="exportData()">
+          <i class="fas fa-download"></i>
+          Export Statement
+        </button>
+      </div>
+      <div class="table-container">
+        <table class="pl-table">
+          <thead>
+            <tr>
+              <th>Account</th>
+              <th>Current Period</th>
+              <th>Previous Period</th>
+              <th>Change</th>
+              <th>% Change</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="section-header-row">
+              <td colspan="5"><strong>REVENUE</strong></td>
+            </tr>
+            <tr>
+              <td class="indent">Room Revenue</td>
+              <td class="amount">{{ formatCurrency(12950000) }}</td>
+              <td class="amount">{{ formatCurrency(11800000) }}</td>
+              <td class="amount positive">{{ formatCurrency(1150000) }}</td>
+              <td class="percentage positive">↑ 9.7%</td>
+            </tr>
+            <tr>
+              <td class="indent">F&B Revenue</td>
+              <td class="amount">{{ formatCurrency(2775000) }}</td>
+              <td class="amount">{{ formatCurrency(2650000) }}</td>
+              <td class="amount positive">{{ formatCurrency(125000) }}</td>
+              <td class="percentage positive">↑ 4.7%</td>
+            </tr>
+            <tr>
+              <td class="indent">Spa Revenue</td>
+              <td class="amount">{{ formatCurrency(925000) }}</td>
+              <td class="amount">{{ formatCurrency(850000) }}</td>
+              <td class="amount positive">{{ formatCurrency(75000) }}</td>
+              <td class="percentage positive">↑ 8.8%</td>
+            </tr>
+            <tr>
+              <td class="indent">Other Revenue</td>
+              <td class="amount">{{ formatCurrency(1850000) }}</td>
+              <td class="amount">{{ formatCurrency(1650000) }}</td>
+              <td class="amount positive">{{ formatCurrency(200000) }}</td>
+              <td class="percentage positive">↑ 12.1%</td>
+            </tr>
+            <tr class="total-row">
+              <td><strong>Total Revenue</strong></td>
+              <td class="amount"><strong>{{ formatCurrency(kpis.totalRevenue) }}</strong></td>
+              <td class="amount"><strong>{{ formatCurrency(16950000) }}</strong></td>
+              <td class="amount positive"><strong>{{ formatCurrency(1550000) }}</strong></td>
+              <td class="percentage positive"><strong>↑ 9.1%</strong></td>
+            </tr>
+
+            <tr class="section-header-row">
+              <td colspan="5"><strong>EXPENSES</strong></td>
+            </tr>
+            <tr>
+              <td class="indent">Payroll</td>
+              <td class="amount">{{ formatCurrency(4578750) }}</td>
+              <td class="amount">{{ formatCurrency(4320000) }}</td>
+              <td class="amount positive">{{ formatCurrency(258750) }}</td>
+              <td class="percentage positive">↑ 6.0%</td>
+            </tr>
+            <tr>
+              <td class="indent">Marketing</td>
+              <td class="amount">{{ formatCurrency(1017500) }}</td>
+              <td class="amount">{{ formatCurrency(950000) }}</td>
+              <td class="amount positive">{{ formatCurrency(67500) }}</td>
+              <td class="percentage positive">↑ 7.1%</td>
+            </tr>
+            <tr>
+              <td class="indent">Utilities</td>
+              <td class="amount">{{ formatCurrency(814000) }}</td>
+              <td class="amount">{{ formatCurrency(790000) }}</td>
+              <td class="amount positive">{{ formatCurrency(24000) }}</td>
+              <td class="percentage positive">↑ 3.0%</td>
+            </tr>
+            <tr>
+              <td class="indent">Maintenance</td>
+              <td class="amount">{{ formatCurrency(712250) }}</td>
+              <td class="amount">{{ formatCurrency(680000) }}</td>
+              <td class="amount positive">{{ formatCurrency(32250) }}</td>
+              <td class="percentage positive">↑ 4.7%</td>
+            </tr>
+            <tr>
+              <td class="indent">Supplies</td>
+              <td class="amount">{{ formatCurrency(1526250) }}</td>
+              <td class="amount">{{ formatCurrency(1450000) }}</td>
+              <td class="amount positive">{{ formatCurrency(76250) }}</td>
+              <td class="percentage positive">↑ 5.3%</td>
+            </tr>
+            <tr>
+              <td class="indent">Other Expenses</td>
+              <td class="amount">{{ formatCurrency(1526250) }}</td>
+              <td class="amount">{{ formatCurrency(1480000) }}</td>
+              <td class="amount positive">{{ formatCurrency(46250) }}</td>
+              <td class="percentage positive">↑ 3.1%</td>
+            </tr>
+            <tr class="total-row">
+              <td><strong>Total Expenses</strong></td>
+              <td class="amount"><strong>{{ formatCurrency(kpis.totalExpenses) }}</strong></td>
+              <td class="amount"><strong>{{ formatCurrency(9670000) }}</strong></td>
+              <td class="amount positive"><strong>{{ formatCurrency(505000) }}</strong></td>
+              <td class="percentage positive"><strong>↑ 5.2%</strong></td>
+            </tr>
+
+            <tr class="section-header-row">
+              <td colspan="5"><strong>PROFITABILITY</strong></td>
+            </tr>
+            <tr>
+              <td>Gross Profit</td>
+              <td class="amount">{{ formatCurrency(kpis.grossProfit) }}</td>
+              <td class="amount">{{ formatCurrency(7280000) }}</td>
+              <td class="amount positive">{{ formatCurrency(1045000) }}</td>
+              <td class="percentage positive">↑ 14.4%</td>
+            </tr>
+            <tr>
+              <td>Operating Profit</td>
+              <td class="amount">{{ formatCurrency(7200000) }}</td>
+              <td class="amount">{{ formatCurrency(6500000) }}</td>
+              <td class="amount positive">{{ formatCurrency(700000) }}</td>
+              <td class="percentage positive">↑ 10.8%</td>
+            </tr>
+            <tr>
+              <td>Net Profit</td>
+              <td class="amount">{{ formatCurrency(kpis.netProfit) }}</td>
+              <td class="amount">{{ formatCurrency(4920000) }}</td>
+              <td class="amount positive">{{ formatCurrency(907500) }}</td>
+              <td class="percentage positive">↑ 18.4%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Financial Insights -->
+    <div class="insights-card">
+      <h3>
+        <i class="fas fa-lightbulb"></i>
+        Financial Insights
+      </h3>
+      <div class="insights-list">
+        <div class="insight">
+          <i class="fas fa-chart-line"></i>
+          <div>
+            <strong>Revenue Growth</strong>
+            <p>Revenue increased by 9.1% compared to previous period, driven by strong room revenue performance</p>
+          </div>
+        </div>
+        <div class="insight">
+          <i class="fas fa-chart-bar"></i>
+          <div>
+            <strong>Cost Control</strong>
+            <p>Expense growth (5.2%) is well below revenue growth (9.1%), improving overall profitability</p>
+          </div>
+        </div>
+        <div class="insight">
+          <i class="fas fa-trend-up"></i>
+          <div>
+            <strong>Profit Margin</strong>
+            <p>Net profit margin improved to {{ formatPercentage(kpis.profitMargin) }}, up 2.5% from previous period</p>
+          </div>
+        </div>
+        <div class="insight">
+          <i class="fas fa-chart-pie"></i>
+          <div>
+            <strong>Revenue Mix</strong>
+            <p>Room revenue accounts for {{ (revenueBreakdown[0]?.percentage || 70) }}% of total revenue, maintaining strong core business</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="recommendations-card">
+      <h3>
+        <i class="fas fa-clipboard-list"></i>
+        Recommendations
+      </h3>
+      <div class="recommendations-list">
+        <div class="recommendation">
+          <i class="fas fa-chart-line"></i>
+          <span>Increase marketing spend on high-margin revenue streams (Spa, F&B)</span>
+        </div>
+        <div class="recommendation">
+          <i class="fas fa-chart-bar"></i>
+          <span>Review utility costs - potential for energy efficiency savings of 5-10%</span>
+        </div>
+        <div class="recommendation">
+          <i class="fas fa-trend-up"></i>
+          <span>Implement dynamic pricing to maximize revenue during peak periods</span>
+        </div>
+        <div class="recommendation">
+          <i class="fas fa-chart-pie"></i>
+          <span>Explore new revenue streams (experiences, packages, partnerships)</span>
+        </div>
+      </div>
+    </div>
+  }
+</div>

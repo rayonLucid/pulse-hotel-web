@@ -1,12 +1,13 @@
 // src/app/layouts/header/header.component.ts
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild, inject, Input, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 import { of, Subscription } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SearchResult, SearchService } from '../../../core/services/search.service';
+import { Breadcrumb } from '../../../core/models/auth.models';
 
 @Component({
   selector: 'app-header',
@@ -17,6 +18,8 @@ import { SearchResult, SearchService } from '../../../core/services/search.servi
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   @ViewChild('searchInput') searchInput!: ElementRef;
+   @Input() isMobile: boolean = false;
+  @Output() menuToggle = new EventEmitter<void>();
 
   searchControl = new FormControl(''); // Use FormControl directly instead of FormGroup
   showUserMenu = false;
@@ -25,6 +28,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   searchResults: SearchResult[] = [];
   isSearching = false;
   recentSearches: string[] = [];
+
+ breadcrumbs: Breadcrumb[] = [];
+
 
   private searchSubscription?: Subscription;
 public authService: AuthService = inject(AuthService);
@@ -36,6 +42,7 @@ private searchService: SearchService = inject(SearchService);
   ) {}
 
   ngOnInit(): void {
+      this.setupBreadcrumbs();
     // Load recent searches from localStorage
     this.loadRecentSearches();
 
@@ -74,6 +81,51 @@ private searchService: SearchService = inject(SearchService);
     document.removeEventListener('keydown', this.handleKeyboardShortcut.bind(this));
   }
 
+   private setupBreadcrumbs(): void {
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        this.breadcrumbs = this.buildBreadcrumbs(this.router.url);
+        // console.log('Updated breadcrumbs:', this.breadcrumbs); // Debug log to verify breadcrumb updates
+      }
+    });
+  }
+
+  private buildBreadcrumbs(url: string): Breadcrumb[] {
+    const segments = url.split('/').filter(s => s);
+    const breadcrumbs: Breadcrumb[] = [];
+
+    let currentPath = '';
+    for (const segment of segments) {
+      currentPath += `/${segment}`;
+      breadcrumbs.push({
+        label: this.formatBreadcrumbLabel(segment),
+        path: currentPath
+      });
+    }
+//console.log('Built breadcrumbs:', breadcrumbs); // Debug log to verify breadcrumb construction
+    return breadcrumbs;
+  }
+
+  private formatBreadcrumbLabel(segment: string): string {
+    const labels: { [key: string]: string } = {
+      'dashboard': 'Dashboard',
+      'bookings': 'Bookings',
+      'rooms': 'Rooms',
+      'staff': 'Staff',
+      'housekeeping': 'Housekeeping',
+      'inventory': 'Inventory',
+      'reports': 'Reports',
+      'settings': 'Settings',
+      'profile': 'Profile',
+      'new': 'New',
+      'detail': 'Details',
+      'edit': 'Edit'
+    };
+
+    return labels[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
+  }
+
+
   // ==================== SEARCH METHODS ====================
 
   onSearchFocus(): void {
@@ -84,6 +136,12 @@ private searchService: SearchService = inject(SearchService);
       this.showSearchResults = true;
     }
   }
+
+toggleSidebar(): void {
+    this.menuToggle.emit();
+  }
+
+
 
   onSearchBlur(): void {
     // Delay to allow click on result

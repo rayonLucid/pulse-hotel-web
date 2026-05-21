@@ -71,6 +71,7 @@ changDef =inject(ChangeDetectorRef)
       error: (error) => {
         this.isLoading = false;
         this.toaStr.error(error.message || 'Invalid email or password', 'Login Failed');
+        console.error('Login error:', error);
         this.changDef.detectChanges()
       }
     });
