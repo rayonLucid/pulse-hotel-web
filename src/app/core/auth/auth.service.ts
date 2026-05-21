@@ -279,7 +279,7 @@ export class AuthService {
 
     switch (error.status) {
       case 0:
-        errorMessage = 'Unable to connect to the server. Please check your internet connection.';
+        errorMessage = error.error?.message|| 'Unable to connect to the server. Please check your internet connection.';
         errorTitle = 'Connection Error';
         break;
       case 400:
@@ -290,19 +290,19 @@ export class AuthService {
         errorTitle = 'Login Failed';
         break;
       case 403:
-        errorMessage = 'You do not have permission to perform this action.';
+        errorMessage = error.error?.message || 'You do not have permission to perform this action.';
         errorTitle = 'Access Denied';
         break;
       case 404:
-        errorMessage = 'The requested resource was not found.';
+        errorMessage = error.error?.message || 'The requested resource was not found.';
         errorTitle = 'Not Found';
         break;
       case 409:
-        errorMessage = 'User with this email already exists.';
+        errorMessage = error.error?.message || 'User with this email already exists.';
         errorTitle = 'Registration Failed';
         break;
       case 500:
-        errorMessage = 'Server error. Please try again later.';
+        errorMessage = error.error?.message || 'Server error. Please try again later.';
         errorTitle = 'Server Error';
         break;
       default:

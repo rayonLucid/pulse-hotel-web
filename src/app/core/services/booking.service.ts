@@ -4,14 +4,20 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Booking, BookingFilter, BookingPagination, BookingStats, CreateBookingRequest } from '../models/booking.model';
+import { AppConfigService } from './app.config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BookingService {
-  private apiUrl = `${environment.apiUrl}/bookings`;
+//  private apiUrl = `${environment.apiUrl}/bookings`;
 
-  constructor(private http: HttpClient) {}
+ private rootUrl = "";
+ public apiUrl = '';
+   constructor(private http: HttpClient,private readonly config:AppConfigService) {
+ this.apiUrl = `${this.config.apiUrl}/bookings`;
+ this.rootUrl = this.config.rootUrl;
+   }
 
   // Get all bookings with filters
   getBookings(filter: BookingFilter): Observable<{ data: Booking[]; pagination: BookingPagination }> {

@@ -12,14 +12,20 @@ import {
   DashboardStats,
   ItemFilter
 } from '../models/inventory.model';
+import { AppConfigService } from './app.config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class InventoryService {
-  private apiUrl = `${environment.apiUrl}/inventory`;
+ // private apiUrl = `${environment.apiUrl}/inventory`;
 
-  constructor(private http: HttpClient) {}
+ private rootUrl = "";
+ public apiUrl = '';
+   constructor(private http: HttpClient,private readonly config:AppConfigService) {
+ this.apiUrl = `${this.config.apiUrl}/inventory`;
+ this.rootUrl = this.config.rootUrl;
+   }
 
   // ==================== ITEM MANAGEMENT ====================
 

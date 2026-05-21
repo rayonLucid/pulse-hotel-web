@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Amenity } from '../models/room.model';
+import { AppConfigService } from './app.config.service';
 
 
 @Injectable({
@@ -10,13 +11,15 @@ import { Amenity } from '../models/room.model';
 })
 export class AmenityService {
   // e.g., environment.apiUrl = 'https://localhost:7001/api'
-  private apiUrl = `${environment.apiUrl}/amenities`;
+
 
   private httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' })
   };
-
-  constructor(private http: HttpClient) {}
+public apiUrl = '';
+  constructor(private http: HttpClient,private readonly config: AppConfigService) {
+this.apiUrl = `${this.config.apiUrl}/amenities`;
+  }
 
   // 1. GET ALL
   getAmenities(): Observable<Amenity[]> {

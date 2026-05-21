@@ -5,6 +5,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { MenuCategory, MenuItem, MenuRolePermission, UserMenu } from '../models/menu.model';
+import { AppConfigService } from './app.config.service';
 
 
 
@@ -12,7 +13,7 @@ import { MenuCategory, MenuItem, MenuRolePermission, UserMenu } from '../models/
   providedIn: 'root'
 })
 export class MenuService {
-  private apiUrl = environment.apiUrl;
+//  private apiUrl = environment.apiUrl;
   public menusSubject = new BehaviorSubject<MenuItem[]>([]);
   public menus$ = this.menusSubject.asObservable();
 
@@ -27,7 +28,12 @@ export class MenuService {
   menuItems$ = this.menuItemsSubject.asObservable();
   permissions$ = this.permissionsSubject.asObservable()
 
-  constructor(private http: HttpClient) {}
+  private rootUrl = "";
+  public apiUrl = '';
+    constructor(private http: HttpClient,private readonly config:AppConfigService) {
+  this.apiUrl = `${this.config.apiUrl}`;
+  this.rootUrl = this.config.rootUrl;
+    }
 
   /**
    * Load user menus from API
