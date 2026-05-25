@@ -40,7 +40,9 @@ export class InventoryService {
 
     return this.http.get<{ data: InventoryItem[]; pagination: any }>(`${this.apiUrl}/items`, { params });
   }
-
+getAllItems(): Observable<{ success: boolean; data: InventoryItem[] }> {
+    return this.http.get<{ success: boolean; data: InventoryItem[] }>(`${this.apiUrl}/items/all`);
+  }
   getItemById(id: number): Observable<{ success: boolean; data: InventoryItem }> {
     return this.http.get<{ success: boolean; data: InventoryItem }>(`${this.apiUrl}/items/${id}`);
   }

@@ -1,10 +1,11 @@
 // src/app/core/services/staff.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { catchError, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Staff, StaffFilter, StaffStats, Shift, ShiftAssignment, AttendanceLog, LeaveRequest, LeaveBalance } from '../models/staff.model';
 import { PerformanceReview, CreatePerformanceReview, PerformanceDashboard, PerformanceMetric } from '../models/performance.model';
+import { SearchResult } from './search.service';
 
 @Injectable({
   providedIn: 'root'
@@ -27,7 +28,7 @@ export class StaffService {
 
     return this.http.get<{ data: Staff[]; pagination: any }>(this.apiUrl, { params });
   }
-
+ 
   getStaffById(id: number): Observable<{ success: boolean; data: Staff }> {
     return this.http.get<{ success: boolean; data: Staff }>(`${this.apiUrl}/${id}`);
   }

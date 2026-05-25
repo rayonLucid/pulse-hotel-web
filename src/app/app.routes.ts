@@ -54,6 +54,8 @@ export const routes: Routes = [
         path: 'settings',
         loadChildren: () => import('./modules/settings/settings.routes').then(m => m.SETTINGS_ROUTES)
       }
+      // app.routes.ts
+
     ]
   },
 

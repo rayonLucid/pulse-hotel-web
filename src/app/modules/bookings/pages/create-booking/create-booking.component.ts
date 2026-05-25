@@ -289,13 +289,13 @@ this.cdr.detectChanges();
     });
   }
 payWithPaystack(bookingData: any): void {
- // console.log('Initiating Paystack payment with data:', bookingData);
-    const paystack = new PaystackPop();
+ // console.log('Initiating PayStack payment with data:', bookingData);
+    const payStack = new PaystackPop();
 
-    paystack.newTransaction({
-      key:bookingData.paystackKey , // Replace with your Public Key
+    payStack.newTransaction({
+      key:bookingData.payStackKey , // Replace with your Public Key
       email: this.bookingForm.get('guestEmail')?.value,
-      amount: Math.round(this.totalAmount * 100), // Paystack operates strictly in minor unit variants (kobo for NGN)
+      amount: Math.round(this.totalAmount * 100), // PayStack operates strictly in minor unit variants (kobo for NGN)
       currency: 'NGN',
       reference: bookingData.bookingReference || 'BK-' + bookingData.bookingId + '-' + Date.now(),
       metadata: {

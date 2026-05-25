@@ -5,6 +5,7 @@ import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { MenuItem } from '../../../core/models/menu.model';
 import { MenuService } from '../../../core/services/Menu.service';
+import { ToastrService } from 'ngx-toastr';
 
 
 
@@ -26,6 +27,7 @@ export class SidebarComponent implements OnInit {
   private menuService = inject(MenuService)
      authService = inject(AuthService)
    private  changeDet = inject(ChangeDetectorRef)
+   toastService = inject(ToastrService)
   constructor(
     public router: Router
 
@@ -52,9 +54,12 @@ export class SidebarComponent implements OnInit {
        // console.log('Menus set in component:', this.menus);
         this.pinnedMenus = userMenu.data.pinnedMenus;
          this.changeDet.detectChanges();
+        // this.toastService.success('Menus loaded successfully', 'Success');
+       // console.log('Pinned menus set in component:', this.pinnedMenus);
       },
       error: (error:any) => {
         console.error('Error loading menus:', error);
+        this.toastService.error('Failed to load menus. Please try again.', 'Menu Loading Error');
         this.loadMenus()
       }
     });

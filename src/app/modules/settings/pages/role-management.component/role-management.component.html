@@ -1,0 +1,79 @@
+<div class="role-management-container">
+  <div class="page-header">
+    <h2>Role Management</h2>
+    <button class="btn-primary" (click)="openCreateModal()">+ Create Role</button>
+  </div>
+
+  <div class="roles-table-wrapper">
+    <table class="roles-table">
+      <thead>
+        <tr><th>ID</th><th>Role Name</th><th>Description</th><th>Status</th><th>Created At</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <!-- apply paginate pipe -->
+        <tr *ngFor="let role of roles | paginate: { itemsPerPage: itemsPerPage, currentPage: currentPage }">
+          <td>{{ role.roleId }}</td>
+          <td>{{ role.roleName }}</td>
+          <td>{{ role.description || '—' }}</td>
+          <td><span class="badge" [class.badge-active]="role.isActive" [class.badge-inactive]="!role.isActive">{{ role.isActive ? 'Active' : 'Inactive' }}</span></td>
+          <td>{{ role.createdAt | date:'mediumDate' }}</td>
+          <td class="actions">
+            <button class="btn-icon" (click)="openEditModal(role)"><i class="fas fa-edit"></i></button>
+            <!-- <button class="btn-icon delete" (click)="deleteRole(role.roleId)"><i class="fas fa-trash-alt"></i></button> -->
+          </td>
+        </tr>
+        <tr *ngIf="roles.length === 0">
+          <td colspan="6" class="empty-row">No roles found. Click "Create Role" to add one.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination controls -->
+    <div class="pagination-container" *ngIf="roles.length > itemsPerPage">
+      <pagination-controls
+        (pageChange)="onPageChange($event)"
+        previousLabel="Previous"
+        nextLabel="Next"
+        [maxSize]="5"
+
+        [autoHide]="true"
+      ></pagination-controls>
+    </div>
+  </div>
+</div>
+
+<!-- Modal (unchanged) -->
+<div class="modal-overlay" *ngIf="displayModal"
+ (click)="selectedRole = null">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ isEditing ? 'Edit Role' : 'Create Role' }}</h3>
+      <button class="close-btn" (click)=" this.displayModal =false; selectedRole = null">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="roleForm">
+        <div class="form-group">
+          <label>Role Name *</label>
+          <input type="text" formControlName="roleName" class="form-control" placeholder="e.g., Front Desk">
+          <div class="error-message" *ngIf="roleForm.get('roleName')?.invalid && roleForm.get('roleName')?.touched">
+            Role name is required (min 2 characters).
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea formControlName="description" class="form-control" rows="2" placeholder="Optional description"></textarea>
+        </div>
+        <div class="form-group checkbox">
+          <label>
+            <input type="checkbox" formControlName="isActive">
+            Active
+          </label>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="this.displayModal =false; selectedRole = null">Cancel</button>
+      <button class="btn-primary" (click)="saveRole()" [disabled]="roleForm.invalid">Save</button>
+    </div>
+  </div>
+</div>

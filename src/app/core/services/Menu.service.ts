@@ -39,9 +39,10 @@ export class MenuService {
    * Load user menus from API
    */
 public  loadUserMenus(): Observable<UserMenu> {
+  console.log('Loading user menus from API:', `${this.apiUrl}`);
     return this.http.get<UserMenu>(`${this.apiUrl}/menu/user`).pipe(
       tap((userMenu:any) => {
-       // console.log(userMenu.data)
+        console.log(userMenu.data)
         this.menusSubject.next(this.buildMenuHierarchy(userMenu.data.menus));
         this.pinnedMenusSubject.next(userMenu.data.pinnedMenus);
       })
@@ -257,14 +258,17 @@ public  loadUserMenus(): Observable<UserMenu> {
 
   // Helper method to build hierarchical tree
   buildMenuTree(items: MenuItem[], parentId: number | null = null): MenuItem[] {
+   // console.log('Building menu tree with items:', items, 'and parentId:', parentId);
     return items
       .filter(item => item.parentMenuItemId === parentId)
       .sort((a, b) => a.menuOrder - b.menuOrder)
-      .map(item => ({
+      .map((item: MenuItem) => ({
         ...item,
-        children: this.buildMenuTree(items, item.menuItemId)
+        children:item.children?.sort((a, b) => a.menuOrder - b.menuOrder)
+        //this.buildChildMenuTree(item.children || [], item.menuItemId)
       }));
   }
+
 
   // Helper to flatten tree for API operations
   flattenMenuTree(items: MenuItem[]): MenuItem[] {

@@ -41,7 +41,7 @@ export class ProfileComponent implements OnInit {
 
   loadUserData(): void {
      this.user = this.authService.getCurrentUser();
-    console.log('Loaded user data:', this.user);
+   // console.log('Loaded user data:', this.user);
     if (this.user) {
       this.profileForm.patchValue({
         fullName: this.user.fullName,

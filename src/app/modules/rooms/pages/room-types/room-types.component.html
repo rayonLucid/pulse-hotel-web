@@ -87,11 +87,11 @@
               </div>
               <div class="info-row">
                 <span class="label">Bed Type:</span>
-                <span class="value">{{ getBedTypeLabel(roomType.bedType) }}</span>
+                <span class="value">{{ roomType.bedType.Description }}</span>
               </div>
               <div class="info-row">
                 <span class="label">View:</span>
-                <span class="value">{{ getViewTypeLabel(roomType.viewType) }}</span>
+                <span class="value">{{ roomType.viewType.description }}</span>
               </div>
             </div>
 
@@ -206,8 +206,8 @@
                <div class="form-group">
                 <label>Bed Type *</label>
                 <select formControlName="bedType" class="form-control">
-                  @for (option of bedTypeOptions; track option.value) {
-                    <option [value]="option.value">{{ option.label }}</option>
+                  @for (option of bedTypeOptions; track option.bedTypeId) {
+                    <option [value]="option.bedTypeName">{{ option.Description }}</option>
                   }
                 </select>
               </div>
@@ -218,8 +218,8 @@
               <div class="form-group">
                 <label>View Type *</label>
                 <select formControlName="viewType" class="form-control">
-                  @for (option of viewTypeOptions; track option.value) {
-                    <option [value]="option.value">{{ option.label }}</option>
+                  @for (option of viewTypeOptions; track option.viewName) {
+                    <option [value]="option.viewName">{{ option.description }}</option>
                   }
                 </select>
               </div>
@@ -236,7 +236,7 @@
             <div class="form-group">
               <label>Amenities</label>
               <div class="amenities-checkboxes">
-                @for (amenity of amenityOptions; track amenity) {
+                @for (amenity of getAmenities(); track amenity) {
                   <label class="checkbox-label">
                     <input type="checkbox" [checked]="isAmenitySelected(amenity)" (change)="toggleAmenity(amenity)">
                     <i class="fas" [class]="amenity.icon"></i>

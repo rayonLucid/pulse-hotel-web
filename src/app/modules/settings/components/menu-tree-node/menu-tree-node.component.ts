@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -19,6 +19,7 @@ export class MenuTreeNodeComponent {
   @Output() edit = new EventEmitter<MenuItem>();
   @Output() delete = new EventEmitter<number>();
   @Output() toggleStatus = new EventEmitter<MenuItem>();
+  @Input() isChildExpanded = false;
 
   onSelect(): void {
     this.select.emit(this.menuItem);

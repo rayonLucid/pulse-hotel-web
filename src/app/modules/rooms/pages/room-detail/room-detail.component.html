@@ -74,11 +74,11 @@
           </div>
           <div class="info-row">
             <span class="label">Bed Type:</span>
-            <span class="value">{{ getBedTypeLabel(room.bedType) }}</span>
+            <span class="value">{{ room.bedType.Description}}</span>
           </div>
           <div class="info-row">
             <span class="label">View:</span>
-            <span class="value">{{ getViewTypeLabel(room.viewType) }}</span>
+            <span class="value">{{ room.viewType.description }}</span>
           </div>
           <div class="info-row">
             <span class="label">Max Occupancy:</span>
@@ -199,16 +199,16 @@
             <div class="form-group">
               <label>Bed Type *</label>
               <select formControlName="bedType" class="form-control">
-                @for (option of bedTypeOptions; track option.value) {
-                  <option [value]="option.value">{{ option.label }}</option>
+                @for (option of bedTypeOptions; track option.bedTypeId) {
+                  <option [value]="option.bedTypeName">{{ option.Description }}</option>
                 }
               </select>
             </div>
             <div class="form-group">
               <label>View Type *</label>
               <select formControlName="viewType" class="form-control">
-                @for (option of viewTypeOptions; track option.value) {
-                  <option [value]="option.value">{{ option.label }}</option>
+                @for (option of viewTypeOptions; track option.viewTypeId) {
+                  <option [value]="option.viewName">{{ option.description }}</option>
                 }
               </select>
             </div>

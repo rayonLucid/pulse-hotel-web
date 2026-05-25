@@ -25,10 +25,10 @@
       </div>
       <div class="stat-info">
         <h3 class="stat-title">Total Rooms</h3>
-        <p class="stat-value">250</p>
-        <span class="stat-trend positive">
+        <p class="stat-value">{{ dashboardData?.roomStats?.totalRooms }}</p>
+        <!-- <span class="stat-trend positive">
           <i class="fas fa-arrow-up"></i> +5 this year
-        </span>
+        </span> -->
       </div>
     </div>
 
@@ -39,13 +39,13 @@
       </div>
       <div class="stat-info">
         <h3 class="stat-title">Occupancy Rate</h3>
-        <p class="stat-value">78<span class="stat-unit">%</span></p>
+        <p class="stat-value">{{ getOccupancyRate() }}<span class="stat-unit">%</span></p>
         <div class="progress-bar">
-          <div class="progress-fill" style="width: 78%"></div>
+          <div class="progress-fill" [style.width.%]="getOccupancyRate()"></div>
         </div>
-        <span class="stat-trend positive">
+        <!-- <span class="stat-trend positive">
           <i class="fas fa-arrow-up"></i> +12% from last month
-        </span>
+        </span> -->
       </div>
     </div>
 
@@ -56,13 +56,13 @@
       </div>
       <div class="stat-info">
         <h3 class="stat-title">Today's Check-ins</h3>
-        <p class="stat-value">45</p>
+        <p class="stat-value">{{ dashboardData?.bookingStats?.todayCheckIns }}</p>
         <div class="stat-detail">
           <span class="text-green-600">
-            <i class="fas fa-check-circle"></i> 32 confirmed
+            <i class="fas fa-check-circle"></i> {{ dashboardData?.bookingStats?.confirmedBookings }} confirmed
           </span>
           <span class="text-yellow-600 ml-3">
-            <i class="fas fa-clock"></i> 13 pending
+            <i class="fas fa-clock"></i> {{ dashboardData?.bookingStats?.pendingBookings }} pending
           </span>
         </div>
       </div>
@@ -75,10 +75,10 @@
       </div>
       <div class="stat-info">
         <h3 class="stat-title">Revenue (Month)</h3>
-        <p class="stat-value">₦18.5<span class="stat-unit">M</span></p>
-        <span class="stat-trend positive">
+        <p class="stat-value">₦{{ dashboardData?.bookingStats?.monthlyRevenue | number:'1.2-2' }}</p>
+        <!-- <span class="stat-trend positive">
           <i class="fas fa-arrow-up"></i> +8.5% from target
-        </span>
+        </span> -->
       </div>
     </div>
   </div>

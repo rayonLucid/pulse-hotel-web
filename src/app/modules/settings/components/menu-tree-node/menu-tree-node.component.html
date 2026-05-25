@@ -1,8 +1,9 @@
 <div class="menu-node"
      [class.active]="isSelected"
      [class.inactive]="!menuItem.isActive"
+     [class.isSelected]="isSelected"
      cdkDrag>
-  <div class="menu-node-content" (click)="onSelect()">
+  <div class="menu-node-content" (click)="onSelect()" >
     <div class="drag-handle" cdkDragHandle>
       <i class="fas fa-grip-vertical"></i>
     </div>
@@ -32,7 +33,7 @@
   </div>
 
   <!-- Children -->
-  <div class="menu-children" *ngIf="menuItem.children && menuItem.children.length > 0">
+  <div class="menu-children" *ngIf="menuItem.children && menuItem.children.length > 0 && isChildExpanded">
     <div cdkDropList
          [cdkDropListData]="menuItem.children"
          (cdkDropListDropped)="onChildDrop($event)">

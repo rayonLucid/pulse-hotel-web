@@ -31,10 +31,11 @@ export class AppConfigService {
   async load(): Promise<void> {
     try {
       this.config = await firstValueFrom(
-        this.http.get<AppConfig>('/api/config')
+        this.http.get<AppConfig>('config.json')
       );
+    //  console.log('Runtime config loaded:', this.config);
     } catch (err) {
-      console.error('Failed to load runtime config, using defaults');
+      console.error('Failed to load runtime config, using defaults', err);
     }
   }
 
@@ -45,6 +46,8 @@ export class AppConfigService {
   get rootUrl(): string {
     return this.config?.rootUrl || 'https://pulsehotelx.precleminternationalschool.com.ng/';
   }
-
+  get payStackPublicKey(): string {
+    return this.config?.payStackPublicKey || 'sk_test_033ec7c1ab250c4e3c5f08af316791cec9d022b';
+  }
   // ... other getters as needed
 }

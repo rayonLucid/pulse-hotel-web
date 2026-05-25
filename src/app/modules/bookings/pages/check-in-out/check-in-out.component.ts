@@ -37,7 +37,7 @@ interface CheckOutData {
 })
 export class CheckInOutComponent implements OnInit, OnDestroy {
   activeTab: 'checkin' | 'checkout' = 'checkin';
-
+   IsNewCheckIn =false
   // Check-in Data
   checkInBookings: Booking[] = [];
   selectedCheckInBooking: Booking | null = null;
@@ -216,7 +216,7 @@ isLoading =false
         this.isSearchingCheckOut = false;
       },
       error: (error:any) => {
-        console.error('Error loading check-out bookings:', error);
+        console.error('Error loading check-out:', error);
         this.isSearchingCheckOut = false;
       }
     });
@@ -371,9 +371,9 @@ isLoading =false
     const payStack = new PaystackPop();
 
     payStack.newTransaction({
-      key:bookingData.paystackKey , // Replace with your Public Key
+      key:bookingData.payStackKey , // Replace with your Public Key
       email: bookingData.guestEmail,
-      amount: Math.round(extraCharges * 100), // Paystack operates strictly in minor unit variants (kobo for NGN)
+      amount: Math.round(extraCharges * 100), // PayStack operates strictly in minor unit variants (kobo for NGN)
       currency: 'NGN',
       reference: bookingData.bookingReference || 'BK-' + bookingData.bookingId + '-' + Date.now(),
       metadata: {
@@ -381,7 +381,7 @@ isLoading =false
           {
             display_name: "Guest Name",
             variable_name: "guest_name",
-            value: `${bookingData.guestFirstName} ${bookingData.guestLastName}`
+            value: `${bookingData.guestName}`
           },
           {
             display_name: "Booking ID",

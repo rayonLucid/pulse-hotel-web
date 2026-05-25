@@ -3,15 +3,23 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { RoomFilter, Room, RoomStatus, RoomType, BedTypes } from '../models/room.model';
+import { RoomFilter, Room, RoomStatus, RoomType, BedTypes, RoomWizardData, ViewTypes } from '../models/room.model';
+import { AppConfigService } from './app.config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RoomService {
-  private apiUrl = `${environment.apiUrl}/rooms`;
+  //private apiUrl = `${environment.apiUrl}/rooms`;
 
-  constructor(private http: HttpClient) {}
+ // constructor(private http: HttpClient) {}
+
+  private rootUrl = "";
+      public apiUrl = '';
+        constructor(private readonly config:AppConfigService, private http: HttpClient) {
+      this.apiUrl = `${this.config.apiUrl}/rooms`;
+      this.rootUrl = this.config.rootUrl;
+        }
 
 
   // Get room by ID
@@ -26,7 +34,11 @@ export class RoomService {
   getRoomStatuses(): Observable<{ success: boolean; data: RoomStatus[] }> {
     return this.http.get<{ success: boolean; data: RoomStatus[] }>(`${this.apiUrl}/status`);
   }
-
+ getViewTypes(isActive: boolean = true): Observable<{ success: boolean; data: ViewTypes[] }> {
+    return this.http.get<{ success: boolean; data: ViewTypes[] }>(
+      `${this.apiUrl}/view-types?isActive=${isActive}`
+    );
+  }
   // Update room status
   updateRoomStatus(roomId: number, status: string, notes?: string): Observable<{ success: boolean; message: string }> {
     return this.http.put<{ success: boolean; message: string }>(`${this.apiUrl}/${roomId}/status`, { status, notes });
@@ -85,8 +97,8 @@ export class RoomService {
     if (filter.floor) params = params.set('floor', filter.floor.toString());
     if (filter.minPrice) params = params.set('minPrice', filter.minPrice.toString());
     if (filter.maxPrice) params = params.set('maxPrice', filter.maxPrice.toString());
-    if (filter.bedType) params = params.set('bedType', filter.bedType);
-    if (filter.viewType) params = params.set('viewType', filter.viewType);
+    // if (filter.bedType) params = params.set('bedType', filter.bedType);
+    // if (filter.viewType) params = params.set('viewType', filter.viewType);
     if (filter.sortBy) params = params.set('sortBy', filter.sortBy);
     if (filter.sortOrder) params = params.set('sortOrder', filter.sortOrder);
 
@@ -99,6 +111,18 @@ export class RoomService {
 // getRoomTypes(): Observable<{ success: boolean; data: RoomType[] }> {
 //   return this.http.get<{ success: boolean; data: RoomType[] }>(`${this.apiUrl}/types`);
 // }
+
+ getLookups(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/wizard-lookups`);
+  }
+
+  getRoom(roomId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/wizard/${roomId}`);
+  }
+
+  saveRoom(data: RoomWizardData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/wizard-upsert`, data);
+  }
 
 // Create new room type
 createRoomType(roomTypeData: Partial<RoomType>): Observable<{ success: boolean; data: RoomType }> {

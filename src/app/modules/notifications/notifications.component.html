@@ -1,0 +1,6 @@
+<!-- Include in your main layout (e.g., header.component.html) -->
+<div class="header-actions">
+     <app-settings-sidebar [ngClass]="{'display-block': user?.role == 'Admin', 'display-none': user?.role != 'Admin' }"></app-settings-sidebar>
+  <app-notification></app-notification>
+  <!-- other header items -->
+</div>

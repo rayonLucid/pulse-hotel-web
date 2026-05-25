@@ -1,0 +1,255 @@
+<!-- room-wizard.component.html -->
+<div class="wizard-container">
+  <div class="wizard-header">
+    <h2>Room Setup Wizard</h2>
+    <p class="subtitle">Configure new room or edit existing room configuration</p>
+  </div>
+
+  <!-- Progress Steps -->
+  <div class="progress-steps">
+    <div *ngFor="let step of stepNames; let i = index"
+         class="step"
+         [class.active]="currentStep === i + 1"
+         [class.completed]="currentStep > i + 1">
+      <div class="step-number">{{ i + 1 }}</div>
+      <div class="step-label">{{ step }}</div>
+      <div class="step-line" *ngIf="i < totalSteps - 1"></div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+  </div>
+
+  <!-- Wizard Content -->
+  <div class="wizard-content">
+    <form [formGroup]="roomForm">
+      <!-- Step 1: Basic Information -->
+      <div class="step-content" *ngIf="currentStep === 1">
+        <h3>Basic Information</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Room Number *</label>
+            <input type="text" formControlName="roomNumber" class="form-control"
+                   placeholder="e.g., 101, A-202, Suite-1">
+            <div class="error" *ngIf="roomForm.get('roomNumber')?.invalid && roomForm.get('roomNumber')?.touched">
+              Room number is required
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Room Type *</label>
+            <select formControlName="roomTypeId" class="form-control" (change)="GetRoomSize($event)">
+              <option [value]="null">Select Room Type</option>
+              <option *ngFor="let type of roomTypes" [value]="type.roomTypeId">
+                {{ type.typeName }} - ${{ type.basePrice }}/night (Max: {{ type.maxAdults }} adults, {{ type.maxChildren }} children)
+              </option>
+            </select>
+            <div class="error" *ngIf="roomForm.get('roomTypeId')?.invalid && roomForm.get('roomTypeId')?.touched">
+              Room type is required
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Floor Number *</label>
+            <input type="number" min="1" max="12" formControlName="floorNumber" class="form-control" placeholder="Floor number">
+            <div class="error" *ngIf="roomForm.get('floorNumber')?.invalid && roomForm.get('floorNumber')?.touched">
+              Floor number is required
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Room Size (sq ft)</label>
+            <input type="number" formControlName="roomSize" class="form-control"  placeholder="Room size in square feet">
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Room Features -->
+      <div class="step-content" *ngIf="currentStep === 2">
+        <h3>Room Features</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>View Type</label>
+            <select formControlName="viewTypeId" class="form-control">
+              <option [value]="null">No View Type</option>
+              <option *ngFor="let view of viewTypes" [value]="view.viewTypeId">
+                {{ view.viewName }} (NGN {{ view.premiumCharge }}/night)
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="isSmoking">
+              <span>Smoking Allowed</span>
+            </label>
+
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="isAccessible">
+              <span>Wheelchair Accessible</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Bed Configuration -->
+      <div class="step-content" *ngIf="currentStep === 3">
+        <h3>Bed Configuration</h3>
+        <div class="beds-container" formArrayName="bedConfigurations">
+          <div *ngFor="let bed of bedConfigurations.controls; let i = index" class="bed-item" [formGroupName]="i">
+            <select formControlName="bedTypeId" class="form-select" (change)="updateBedTypeName(i)" style="flex:2">
+              <option [value]="null">Select Bed Type</option>
+              <option *ngFor="let bedType of bedTypes" [value]="bedType.bedTypeId">
+                {{ bedType.bedTypeName }} (Max {{ bedType.maxOccupancy }} persons)
+              </option>
+            </select>
+
+            <input type="number" formControlName="quantity" min="1" max="10" class="number-input"  style="flex:1">
+
+            <button type="button" class="btn-remove" (click)="removeBedConfiguration(i)">×</button>
+          </div>
+
+          <button type="button" class="btn-add" (click)="addBedConfiguration()">
+            + Add Bed
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 4: Amenities -->
+      <div class="step-content" *ngIf="currentStep === 4">
+        <h3>Amenities</h3>
+        <div class="amenities-grid">
+          <div *ngFor="let amenity of amenities"
+               class="amenity-card"
+               [class.selected]="isAmenitySelected(amenity.amenityId!)"
+               (click)="toggleAmenity(amenity.amenityId!)">
+            <div class="amenity-icon"><i [style.color]="getAmenityColor(amenity.amenityName)"  class="fa {{amenity.icon}}"></i></div>
+            <div class="amenity-name">{{ amenity.amenityName }}</div>
+            <div class="amenity-charge" *ngIf="amenity.isConsumable">
+              <!-- +${{ amenity.chargeAmount }} -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5: Pricing & Discounts -->
+      <div class="step-content" *ngIf="currentStep === 5">
+        <h3>Pricing & Discounts</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Base Price Override</label>
+            <input type="number" formControlName="basePriceOverride" class="form-control"
+                   placeholder="Leave empty to use room type price">
+            <small *ngIf="getSelectedRoomType()">Base price: ${{ getSelectedRoomType()?.basePrice }}/night</small>
+          </div>
+
+          <div class="form-group">
+            <label>Weekly Discount (%)</label>
+            <input type="number" formControlName="weeklyDiscount" class="form-control"
+                   placeholder="Discount for weekly stays">
+          </div>
+
+          <div class="form-group">
+            <label>Monthly Discount (%)</label>
+            <input type="number" formControlName="monthlyDiscount" class="form-control"
+                   placeholder="Discount for monthly stays">
+          </div>
+
+          <div class="price-preview">
+            <h4>Price Preview</h4>
+            <div class="price-line">
+              <span>Base Price:</span>
+              <strong>${{ getTotalPrice() }}/night</strong>
+            </div>
+            <div class="price-line" *ngIf="roomForm.get('weeklyDiscount')?.value">
+              <span>Weekly Rate (7+ nights):</span>
+              <strong>${{ getTotalPrice() * (1 - (roomForm.get('weeklyDiscount')?.value / 100)) }}/night</strong>
+              <small>({{ roomForm.get('weeklyDiscount')?.value }}% off)</small>
+            </div>
+            <div class="price-line" *ngIf="roomForm.get('monthlyDiscount')?.value">
+              <span>Monthly Rate (30+ nights):</span>
+              <strong>${{ getTotalPrice() * (1 - (roomForm.get('monthlyDiscount')?.value / 100)) }}/night</strong>
+              <small>({{ roomForm.get('monthlyDiscount')?.value }}% off)</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 6: Review & Save -->
+      <div class="step-content" *ngIf="currentStep === 6">
+        <h3>Review & Save</h3>
+        <div class="review-section">
+          <div class="review-card">
+            <h4>Basic Information</h4>
+            <p><strong>Room Number:</strong> {{ roomForm.get('roomNumber')?.value }}</p>
+            <p><strong>Room Type:</strong> {{ getSelectedRoomType()?.typeName }}</p>
+            <p><strong>Floor:</strong> {{ roomForm.get('floorNumber')?.value }}</p>
+            <p><strong>Size:</strong> {{ roomForm.get('roomSize')?.value || 'Not specified' }} sq ft</p>
+          </div>
+
+          <div class="review-card">
+            <h4>Features</h4>
+            <p><strong>View:</strong> {{ getSelectedViewType()?.viewName || 'None' }}</p>
+            <p><strong>Smoking:</strong> {{ roomForm.get('isSmoking')?.value ? 'Allowed' : 'Not Allowed' }}</p>
+            <p><strong>Accessible:</strong> {{ roomForm.get('isAccessible')?.value ? 'Yes' : 'No' }}</p>
+          </div>
+
+          <div class="review-card">
+            <h4>Bed Configuration</h4>
+            <div *ngFor="let bed of bedConfigurations.controls">
+              <p>{{ bed.get('bedTypeName')?.value }} x {{ bed.get('quantity')?.value }}</p>
+            </div>
+          </div>
+
+          <div class="review-card">
+            <h4>Amenities</h4>
+            <div class="amenities-list">
+              <span *ngFor="let amenity of getAmenityDetails()" class="amenity-tag">
+                {{ amenity.amenityName }}
+              </span>
+            </div>
+          </div>
+
+          <div class="review-card">
+            <h4>Pricing</h4>
+            <p><strong>Final Rate:</strong> ${{ getTotalPrice() }}/night</p>
+            <p *ngIf="roomForm.get('weeklyDiscount')?.value"><strong>Weekly Discount:</strong> {{ roomForm.get('weeklyDiscount')?.value }}%</p>
+            <p *ngIf="roomForm.get('monthlyDiscount')?.value"><strong>Monthly Discount:</strong> {{ roomForm.get('monthlyDiscount')?.value }}%</p>
+          </div>
+
+          <div class="review-card">
+            <h4>Status</h4>
+            <select formControlName="status" class="form-control">
+              <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+            </select>
+
+            <label class="checkbox-label" style="margin-top: 1rem;">
+              <input type="checkbox" formControlName="isActive">
+              <span>Room Active (available for booking)</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Navigation Buttons -->
+  <div class="wizard-footer">
+    <button type="button"
+            class="btn-prev"
+            (click)="previousStep()"
+            [disabled]="currentStep === 1 || isLoading">
+      Previous
+    </button>
+
+    <button type="button"
+            class="btn-next"
+            (click)="nextStep()"
+            [disabled]="isLoading || isSaving || roomForm.invalid">
+      {{ currentStep === totalSteps ? 'Save Room' : 'Next Step' }}
+    </button>
+  </div>
+</div>

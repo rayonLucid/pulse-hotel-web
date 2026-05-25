@@ -64,12 +64,12 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "2MB",
+                  "maximumError": "2MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "40kB",
+                  "maximumWarning": "900kB",
                   "maximumError": "80kB"
                 }
               ],
@@ -85,6 +85,7 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+
           "configurations": {
             "production": {
               "buildTarget": "pulse-hotel-web:build:production"

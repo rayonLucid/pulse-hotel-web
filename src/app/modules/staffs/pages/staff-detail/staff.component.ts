@@ -7,6 +7,8 @@ import { ToastrService } from 'ngx-toastr';
 import { StaffService } from '../../../../core/services/staff.service';
 import { Staff, ShiftAssignment, AttendanceLog, LeaveRequest, PerformanceReview } from '../../../../core/models/staff.model';
 import { Bank, BankService } from '../../../../core/services/bank.service';
+import { Role } from '../../../../core/models/roles.model';
+import { RoleService } from '../../../../core/services/role.service';
 
 @Component({
   selector: 'app-staff-detail',
@@ -44,7 +46,7 @@ export class StaffDetailComponent implements OnInit {
   attendanceStartDate: Date;
   attendanceEndDate: Date;
 mismatch:boolean =false
-  departments: string[] = ['Front Desk', 'Housekeeping', 'Maintenance', 'Food & Beverage', 'Security', 'Administration', 'Sales & Marketing', 'Spa & Wellness'];
+  departments: Role[] = [];
   employmentTypes: string[] = ['Full-Time', 'Part-Time', 'Contract', 'Casual'];
   positions: string[] = ['Manager', 'Supervisor', 'Senior Staff', 'Junior Staff', 'Trainee'];
 private changeDet =inject(ChangeDetectorRef);
@@ -52,6 +54,7 @@ private changeDet =inject(ChangeDetectorRef);
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
+    private roleService: RoleService,
     private staffService: StaffService,
     private bankService: BankService,
     private toastr: ToastrService
@@ -88,6 +91,7 @@ private changeDet =inject(ChangeDetectorRef);
 
   ngOnInit(): void {
      this.banks = this.bankService.getBanks();
+    this.loadDepartments();
     const id = this.route.snapshot.paramMap.get('id');
     const action = this.route.snapshot.paramMap.get('action');
     if(action && id){
@@ -120,6 +124,22 @@ private changeDet =inject(ChangeDetectorRef);
     //  this.router.navigate(['/staff']);
     }
   }
+  loadDepartments() {
+    this.roleService.getAll().subscribe(
+    {
+
+      next:(res: any) =>
+        {
+      this.departments = res.data;
+      //console.log('Loaded departments:', this.departments);
+    }
+    ,error:(error) => {
+         console.error('Error loading departments:', error);
+    }
+    })
+
+  }
+
 
   passwordMatchValidator = (form: FormGroup) => {
 
@@ -533,5 +553,5 @@ console.log('Local validation result:', localValidation);
     return bank ? bank.name : '';
   }
 
-  
+
 }
