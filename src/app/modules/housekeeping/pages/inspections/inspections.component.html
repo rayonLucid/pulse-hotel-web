@@ -1,0 +1,396 @@
+<!-- src/app/modules/housekeeping/pages/inspections/inspections.component.html -->
+<div class="inspections-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Room Inspections</h1>
+      <p>Quality control and inspection management</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-refresh" (click)="refreshData()" [disabled]="isLoading">
+        🔄 {{ isLoading ? 'Loading...' : 'Refresh' }}
+      </button>
+      <button class="btn-primary" (click)="openCreateModal()">
+        + New Inspection
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-message" *ngIf="errorMessage">
+    <div class="alert alert-danger">
+      <strong>Error:</strong> {{ errorMessage }}
+      <button class="close-btn" (click)="dismissError()">×</button>
+    </div>
+  </div>
+
+  <!-- Statistics Summary -->
+  <div class="stats-summary" *ngIf="!isLoading && statistics">
+    <div class="stat-card total">
+      <div class="stat-value">{{ statistics.totalInspections }}</div>
+      <div class="stat-label">Total Inspections</div>
+    </div>
+    <div class="stat-card passed">
+      <div class="stat-value">{{ statistics.passedInspections }}</div>
+      <div class="stat-label">Passed</div>
+    </div>
+    <div class="stat-card failed">
+      <div class="stat-value">{{ statistics.failedInspections }}</div>
+      <div class="stat-label">Failed</div>
+    </div>
+    <div class="stat-card pass-rate">
+      <div class="stat-value">{{ statistics.passRate }}%</div>
+      <div class="stat-label">Pass Rate</div>
+    </div>
+    <div class="stat-card avg-score">
+      <div class="stat-value">{{ statistics.averageScore }}</div>
+      <div class="stat-label">Avg Score</div>
+    </div>
+    <div class="stat-card reclean">
+      <div class="stat-value">{{ statistics.recleanRate }}%</div>
+      <div class="stat-label">Reclean Rate</div>
+    </div>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="filters">
+      <select class="filter-select" [(ngModel)]="selectedResult" (change)="onFilterChange()">
+        <option value="all">All Results</option>
+        <option value="passed">Passed Only</option>
+        <option value="failed">Failed Only</option>
+      </select>
+
+      <select class="filter-select" [(ngModel)]="selectedDateRange" (change)="onFilterChange()">
+        <option value="all">All Time</option>
+        <option value="today">Today</option>
+        <option value="week">Last 7 Days</option>
+        <option value="month">Last 30 Days</option>
+      </select>
+
+      <div class="date-range" *ngIf="selectedDateRange === 'all'">
+        <input type="date" [(ngModel)]="startDate" (change)="applyFilters()" placeholder="Start Date" class="date-input" />
+        <span>to</span>
+        <input type="date" [(ngModel)]="endDate" (change)="applyFilters()" placeholder="End Date" class="date-input" />
+        <button class="btn-clear" (click)="clearDateRange()" *ngIf="startDate || endDate">Clear</button>
+      </div>
+
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (input)="applyFilters()"
+          placeholder="Search by room or inspector..."
+          class="search-input"
+        />
+      </div>
+
+      <button class="btn-secondary" (click)="resetFilters()">
+        Reset Filters
+      </button>
+    </div>
+
+    <div class="view-toggle">
+      <button class="toggle-btn" [class.active]="viewMode === 'list'" (click)="viewMode = 'list'">
+        📋 List
+      </button>
+      <button class="toggle-btn" [class.active]="viewMode === 'grid'" (click)="viewMode = 'grid'">
+        ▦ Grid
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading inspections...</p>
+  </div>
+
+  <!-- List View -->
+  <div class="inspections-list" *ngIf="!isLoading && viewMode === 'list' && filteredInspections.length > 0">
+    <div class="list-header">
+      <div class="col-room">Room</div>
+      <div class="col-inspector">Inspector</div>
+      <div class="col-date">Date</div>
+      <div class="col-score">Score</div>
+      <div class="col-result">Result</div>
+      <div class="col-reclean">Reclean</div>
+      <div class="col-actions">Actions</div>
+    </div>
+
+    <div *ngFor="let inspection of filteredInspections" class="list-row">
+      <div class="col-room">
+        <strong>Room {{ inspection.roomNumber }}</strong>
+      </div>
+      <div class="col-inspector">{{ inspection.inspectorName }}</div>
+      <div class="col-date">{{ formatDateOnly(inspection.inspectionDate) }}</div>
+      <div class="col-score">
+        <span class="score-badge" [style.backgroundColor]="getScoreColor(inspection.score)">
+          {{ inspection.score }}
+        </span>
+      </div>
+      <div class="col-result">
+        <span class="result-badge" [class]="getPassFailClass(inspection.isPassed)">
+          {{ getPassFailIcon(inspection.isPassed) }} {{ inspection.isPassed ? 'Passed' : 'Failed' }}
+        </span>
+      </div>
+      <div class="col-reclean">
+        <span *ngIf="inspection.recleanRequired" class="reclean-badge">⚠️ Reclean Required</span>
+        <span *ngIf="!inspection.recleanRequired" class="no-reclean">—</span>
+      </div>
+      <div class="col-actions">
+        <button class="action-btn view" (click)="viewInspectionDetails(inspection)" title="View Details">👁</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid View -->
+  <div class="inspections-grid" *ngIf="!isLoading && viewMode === 'grid' && filteredInspections.length > 0">
+    <div *ngFor="let inspection of filteredInspections" class="inspection-card" [class.failed]="!inspection.isPassed">
+      <div class="card-header">
+        <div class="room-number">Room {{ inspection.roomNumber }}</div>
+        <div class="inspection-date">{{ formatDateOnly(inspection.inspectionDate) }}</div>
+      </div>
+
+      <div class="card-content">
+        <div class="inspector-info">
+          <span class="label">Inspector:</span>
+          <span class="value">{{ inspection.inspectorName }}</span>
+        </div>
+
+        <div class="score-section">
+          <div class="score-circle" [style.borderColor]="getScoreColor(inspection.score)">
+            <span class="score-value">{{ inspection.score }}</span>
+            <span class="score-label">Score</span>
+          </div>
+          <div class="score-status" [class]="getPassFailClass(inspection.isPassed)">
+            {{ inspection.isPassed ? 'PASSED' : 'FAILED' }}
+          </div>
+        </div>
+
+        <div class="comments" *ngIf="inspection.comments">
+          <span class="comment-label">Comments:</span>
+          <p class="comment-text">{{ inspection.comments }}</p>
+        </div>
+
+        <div class="reclean-info" *ngIf="inspection.recleanRequired">
+          <span class="reclean-icon">⚠️</span>
+          <span class="reclean-text">Reclean required</span>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <button class="btn-view" (click)="viewInspectionDetails(inspection)">View Details</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && filteredInspections.length === 0 && inspections.length > 0">
+    <div class="empty-icon">📋</div>
+    <h3>No Inspections Found</h3>
+    <p>No inspections match your current filters. Try adjusting your search criteria.</p>
+    <button class="btn-secondary" (click)="resetFilters()">Reset Filters</button>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && inspections.length === 0 && !errorMessage">
+    <div class="empty-icon">🔍</div>
+    <h3>No Inspections Available</h3>
+    <p>No inspection records found. Create your first inspection to start tracking quality.</p>
+    <button class="btn-primary" (click)="openCreateModal()">Create First Inspection</button>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button class="page-btn" (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1">
+      ← Previous
+    </button>
+    <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+    <button class="page-btn" (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages">
+      Next →
+    </button>
+    <select class="page-size-select" [(ngModel)]="pageSize" (change)="changePageSize(pageSize)">
+      <option [value]="10">10 per page</option>
+      <option [value]="25">25 per page</option>
+      <option [value]="50">50 per page</option>
+    </select>
+  </div>
+</div>
+
+<!-- Create Inspection Modal -->
+<div class="modal-overlay" *ngIf="showCreateModal" (click)="showCreateModal = false">
+  <div class="modal-content modal-large" (click="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>New Room Inspection</h2>
+      <button class="modal-close" (click)="showCreateModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Select Task *</label>
+          <select [(ngModel)]="newInspection.taskId" class="form-control">
+            <option [value]="null">Choose a completed task...</option>
+            <option *ngFor="let task of availableTasks" [value]="task.taskId">
+              Room {{ task.roomNumber }} - {{ task.taskType }} ({{ task.assignedToName }})
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Room Number</label>
+          <input type="text" [(ngModel)]="newInspection.roomNumber" class="form-control" placeholder="Auto-filled from task" readonly />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Inspector Name *</label>
+          <input type="text" [(ngModel)]="newInspection.inspectorName" class="form-control" placeholder="Enter inspector name" />
+        </div>
+        <div class="form-group">
+          <label>Inspector ID *</label>
+          <input type="number" [(ngModel)]="newInspection.inspectedBy" class="form-control" placeholder="Inspector ID" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Inspection Result *</label>
+          <select [(ngModel)]="newInspection.isPassed" class="form-control">
+            <option [value]="true">Passed</option>
+            <option [value]="false">Failed</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Score (0-100) *</label>
+          <input type="number" [(ngModel)]="newInspection.score" class="form-control" min="0" max="100" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Comments *</label>
+        <textarea [(ngModel)]="newInspection.comments" class="form-control" rows="3" placeholder="Enter inspection comments, issues found, etc."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="newInspection.recleanRequired" />
+          <span>Reclean Required</span>
+        </label>
+        <p class="help-text" *ngIf="newInspection.recleanRequired">
+          A new task will be created for recleaning this room.
+        </p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showCreateModal = false">Cancel</button>
+      <button class="btn-primary" (click)="createInspection()" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Creating...' : 'Create Inspection' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Inspection Details Modal -->
+<div class="modal-overlay" *ngIf="showDetailsModal" (click)="showDetailsModal = false">
+  <div class="modal-content modal-large" (click="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Inspection Details - Room {{ selectedInspection?.roomNumber }}</h2>
+      <button class="modal-close" (click)="showDetailsModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="details-grid">
+        <div class="detail-item">
+          <label>Inspection ID:</label>
+          <span>{{ selectedInspection?.inspectionId }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Room Number:</label>
+          <span>{{ selectedInspection?.roomNumber }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Inspector:</label>
+          <span>{{ selectedInspection?.inspectorName }} (ID: {{ selectedInspection?.inspectedBy }})</span>
+        </div>
+        <div class="detail-item">
+          <label>Date & Time:</label>
+          <span>{{ formatDate(selectedInspection?.inspectionDate) }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Score:</label>
+          <span class="score-badge-large" [style.backgroundColor]="getScoreColor(selectedInspection?.score || 0)">
+            {{ selectedInspection?.score }} / 100 - {{ getScoreLabel(selectedInspection?.score || 0) }}
+          </span>
+        </div>
+        <div class="detail-item">
+          <label>Result:</label>
+          <span class="result-badge-large" [class]="getPassFailClass(selectedInspection?.isPassed || false)">
+            {{ selectedInspection?.isPassed ? '✓ PASSED' : '✗ FAILED' }}
+          </span>
+        </div>
+        <div class="detail-item full-width">
+          <label>Comments:</label>
+          <p class="comments-text">{{ selectedInspection?.comments || 'No comments provided' }}</p>
+        </div>
+        <div class="detail-item full-width" *ngIf="selectedInspection?.recleanRequired">
+          <label>Reclean Required:</label>
+          <div class="reclean-warning">
+            ⚠️ This room requires recleaning. A new task has been created.
+            <span *ngIf="selectedInspection?.recleanTaskId"> (Task ID: {{ selectedInspection?.recleanTaskId }})</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Related Task Information - NO optional chaining needed for non-nullable properties -->
+      <div class="section-divider" *ngIf="relatedTask">
+        <h3>Related Task Information</h3>
+        <div class="related-info-grid">
+          <div class="info-item">
+            <label>Task Type:</label>
+            <span>{{ getTaskTypeDisplay(relatedTask) }}</span>
+          </div>
+          <div class="info-item">
+            <label>Assigned To:</label>
+            <span>{{ relatedTask.assignedToName }}</span>
+          </div>
+          <div class="info-item">
+            <label>Completed At:</label>
+            <span>{{ formatDate(relatedTask.completedAt) }}</span>
+          </div>
+          <div class="info-item">
+            <label>Duration:</label>
+            <span>{{ relatedTask.durationMinutes }} minutes</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Related Room Information - NO optional chaining needed for non-nullable properties -->
+      <div class="section-divider" *ngIf="relatedRoom">
+        <h3>Current Room Status</h3>
+        <div class="related-info-grid">
+          <div class="info-item">
+            <label>Room Type:</label>
+            <span>{{ relatedRoom.roomType }}</span>
+          </div>
+          <div class="info-item">
+            <label>Floor:</label>
+            <span>{{ relatedRoom.floorNumber }}</span>
+          </div>
+          <div class="info-item">
+            <label>Status:</label>
+            <span class="status-badge" [class]="getRoomStatusClass(relatedRoom.status)">
+              {{ getRoomStatusDisplay(relatedRoom.status) }}
+            </span>
+          </div>
+          <div class="info-item" *ngIf="relatedRoom.lastCleaned">
+            <label>Last Cleaned:</label>
+            <span>{{ formatDate(relatedRoom.lastCleaned) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showDetailsModal = false">Close</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,190 @@
+// 5. Dashboard
+<!-- src/app/modules/housekeeping/pages/dashboard/dashboard.component.html -->
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Housekeeping Dashboard</h1>
+      <p class="page-subtitle">Real-time room status and cleaning operations</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-refresh" (click)="loadDashboardData()">
+        <i class="fas fa-sync-alt"></i>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading dashboard data...</p>
+    </div>
+  }
+
+  <!-- Dashboard Content -->
+  @if (!isLoading && stats) {
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <div class="stat-card dirty">
+        <div class="stat-icon">
+          <i class="fas fa-trash-alt"></i>
+        </div>
+        <div class="stat-info">
+          <h3>Dirty Rooms</h3>
+          <p>{{ stats.dirtyRooms }}</p>
+        </div>
+      </div>
+      <div class="stat-card cleaning">
+        <div class="stat-icon">
+          <i class="fas fa-broom"></i>
+        </div>
+        <div class="stat-info">
+          <h3>Cleaning In Progress</h3>
+          <p>{{ stats.cleaningInProgress }}</p>
+        </div>
+      </div>
+      <div class="stat-card clean">
+        <div class="stat-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-info">
+          <h3>Clean Rooms</h3>
+          <p>{{ stats.cleanRooms }}</p>
+        </div>
+      </div>
+      <div class="stat-card inspected">
+        <div class="stat-icon">
+          <i class="fas fa-clipboard-list"></i>
+        </div>
+        <div class="stat-info">
+          <h3>Inspected</h3>
+          <p>{{ stats.inspectedRooms }}</p>
+        </div>
+      </div>
+      <div class="stat-card available">
+        <div class="stat-icon">
+          <i class="fas fa-bed"></i>
+        </div>
+        <div class="stat-info">
+          <h3>Available</h3>
+          <p>{{ stats.availableRooms }}</p>
+        </div>
+      </div>
+      <div class="stat-card outofservice">
+        <div class="stat-icon">
+          <i class="fas fa-tools"></i>
+        </div>
+        <div class="stat-info">
+          <h3>Out of Service</h3>
+          <p>{{ stats.outOfService }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon">
+          <i class="fas fa-tasks"></i>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{ stats.pendingTasks }}</span>
+          <span class="metric-label">Pending Tasks</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">
+          <i class="fas fa-play-circle"></i>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{ stats.inProgressTasks }}</span>
+          <span class="metric-label">In Progress</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">
+          <i class="fas fa-check-double"></i>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{ stats.completedToday }}</span>
+          <span class="metric-label">Completed Today</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{ stats.averageCleaningTime }} min</span>
+          <span class="metric-label">Avg Cleaning Time</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{ stats.inspectionPassRate }}%</span>
+          <span class="metric-label">Pass Rate</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon">
+          <i class="fas fa-percent"></i>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">{{ getOccupancyRate() }}%</span>
+          <span class="metric-label">Occupancy Rate</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Room Status Grid & Pending Tasks -->
+    <div class="bottom-section">
+      <!-- Room Status Grid -->
+      <div class="room-status-section">
+        <div class="section-header">
+          <h3>Room Status Overview</h3>
+          <a routerLink="/housekeeping/room-status" class="view-all">View All →</a>
+        </div>
+        <div class="room-status-grid">
+          @for (room of roomStatuses.slice(0, 12); track room.roomId) {
+            <div class="room-card" [class]="getStatusClass(room.status)">
+              <div class="room-number">{{ room.roomNumber }}</div>
+              <div class="room-status-text">{{ room.status }}</div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Pending Tasks -->
+      <div class="pending-tasks-section">
+        <div class="section-header">
+          <h3>Pending Tasks</h3>
+          <a routerLink="/housekeeping/tasks" class="view-all">View All →</a>
+        </div>
+        <div class="tasks-list">
+          @for (task of pendingTasks; track task.taskId) {
+            <div class="task-item">
+              <div class="task-info">
+                <div class="task-room">Room {{ task.roomNumber }}</div>
+                <div class="task-type">{{ task.taskType }}</div>
+              </div>
+              <div class="task-priority" [class]="task.priority.toLowerCase()">
+                {{ task.priority }}
+              </div>
+            </div>
+          }
+          @if (pendingTasks.length === 0) {
+            <div class="no-tasks">
+              <i class="fas fa-check-circle"></i>
+              <p>No pending tasks</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

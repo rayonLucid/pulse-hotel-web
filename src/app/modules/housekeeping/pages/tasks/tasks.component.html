@@ -1,0 +1,440 @@
+<!-- src/app/modules/housekeeping/pages/tasks/tasks.component.html -->
+<div class="tasks-container">
+  <!-- Header -->
+  <div class="tasks-header">
+    <div>
+      <h1>Housekeeping Tasks</h1>
+      <p>Manage and track all cleaning tasks</p>
+    </div>
+    <button class="btn-primary" (click)="showCreateModal = true">
+      + Create Task
+    </button>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-message" *ngIf="errorMessage">
+    <div class="alert alert-danger">
+      {{ errorMessage }}
+      <button class="close-btn" (click)="dismissError()">×</button>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid" *ngIf="statistics">
+    <div class="stat-card">
+      <div class="stat-value">{{ statistics.total || 0 }}</div>
+      <div class="stat-label">Total Tasks</div>
+    </div>
+    <div class="stat-card stat-pending">
+      <div class="stat-value">{{ statistics.pending || 0 }}</div>
+      <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat-card stat-progress">
+      <div class="stat-value">{{ statistics.inProgress || 0 }}</div>
+      <div class="stat-label">In Progress</div>
+    </div>
+    <div class="stat-card stat-completed">
+      <div class="stat-value">{{ statistics.completed || 0 }}</div>
+      <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ statistics.completionRate || 0 }}%</div>
+      <div class="stat-label">Completion Rate</div>
+    </div>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="filters">
+      <select class="filter-select" [(ngModel)]="selectedStatus" (change)="applyFilters()">
+        <option value="all">All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="InProgress">In Progress</option>
+        <option value="Completed">Completed</option>
+        <option value="Failed">Failed</option>
+        <option value="Cancelled">Cancelled</option>
+      </select>
+
+      <select class="filter-select" [(ngModel)]="selectedPriority" (change)="applyFilters()">
+        <option value="all">All Priorities</option>
+        <option value="High">High Priority</option>
+        <option value="Normal">Normal Priority</option>
+        <option value="Low">Low Priority</option>
+      </select>
+
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="applyFilters()"
+          placeholder="Search by room number..."
+          class="search-input"
+        />
+      </div>
+
+      <button class="btn-secondary" (click)="resetFilters()">
+        Reset Filters
+      </button>
+    </div>
+
+    <div class="view-toggle">
+      <button class="toggle-btn" [class.active]="viewMode === 'list'" (click)="viewMode = 'list'">
+        📋 List
+      </button>
+      <button class="toggle-btn" [class.active]="viewMode === 'grid'" (click)="viewMode = 'grid'">
+        ▦ Grid
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading tasks...</p>
+  </div>
+
+  <!-- List View -->
+  <div class="tasks-list" *ngIf="!isLoading && viewMode === 'list' && tasks.length > 0">
+    <div class="list-header">
+      <div class="col-room">Room</div>
+      <div class="col-task">Task</div>
+      <div class="col-priority">Priority</div>
+      <div class="col-assignee">Assignee</div>
+      <div class="col-due">Due Date</div>
+      <div class="col-status">Status</div>
+      <div class="col-actions">Actions</div>
+    </div>
+
+    <div *ngFor="let task of tasks" class="task-row" [class]="getPriorityClass(task.priority)">
+      <div class="col-room">
+        <strong>{{ task.roomNumber }}</strong>
+        <span class="room-type">{{ task.roomType }}</span>
+      </div>
+      <div class="col-task">
+        <span class="task-type">{{ task.taskType }}</span>
+        <span class="task-notes" *ngIf="task.notes">📝 {{ task.notes }}</span>
+      </div>
+      <div class="col-priority">
+        <span class="priority-badge" [class]="getPriorityClass(task.priority)">
+          {{ task.priority }}
+        </span>
+      </div>
+      <div class="col-assignee">
+        <span class="assignee-name">{{ task.assignedToName }}</span>
+      </div>
+      <div class="col-due" [class.overdue]="isOverdue(task.completedAt || task.startedAt)">
+        {{ formatDueTime(task.completedAt || task.startedAt || task.assignedAt) }}
+      </div>
+      <div class="col-status">
+        <span class="status-badge" [class]="getStatusClass(task.status)">
+          {{ task.status }}
+        </span>
+      </div>
+      <div class="col-actions">
+        <button *ngIf="task.status === 'Pending'" class="action-btn start" (click)="startTask(task.taskId)" title="Start Task">▶</button>
+        <button *ngIf="task.status === 'InProgress'" class="action-btn complete" (click)="openCompleteModal(task)" title="Complete Task">✓</button>
+        <button class="action-btn reassign" (click)="openReassignModal(task)" title="Reassign">↻</button>
+        <button class="action-btn cancel" (click)="openCancelModal(task)" title="Cancel">✗</button>
+        <button class="action-btn view" (click)="viewTaskDetails(task)" title="View Details">👁</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid View -->
+  <div class="tasks-grid" *ngIf="!isLoading && viewMode === 'grid' && tasks.length > 0">
+    <div *ngFor="let task of tasks" class="task-card" [class]="getPriorityClass(task.priority)">
+      <div class="card-header">
+        <div class="room-number">{{ task.roomNumber }}</div>
+        <div class="priority-badge" [class]="getPriorityClass(task.priority)">
+          {{ task.priority }}
+        </div>
+      </div>
+
+      <div class="card-content">
+        <div class="task-type">{{ task.taskType }}</div>
+        <div class="room-type">{{ task.roomType }}</div>
+        <div class="assigned-to">👤 {{ task.assignedToName }}</div>
+        <div class="due-time" [class.overdue]="isOverdue(task.completedAt || task.startedAt)">
+          ⏰ {{ formatDueTime(task.completedAt || task.startedAt || task.assignedAt) }}
+        </div>
+        <div class="notes" *ngIf="task.notes">📝 {{ task.notes }}</div>
+      </div>
+
+      <div class="card-footer">
+        <span class="status-badge" [class]="getStatusClass(task.status)">
+          {{ task.status }}
+        </span>
+        <div class="card-actions">
+          <button *ngIf="task.status === 'Pending'" class="action-icon start" (click)="startTask(task.taskId)" title="Start Task">▶</button>
+          <button *ngIf="task.status === 'InProgress'" class="action-icon complete" (click)="openCompleteModal(task)" title="Complete Task">✓</button>
+          <button class="action-icon reassign" (click)="openReassignModal(task)" title="Reassign">↻</button>
+          <button class="action-icon view" (click)="viewTaskDetails(task)" title="View Details">👁</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && tasks.length === 0">
+    <div class="empty-icon">🧹</div>
+    <h3>No Tasks Found</h3>
+    <p>No tasks match your current filters. Try adjusting your search criteria or create a new task.</p>
+    <button class="btn-primary" (click)="showCreateModal = true">Create New Task</button>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button class="page-btn" (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1">
+      ← Previous
+    </button>
+    <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+    <button class="page-btn" (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages">
+      Next →
+    </button>
+    <select class="page-size-select" [(ngModel)]="pageSize" (change)="changePageSize(pageSize)">
+      <option [value]="10">10 per page</option>
+      <option [value]="25">25 per page</option>
+      <option [value]="50">50 per page</option>
+      <option [value]="100">100 per page</option>
+    </select>
+  </div>
+</div>
+
+<!-- Create Task Modal -->
+<div class="modal-overlay" *ngIf="showCreateModal" (click)="showCreateModal = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Create New Task</h2>
+      <button class="modal-close" (click)="showCreateModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Room Number *</label>
+        <input type="text" [(ngModel)]="newTask.roomNumber" class="form-control" placeholder="e.g., 101" />
+      </div>
+      <div class="form-group">
+        <label>Room ID *</label>
+        <input type="number" [(ngModel)]="newTask.roomId" class="form-control" placeholder="Room ID" />
+      </div>
+      <div class="form-group">
+        <label>Room Type *</label>
+        <input type="text" [(ngModel)]="newTask.roomType" class="form-control" placeholder="e.g., Deluxe Suite" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Task Type *</label>
+          <select [(ngModel)]="newTask.taskType" class="form-control">
+            <option value="Checkout">Checkout</option>
+            <option value="Stayover">Stayover</option>
+            <option value="DeepClean">Deep Clean</option>
+            <option value="Turndown">Turndown</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Priority *</label>
+          <select [(ngModel)]="newTask.priority" class="form-control">
+            <option value="High">High</option>
+            <option value="Normal">Normal</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Assign To *</label>
+          <select [(ngModel)]="newTask.assignedTo" class="form-control">
+            <option [value]="null">Select Staff...</option>
+            <option *ngFor="let staff of staffMembers" [value]="staff.id">{{ staff.name }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Assigned To Name</label>
+          <input type="text" [(ngModel)]="newTask.assignedToName" class="form-control" placeholder="Staff name" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes (Optional)</label>
+        <textarea [(ngModel)]="newTask.notes" class="form-control" rows="3" placeholder="Additional instructions..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showCreateModal = false">Cancel</button>
+      <button class="btn-primary" (click)="createTask()" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Creating...' : 'Create Task' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Complete Task Modal -->
+<div class="modal-overlay" *ngIf="showCompleteModal" (click)="showCompleteModal = false">
+  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Complete Task - Room {{ selectedTask?.roomNumber }}</h2>
+      <button class="modal-close" (click)="showCompleteModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="error-message" *ngIf="checklistError">
+        <div class="alert alert-danger">
+          {{ checklistError }}
+        </div>
+      </div>
+
+      <div *ngIf="!checklistError">
+        <div class="form-group">
+          <label>Duration (minutes)</label>
+          <input type="number" [(ngModel)]="completionData.durationMinutes" class="form-control" />
+        </div>
+
+        <h3>Cleaning Checklist</h3>
+        <div class="checklist">
+          <label *ngFor="let item of completionData.checklist" class="checkbox-item">
+            <input type="checkbox" [(ngModel)]="item.completed" />
+            <span>{{ item.name }}</span>
+          </label>
+        </div>
+
+        <h3>Supplies Used</h3>
+        <div class="supplies">
+          <div *ngFor="let supply of completionData.suppliesUsed; let i = index" class="supply-row">
+            <input type="text" [(ngModel)]="supply.name" placeholder="Item name" class="supply-name" />
+            <input type="number" [(ngModel)]="supply.quantity" placeholder="Qty" class="supply-qty" />
+            <input type="text" [(ngModel)]="supply.unit" placeholder="Unit" class="supply-unit" />
+            <button class="remove-btn" (click)="removeSupply(i)">Remove</button>
+          </div>
+          <button class="btn-secondary" (click)="addSupply()">+ Add Supply</button>
+        </div>
+
+        <div class="form-group">
+          <label>Completion Notes</label>
+          <textarea [(ngModel)]="completionData.notes" class="form-control" rows="2" placeholder="Any additional notes..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showCompleteModal = false">Cancel</button>
+      <button class="btn-primary" (click)="completeTask()" [disabled]="isSubmitting || checklistError">
+        {{ isSubmitting ? 'Submitting...' : 'Complete Task' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Cancel Task Modal -->
+<div class="modal-overlay" *ngIf="showCancelModal" (click)="showCancelModal = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Cancel Task</h2>
+      <button class="modal-close" (click)="showCancelModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to cancel this task?</p>
+      <div class="form-group">
+        <label>Reason for cancellation *</label>
+        <textarea [(ngModel)]="cancelReason" class="form-control" rows="3" placeholder="Please provide a reason..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showCancelModal = false">No, Keep Task</button>
+      <button class="btn-danger" (click)="cancelTask()" [disabled]="isSubmitting || !cancelReason">
+        {{ isSubmitting ? 'Processing...' : 'Yes, Cancel Task' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Reassign Task Modal -->
+<div class="modal-overlay" *ngIf="showReassignModal" (click)="showReassignModal = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Reassign Task</h2>
+      <button class="modal-close" (click)="showReassignModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>Reassign task for Room {{ selectedTask?.roomNumber }} - {{ selectedTask?.taskType }}</p>
+      <div class="form-group">
+        <label>Select Staff Member</label>
+        <select [(ngModel)]="reassignStaffId" class="form-control">
+          <option [value]="null">Choose staff...</option>
+          <option *ngFor="let staff of staffMembers" [value]="staff.id">{{ staff.name }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showReassignModal = false">Cancel</button>
+      <button class="btn-primary" (click)="reassignTask()" [disabled]="isSubmitting || !reassignStaffId">
+        {{ isSubmitting ? 'Reassigning...' : 'Reassign' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- View Task Details Modal -->
+<div class="modal-overlay" *ngIf="showDetailsModal" (click)="showDetailsModal = false">
+  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Task Details - Room {{ selectedTask?.roomNumber }}</h2>
+      <button class="modal-close" (click)="showDetailsModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="details-grid">
+        <div class="detail-item">
+          <label>Task ID:</label>
+          <span>{{ selectedTask?.taskId }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Room:</label>
+          <span>{{ selectedTask?.roomNumber }} ({{ selectedTask?.roomType }})</span>
+        </div>
+        <div class="detail-item">
+          <label>Task Type:</label>
+          <span>{{ selectedTask?.taskType }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Priority:</label>
+          <span class="priority-badge" [class]="getPriorityClass(selectedTask?.priority || 'Normal')">
+            {{ selectedTask?.priority }}
+          </span>
+        </div>
+        <div class="detail-item">
+          <label>Status:</label>
+          <span class="status-badge" [class]="getStatusClass(selectedTask?.status || 'Pending')">
+            {{ selectedTask?.status }}
+          </span>
+        </div>
+        <div class="detail-item">
+          <label>Assigned To:</label>
+          <span>{{ selectedTask?.assignedToName }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Assigned By:</label>
+          <span>{{ selectedTask?.assignedByName }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Assigned At:</label>
+          <span>{{ formatDate(selectedTask?.assignedAt) }}</span>
+        </div>
+        <div class="detail-item" *ngIf="selectedTask?.startedAt">
+          <label>Started At:</label>
+          <span>{{ formatDate(selectedTask?.startedAt) }}</span>
+        </div>
+        <div class="detail-item" *ngIf="selectedTask?.completedAt">
+          <label>Completed At:</label>
+          <span>{{ formatDate(selectedTask?.completedAt) }}</span>
+        </div>
+        <div class="detail-item" *ngIf="selectedTask?.durationMinutes">
+          <label>Duration:</label>
+          <span>{{ selectedTask?.durationMinutes }} minutes</span>
+        </div>
+        <div class="detail-item full-width" *ngIf="selectedTask?.notes">
+          <label>Notes:</label>
+          <span>{{ selectedTask?.notes }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showDetailsModal = false">Close</button>
+    </div>
+  </div>
+</div>
