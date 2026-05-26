@@ -1,10 +1,12 @@
+
 // room-wizard.component.ts
 import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RoomService } from '../../../../core/services/room.service';
-import { RoomType, Amenity, ViewTypes, BedTypes } from '../../../../core/models/room.model';
+import { RoomType, Amenity, ViewTypes, BedTypes, RoomTypeAmenities } from '../../../../core/models/room.model';
 import { ToastrService } from 'ngx-toastr';
+import { finalize } from 'rxjs';
 
 
 @Component({
@@ -24,28 +26,31 @@ export class RoomWizardComponent implements OnInit, OnDestroy {
   roomId: number | null = null;
   isLoading = false;
   isSaving = false;
-
+AmenityIdList:number[] =[];
   // Lookup data
+  selectedRoomType! : RoomType;
   roomTypes: RoomType[] = [];
   viewTypes: ViewTypes[] = [];
   bedTypes: BedTypes[] = [];
   amenities: Amenity[] = [];
+  roomTypeAmenities:RoomTypeAmenities[] =[]
   statuses = ['Available', 'Occupied', 'Maintenance', 'Cleaning', 'Reserved'];
   roomservice =inject(RoomService)
 cdr =inject(ChangeDetectorRef)
 toastService =inject(ToastrService)
   // Reactive form
   roomForm: FormGroup;
-
+existingAmenities:RoomTypeAmenities[] = [];
   // UI helpers
   stepNames = [
     'Basic Information',
     'Room Features',
-    'Bed Configuration',
+    // 'Bed Configuration',
     'Amenities',
     'Pricing & Discounts',
     'Review & Save'
   ];
+  roomInfo: any;
 
   constructor() {
     this.roomForm = this.fb.group({
@@ -58,6 +63,7 @@ toastService =inject(ToastrService)
       viewTypeId: [null],
       isSmoking: [false],
       isAccessible: [false],
+      bedType:[''],
       // Step 3
       bedConfigurations: this.fb.array([]),
       // Step 4
@@ -73,10 +79,9 @@ toastService =inject(ToastrService)
   }
 
   ngOnInit(): void {
-  //  this.loadRoomTypes()
-  //  this.loadBedTypes()
-    //this.loadViewTypes()
+
     this.loadLookups();
+
   }
   loadViewTypes() {
    this.roomservice.getViewTypes().subscribe({
@@ -103,22 +108,21 @@ toastService =inject(ToastrService)
   }
   GetRoomSize(event:any){
 
- let roomSize =  this.roomTypes.find(x =>x.roomTypeId ==Number(event.target.value))?.roomSize
+ this.roomInfo =  this.roomTypes.find(x =>x.roomTypeId ==Number(event.target.value))!
+  let viewTypeInfo:any =   this.viewTypes.find(x =>x.viewName ==this.roomInfo.viewType)
+ this.roomForm.get('roomSize')?.setValue(this.roomInfo?.roomSize)
+ this.roomForm.get('viewTypeId')?.setValue(viewTypeInfo.viewTypeId)
+this.roomForm.get('basePriceOverride')?.setValue(this.roomInfo?.basePrice)
+ this.selectedRoomType = this.roomTypes.find(x =>x.roomTypeId ==Number(event.target.value))!;
+    this.existingAmenities = this.roomTypeAmenities.filter(x =>x.roomTypeId ==this.selectedRoomType.roomTypeId)
 
- this.roomForm.get('roomSize')?.setValue(roomSize)
-  }
-  loadRoomTypes() {
-    this.roomservice.getRoomTypes().subscribe({
-      next:(response)=>{
-        this.roomTypes =response.data
-
-      },
-      error:(err)=>{
-        this.toastService.error(err.error.message)
-        console.log(err.error.message)
-      }
+    this.AmenityIdList = this.existingAmenities.map(x => x.amenityId);
+    this.roomForm.patchValue({
+      bedType:this.roomInfo.bedType
     })
+
   }
+
 
   ngOnDestroy(): void {
     // Cleanup if needed
@@ -134,26 +138,54 @@ toastService =inject(ToastrService)
   }
 
   // Load lookups from API
+  // loadLookups(): void {
+  //   this.isLoading = true;
+  //   this.wizardService.getLookups().subscribe({
+  //     next: (response) => {
+  //       this.roomTypes = response.data.roomTypes;
+  //       this.roomTypeAmenities = response.data.roomTypeAmenities;
+  //       this.viewTypes = response.data.viewTypes;
+  //       this.bedTypes = response.data.bedTypes;
+  //       this.amenities =response.data.amenities;
+  //       this.isLoading = false;
+  //       console.log("Amenity", this.roomTypes)
+  //      // console.log( response.data)
+  //      //  console.log( this.roomTypes,"data")
+  //       this.cdr.detectChanges();
+  //     },
+  //     error: (error) => {
+  //       console.error('Error Loading:', error);
+  //       this.isLoading = false;
+  //       this.cdr.detectChanges()
+  //     }
+  //   });
+  // }
+
+
   loadLookups(): void {
-    this.isLoading = true;
-    this.wizardService.getLookups().subscribe({
-      next: (response) => {
-        this.roomTypes = response.data.roomTypes;
-        this.viewTypes = response.data.viewTypes;
-        this.bedTypes = response.data.bedTypes;
-        this.amenities =response.data.amenities;
+  this.isLoading = true;
+
+  this.wizardService.getLookups()
+    .pipe(
+      finalize(() => {
         this.isLoading = false;
-      //  console.log( response.data.amenities)
-        // console.log( this.bedTypes,"data")
         this.cdr.detectChanges();
+      })
+    )
+    .subscribe({
+      next: (response:any) => {
+        this.roomTypes = response.data.roomTypes;
+        this.roomTypeAmenities = response.data.roomTypeAmenities;
+        this.viewTypes = response.data.viewTypes;
+      //  this.bedTypes = response.data.bedTypes;
+        this.amenities = response.data.amenities;
+      //  console.log(  this.roomTypes )
       },
       error: (error) => {
-        console.error('Error loading lookups:', error);
-        this.isLoading = false;
-        this.cdr.detectChanges()
+        console.error('Error Loading:', error);
       }
     });
-  }
+}
 getAmenityColor(name: string): string {
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
@@ -189,17 +221,18 @@ getAmenityColor(name: string): string {
           weeklyDiscount: data.weeklyDiscount,
           monthlyDiscount: data.monthlyDiscount,
           status: data.status,
+          bedType:data.bedType,
           isActive: data.isActive,
           selectedAmenities: data.amenities?.map((a: any) => a.amenityId) || []
         });
 
         // Clear existing bed configs and add saved ones
-        this.bedConfigurations.clear();
-        if (data.beds && data.beds.length) {
-          data.beds.forEach((bed: any) => {
-            this.bedConfigurations.push(this.createBedGroup(bed.bedTypeId, bed.quantity));
-          });
-        }
+        // this.bedConfigurations.clear();
+        // if (data.beds && data.beds.length) {
+        //   data.beds.forEach((bed: any) => {
+        //     this.bedConfigurations.push(this.createBedGroup(bed.bedTypeId, bed.quantity));
+        //   });
+        // }
 
         this.roomId = roomId;
         this.isLoading = false;
@@ -242,7 +275,9 @@ getAmenityColor(name: string): string {
 
   // Toggle amenity selection
   toggleAmenity(amenityId: number): void {
-    const current = this.selectedAmenities;
+  //  console.log(this.AmenityIdList)
+
+    const current = this.AmenityIdList;
     const index = current.indexOf(amenityId);
     if (index > -1) {
       current.splice(index, 1);
@@ -250,10 +285,11 @@ getAmenityColor(name: string): string {
       current.push(amenityId);
     }
     this.roomForm.get('selectedAmenities')?.setValue([...current]);
+   // console.log(this.roomForm.get('selectedAmenities')?.value)
   }
 
   isAmenitySelected(amenityId: number): boolean {
-    return this.selectedAmenities.includes(amenityId);
+    return this.AmenityIdList.includes(amenityId);
   }
 
   // Navigation
@@ -281,36 +317,36 @@ getAmenityColor(name: string): string {
       case 1:
         const basic = this.roomForm.value;
         if (!basic.roomNumber) {
-          alert('Please enter room number');
+          this.toastService.warning('Please enter room number');
           return false;
         }
         if (!basic.roomTypeId) {
-          alert('Please select room type');
+           this.toastService.warning('Please select room type');
           return false;
         }
         if (basic.floorNumber === null || basic.floorNumber === undefined) {
-          alert('Please enter floor number');
+           this.toastService.warning('Please enter floor number');
           return false;
         }
         return true;
 
-      case 3:
-        if (this.bedConfigurations.length === 0) {
-          alert('Please add at least one bed configuration');
-          return false;
-        }
-        for (let i = 0; i < this.bedConfigurations.length; i++) {
-          const bed = this.bedConfigurations.at(i).value;
-          if (!bed.bedTypeId) {
-            alert(`Bed ${i + 1} is missing a bed type`);
-            return false;
-          }
-          if (!bed.quantity || bed.quantity < 1) {
-            alert(`Bed ${i + 1} must have a quantity of at least 1`);
-            return false;
-          }
-        }
-        return true;
+      // case 3:
+      //   if (this.bedConfigurations.length === 0) {
+      //      this.toastService.warning('Please add at least one bed configuration');
+      //     return false;
+      //   }
+      //   for (let i = 0; i < this.bedConfigurations.length; i++) {
+      //     const bed = this.bedConfigurations.at(i).value;
+      //     if (!bed.bedTypeId) {
+      //        this.toastService.warning(`Bed ${i + 1} is missing a bed type`);
+      //       return false;
+      //     }
+      //     if (!bed.quantity || bed.quantity < 1) {
+      //        this.toastService.warning(`Bed ${i + 1} must have a quantity of at least 1`);
+      //       return false;
+      //     }
+      //   }
+      //   return true;
 
       default:
         return true;
@@ -320,7 +356,11 @@ getAmenityColor(name: string): string {
   // Get selected room type object
   getSelectedRoomType(): RoomType | undefined {
     const roomTypeId = this.roomForm.get('roomTypeId')?.value;
-    return this.roomTypes.find(rt => rt.roomTypeId === roomTypeId);
+    let PriceInfo = this.roomTypes.find(rt => rt.roomTypeId === roomTypeId);
+    console.log(PriceInfo)
+   //
+//this.cdr.detectChanges()
+    return PriceInfo
   }
 
   // Get selected view type object
@@ -339,7 +379,7 @@ getAmenityColor(name: string): string {
 
   // Get amenity details for review
   getAmenityDetails(): Amenity[] {
-    return this.amenities.filter(a => this.selectedAmenities.includes(a.amenityId!));
+    return this.amenities.filter(a => this.AmenityIdList.includes(a.amenityId!));
   }
 
   // Prepare data for saving
@@ -359,6 +399,7 @@ getAmenityColor(name: string): string {
       monthlyDiscount: formValue.monthlyDiscount,
       status: formValue.status,
       isActive: formValue.isActive
+
     };
 
     // Bed configurations
@@ -384,7 +425,7 @@ getAmenityColor(name: string): string {
   saveRoom(): void {
     this.isSaving = true;
     const saveData = this.prepareSaveData();
-
+console.log(saveData)
     this.wizardService.saveRoom(saveData).subscribe({
       next: (response) => {
         this.isSaving = false;

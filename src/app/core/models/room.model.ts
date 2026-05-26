@@ -221,7 +221,15 @@ export interface Amenity {
   stockItemId?: number | null; // Link to inventory item if isConsumable is true
 }
 
-
+export interface RoomTypeAmenities {
+   amenityId: number
+    roomTypeId:number
+   icon:string
+   isActive:boolean
+  AmenityName :string
+ IsConsumable:boolean
+ StockItemId:number
+}
 export interface BedTypes {
   bedTypeId: number;
   bedTypeName: string;

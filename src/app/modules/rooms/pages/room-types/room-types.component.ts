@@ -139,7 +139,23 @@ private roomService: RoomService = inject(RoomService);
       isActive: false
     });
   }
+getAmenityColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
 
+  // Convert the hash into a 6-digit hex code
+  let color = '#';
+  for (let i = 0; i < 3; i++) {
+    // Extract a byte value (0-255) from the hash
+    const value = (hash >> (i * 8)) & 0xFF;
+    // Format it as a 2-digit hex string and append
+    color += ('00' + value.toString(16)).slice(-2);
+  }
+
+  return color;
+}
   openEditModal(roomType: RoomType): void {
     this.isEditing = true;
    // console.log('Editing room type:', roomType);

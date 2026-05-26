@@ -44,7 +44,7 @@
             <select formControlName="roomTypeId" class="form-control" (change)="GetRoomSize($event)">
               <option [value]="null">Select Room Type</option>
               <option *ngFor="let type of roomTypes" [value]="type.roomTypeId">
-                {{ type.typeName }} - ${{ type.basePrice }}/night (Max: {{ type.maxAdults }} adults, {{ type.maxChildren }} children)
+                {{ type.typeName }} - NGN {{ type.basePrice }}/night (Max: {{ type.maxAdults }} adults, {{ type.maxChildren }} children)
               </option>
             </select>
             <div class="error" *ngIf="roomForm.get('roomTypeId')?.invalid && roomForm.get('roomTypeId')?.touched">
@@ -96,7 +96,7 @@
       </div>
 
       <!-- Step 3: Bed Configuration -->
-      <div class="step-content" *ngIf="currentStep === 3">
+      <div class="step-content" *ngIf="currentStep === 3" style="display: none;">
         <h3>Bed Configuration</h3>
         <div class="beds-container" formArrayName="bedConfigurations">
           <div *ngFor="let bed of bedConfigurations.controls; let i = index" class="bed-item" [formGroupName]="i">
@@ -119,9 +119,9 @@
       </div>
 
       <!-- Step 4: Amenities -->
-      <div class="step-content" *ngIf="currentStep === 4">
+      <div class="step-content" *ngIf="currentStep === 3">
         <h3>Amenities</h3>
-        <div class="amenities-grid">
+        <div class="amenities-grid" >
           <div *ngFor="let amenity of amenities"
                class="amenity-card"
                [class.selected]="isAmenitySelected(amenity.amenityId!)"
@@ -136,14 +136,14 @@
       </div>
 
       <!-- Step 5: Pricing & Discounts -->
-      <div class="step-content" *ngIf="currentStep === 5">
+      <div class="step-content" *ngIf="currentStep === 4">
         <h3>Pricing & Discounts</h3>
         <div class="form-grid">
           <div class="form-group">
-            <label>Base Price Override</label>
+            <label>Base Price</label>
             <input type="number" formControlName="basePriceOverride" class="form-control"
                    placeholder="Leave empty to use room type price">
-            <small *ngIf="getSelectedRoomType()">Base price: ${{ getSelectedRoomType()?.basePrice }}/night</small>
+            <small *ngIf="getSelectedRoomType()">Base price: NGN {{ getSelectedRoomType()?.basePrice }}/night</small>
           </div>
 
           <div class="form-group">
@@ -162,16 +162,20 @@
             <h4>Price Preview</h4>
             <div class="price-line">
               <span>Base Price:</span>
-              <strong>${{ getTotalPrice() }}/night</strong>
+              <strong>NGN {{ getTotalPrice() }}/night</strong>
+            </div>
+            <div class="price-line">
+<span>View Price</span>
+<strong>NGN {{getSelectedViewType()?.premiumCharge || 0}}/night</strong>
             </div>
             <div class="price-line" *ngIf="roomForm.get('weeklyDiscount')?.value">
               <span>Weekly Rate (7+ nights):</span>
-              <strong>${{ getTotalPrice() * (1 - (roomForm.get('weeklyDiscount')?.value / 100)) }}/night</strong>
+              <strong>NGN {{ getTotalPrice() * (1 - (roomForm.get('weeklyDiscount')?.value / 100)) }}/night</strong>
               <small>({{ roomForm.get('weeklyDiscount')?.value }}% off)</small>
             </div>
             <div class="price-line" *ngIf="roomForm.get('monthlyDiscount')?.value">
               <span>Monthly Rate (30+ nights):</span>
-              <strong>${{ getTotalPrice() * (1 - (roomForm.get('monthlyDiscount')?.value / 100)) }}/night</strong>
+              <strong>NGN {{ getTotalPrice() * (1 - (roomForm.get('monthlyDiscount')?.value / 100)) }}/night</strong>
               <small>({{ roomForm.get('monthlyDiscount')?.value }}% off)</small>
             </div>
           </div>
@@ -179,13 +183,13 @@
       </div>
 
       <!-- Step 6: Review & Save -->
-      <div class="step-content" *ngIf="currentStep === 6">
+      <div class="step-content" *ngIf="currentStep === 5">
         <h3>Review & Save</h3>
         <div class="review-section">
           <div class="review-card">
             <h4>Basic Information</h4>
             <p><strong>Room Number:</strong> {{ roomForm.get('roomNumber')?.value }}</p>
-            <p><strong>Room Type:</strong> {{ getSelectedRoomType()?.typeName }}</p>
+            <p><strong>Room Type:</strong> {{ roomInfo.typeName }}</p>
             <p><strong>Floor:</strong> {{ roomForm.get('floorNumber')?.value }}</p>
             <p><strong>Size:</strong> {{ roomForm.get('roomSize')?.value || 'Not specified' }} sq ft</p>
           </div>
@@ -198,9 +202,9 @@
           </div>
 
           <div class="review-card">
-            <h4>Bed Configuration</h4>
-            <div *ngFor="let bed of bedConfigurations.controls">
-              <p>{{ bed.get('bedTypeName')?.value }} x {{ bed.get('quantity')?.value }}</p>
+            <h4>Bed Type</h4>
+            <div>
+              <p>{{ roomForm.get('bedType')?.value }}</p>
             </div>
           </div>
 
@@ -222,7 +226,7 @@
 
           <div class="review-card">
             <h4>Status</h4>
-            <select formControlName="status" class="form-control">
+            <select formControlName="status" class="form-select">
               <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
             </select>
 

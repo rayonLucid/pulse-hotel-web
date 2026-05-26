@@ -105,7 +105,7 @@
                 <div class="amenities-list">
                   @for (amenity of roomType.amenities; track amenity) {
                     <span class="amenity-tag">
-                      <i class="fas fa-check-circle"></i>
+                      <i class="fas {{amenity.icon}}" [style.color]="getAmenityColor(amenity.amenityName)"></i>
                       {{ amenity.amenityName }}
                     </span>
                   }
@@ -239,7 +239,7 @@
                 @for (amenity of getAmenities(); track amenity) {
                   <label class="checkbox-label">
                     <input type="checkbox" [checked]="isAmenitySelected(amenity)" (change)="toggleAmenity(amenity)">
-                    <i class="fas" [class]="amenity.icon"></i>
+                    <i class="fas" [class]="amenity.icon" [style.color]="getAmenityColor(amenity.amenityName)"></i>
                     <span>{{ amenity.amenityName }}</span>
                   </label>
                 }
