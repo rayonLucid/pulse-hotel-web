@@ -46,7 +46,9 @@ existingAmenities:RoomTypeAmenities[] = [];
     'Basic Information',
     'Room Features',
     // 'Bed Configuration',
-    'Amenities',
+      'Amenities',
+    'Room Images',
+
     'Pricing & Discounts',
     'Review & Save'
   ];
@@ -64,8 +66,8 @@ existingAmenities:RoomTypeAmenities[] = [];
       isSmoking: [false],
       isAccessible: [false],
       bedType:[''],
-      // Step 3
-      bedConfigurations: this.fb.array([]),
+
+      roomImages :this.fb.array([]),
       // Step 4
       selectedAmenities: [[]],
       // Step 5
@@ -128,38 +130,100 @@ this.roomForm.get('basePriceOverride')?.setValue(this.roomInfo?.basePrice)
     // Cleanup if needed
   }
 
-  // Convenience getters
-  get bedConfigurations(): FormArray {
-    return this.roomForm.get('bedConfigurations') as FormArray;
+
+
+get roomImages(): FormArray {
+  return this.roomForm.get('roomImages') as FormArray;
+}
+
+// Method to insert a blank entry row
+addRoomImage(): void {
+  const imageGroup = this.fb.group({
+    imageId:[0],
+    imageUrl: ['', Validators.required],
+    caption: [''],
+    isPrimary: [this.roomImages.length === 0] // Default first element to true
+  });
+  this.roomImages.push(imageGroup);
+}
+
+// Method to clear a row out
+removeRoomImage(index: number): void {
+  this.roomImages.removeAt(index);
+}
+
+// Ensures only ONE image is checked as primary at any point
+onPrimaryImageChanged(selectedIndex: number): void {
+  this.roomImages.controls.forEach((control, idx) => {
+    control.get('isPrimary')?.setValue(idx === selectedIndex, { emitEvent: false });
+  });
+}
+
+
+
+
+onFileSelected(event: Event, index: number): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files) return;
+
+    Array.from(input.files).forEach((file: File) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+
+      reader.onload = (e: any) => {
+        const img = new Image();
+        img.src = e.target.result;
+
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1000; // Limit image dimensions to a reasonable scale
+          let width = img.width;
+          let height = img.height;
+
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Compress to JPEG at 75% quality. Returns a lightweight base64 string.
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
+            this.imagePreviews.push(compressedBase64);
+          this.addRoomImageRow(compressedBase64, file.name.split('.')[0],index);
+        };
+      };
+    });
   }
+imagePreviews: string[] = [];
+  addRoomImageRow(base64String: string, defaultCaption: string,index:number): void {
+     const imageGroup = this.roomImages.at(index) as FormGroup;
+    //  imageGroup.get('imageUrl')?.setValue(base64String);
+    //    imageGroup.get('caption')?.setValue(defaultCaption);
+    //    let numImages:boolean =this.roomImages.length === 0;
+    //     imageGroup.get('isPrimary')?.setValue(numImages);
+    //     imageGroup.get('imageId')?.setValue(0);
+
+     imageGroup.patchValue({
+      imageId: [0],
+      imageUrl: [base64String, Validators.required],
+      caption: [defaultCaption],
+      isPrimary: [this.roomImages.length === 0] // Auto-check true for the first image
+    });
+   // this.roomImages.push(imageGroup);
+  }
+  // Convenience getters
+
 
   get selectedAmenities(): number[] {
     return this.roomForm.get('selectedAmenities')?.value || [];
   }
 
-  // Load lookups from API
-  // loadLookups(): void {
-  //   this.isLoading = true;
-  //   this.wizardService.getLookups().subscribe({
-  //     next: (response) => {
-  //       this.roomTypes = response.data.roomTypes;
-  //       this.roomTypeAmenities = response.data.roomTypeAmenities;
-  //       this.viewTypes = response.data.viewTypes;
-  //       this.bedTypes = response.data.bedTypes;
-  //       this.amenities =response.data.amenities;
-  //       this.isLoading = false;
-  //       console.log("Amenity", this.roomTypes)
-  //      // console.log( response.data)
-  //      //  console.log( this.roomTypes,"data")
-  //       this.cdr.detectChanges();
-  //     },
-  //     error: (error) => {
-  //       console.error('Error Loading:', error);
-  //       this.isLoading = false;
-  //       this.cdr.detectChanges()
-  //     }
-  //   });
-  // }
+
 
 
   loadLookups(): void {
@@ -207,32 +271,27 @@ getAmenityColor(name: string): string {
   loadRoom(roomId: number): void {
     this.isLoading = true;
     this.wizardService.getRoom(roomId).subscribe({
-      next: (data) => {
+      next: (response) => {
         // Patch basic info
         this.roomForm.patchValue({
-          roomNumber: data.roomNumber,
-          roomTypeId: data.roomTypeId,
-          floorNumber: data.floorNumber,
-          roomSize: data.roomSize,
-          viewTypeId: data.viewTypeId,
-          isSmoking: data.isSmoking,
-          isAccessible: data.isAccessible,
-          basePriceOverride: data.basePriceOverride,
-          weeklyDiscount: data.weeklyDiscount,
-          monthlyDiscount: data.monthlyDiscount,
-          status: data.status,
-          bedType:data.bedType,
-          isActive: data.isActive,
-          selectedAmenities: data.amenities?.map((a: any) => a.amenityId) || []
+          roomNumber: response.data.roomNumber,
+          roomTypeId: response.data.roomTypeId,
+          floorNumber: response.data.floorNumber,
+          roomSize: response.data.roomSize,
+          viewTypeId: response.data.viewTypeId,
+          isSmoking: response.data.isSmoking,
+          isAccessible: response.data.isAccessible,
+          basePriceOverride: response.data.basePriceOverride,
+          weeklyDiscount: response.data.weeklyDiscount,
+          monthlyDiscount: response.data.monthlyDiscount,
+          status: response.data.status,
+          bedType:response.data.bedType,
+          isActive: response.data.isActive,
+          selectedAmenities:response. data.amenities?.map((a: any) => a.amenityId) || [],
+          roomImages:response.data.roomImages
         });
 
-        // Clear existing bed configs and add saved ones
-        // this.bedConfigurations.clear();
-        // if (data.beds && data.beds.length) {
-        //   data.beds.forEach((bed: any) => {
-        //     this.bedConfigurations.push(this.createBedGroup(bed.bedTypeId, bed.quantity));
-        //   });
-        // }
+
 
         this.roomId = roomId;
         this.isLoading = false;
@@ -244,34 +303,9 @@ getAmenityColor(name: string): string {
     });
   }
 
-  // Create a bed FormGroup
-  createBedGroup(bedTypeId: number = 0, quantity: number = 1): FormGroup {
-    return this.fb.group({
-      bedTypeId: [bedTypeId, Validators.required],
-      quantity: [quantity, [Validators.required, Validators.min(1), Validators.max(10)]],
-      bedTypeName: ['']
-    });
-  }
 
-  // Add new bed configuration
-  addBedConfiguration(): void {
-    this.bedConfigurations.push(this.createBedGroup());
-  }
 
-  // Remove bed configuration at index
-  removeBedConfiguration(index: number): void {
-    this.bedConfigurations.removeAt(index);
-  }
 
-  // Update bed type name for display (optional, for review)
-  updateBedTypeName(index: number): void {
-    const bedGroup = this.bedConfigurations.at(index) as FormGroup;
-    const bedTypeId = bedGroup.get('bedTypeId')?.value;
-    const bedType = this.bedTypes.find(bt => bt.bedTypeId === bedTypeId);
-    if (bedType) {
-      bedGroup.get('bedTypeName')?.setValue(bedType.bedTypeName);
-    }
-  }
 
   // Toggle amenity selection
   toggleAmenity(amenityId: number): void {
@@ -330,23 +364,7 @@ getAmenityColor(name: string): string {
         }
         return true;
 
-      // case 3:
-      //   if (this.bedConfigurations.length === 0) {
-      //      this.toastService.warning('Please add at least one bed configuration');
-      //     return false;
-      //   }
-      //   for (let i = 0; i < this.bedConfigurations.length; i++) {
-      //     const bed = this.bedConfigurations.at(i).value;
-      //     if (!bed.bedTypeId) {
-      //        this.toastService.warning(`Bed ${i + 1} is missing a bed type`);
-      //       return false;
-      //     }
-      //     if (!bed.quantity || bed.quantity < 1) {
-      //        this.toastService.warning(`Bed ${i + 1} must have a quantity of at least 1`);
-      //       return false;
-      //     }
-      //   }
-      //   return true;
+
 
       default:
         return true;
@@ -383,44 +401,77 @@ getAmenityColor(name: string): string {
   }
 
   // Prepare data for saving
-  prepareSaveData(): any {
-    const formValue = this.roomForm.value;
-    const saveData: any = {
-      roomId: this.roomId || null,
-      roomNumber: formValue.roomNumber,
-      roomTypeId: formValue.roomTypeId,
-      floorNumber: formValue.floorNumber,
-      roomSize: formValue.roomSize,
-      viewTypeId: formValue.viewTypeId,
-      isSmoking: formValue.isSmoking,
-      isAccessible: formValue.isAccessible,
-      basePriceOverride: formValue.basePriceOverride,
-      weeklyDiscount: formValue.weeklyDiscount,
-      monthlyDiscount: formValue.monthlyDiscount,
-      status: formValue.status,
-      isActive: formValue.isActive
+//   prepareSaveData(): any {
+//     const formValue = this.roomForm.value;
+//     const saveData: any = {
+//       roomId: this.roomId || null,
+//       roomNumber: formValue.roomNumber,
+//       roomTypeId: formValue.roomTypeId,
+//       floorNumber: formValue.floorNumber,
+//       roomSize: formValue.roomSize,
+//       viewTypeId: formValue.viewTypeId,
+//       isSmoking: formValue.isSmoking,
+//       isAccessible: formValue.isAccessible,
+//       basePriceOverride: formValue.basePriceOverride,
+//       weeklyDiscount: formValue.weeklyDiscount,
+//       monthlyDiscount: formValue.monthlyDiscount,
+//       status: formValue.status,
+//       isActive: formValue.isActive
 
-    };
+//     };
+//  this.roomImages.controls.forEach((group, idx) => {
+//     const url = group.get('imageUrl')?.value;
+//     if (url) {
+//       formValue.append(`imageUrl[${idx}]`, url);
+//       formValue.append(`captions[${idx}]`, group.get('caption')?.value);
+//       formValue.append(`isPrimary[${idx}]`, group.get('isPrimary')?.value);
+//     }
+//   });
+//     // // Bed configurations
+//     // if (this.bedConfigurations.length > 0) {
+//     //   saveData.bedsJson = JSON.stringify(
+//     //     this.bedConfigurations.value.map((bed: any) => ({
+//     //       bedTypeId: bed.bedTypeId,
+//     //       quantity: bed.quantity
+//     //     }))
+//     //   );
+//     // }
 
-    // Bed configurations
-    if (this.bedConfigurations.length > 0) {
-      saveData.bedsJson = JSON.stringify(
-        this.bedConfigurations.value.map((bed: any) => ({
-          bedTypeId: bed.bedTypeId,
-          quantity: bed.quantity
-        }))
-      );
-    }
+//     // Amenities
+//     if (formValue.selectedAmenities.length > 0) {
+//       saveData.amenitiesJson = JSON.stringify(
+//         formValue.selectedAmenities.map((id: number) => ({ amenityId: id }))
+//       );
+//     }
 
-    // Amenities
-    if (formValue.selectedAmenities.length > 0) {
-      saveData.amenitiesJson = JSON.stringify(
-        formValue.selectedAmenities.map((id: number) => ({ amenityId: id }))
-      );
-    }
+//     return saveData;
+//   }
 
-    return saveData;
-  }
+prepareSaveData(): any {
+
+  const formValue= this.roomForm.value;
+
+  // Append all basic fields as JSON (or individually)
+  const roomData = {
+    roomId: this.roomId || null,
+    roomNumber: formValue.roomNumber,
+    roomTypeId: formValue.roomTypeId,
+    floorNumber: formValue.floorNumber,
+    roomSize: formValue.roomSize,
+    viewTypeId: formValue.viewTypeId,
+    isSmoking: formValue.isSmoking,
+    isAccessible: formValue.isAccessible,
+    basePriceOverride: formValue.basePriceOverride,
+    weeklyDiscount: formValue.weeklyDiscount,
+    monthlyDiscount: formValue.monthlyDiscount,
+    status: formValue.status,
+    isActive: formValue.isActive,
+    amenitiesJson: formValue.selectedAmenities?.length ? formValue.selectedAmenities: null,
+    roomImages:formValue.roomImages?.length?formValue.roomImages:null
+  };
+
+  return roomData;
+}
 
   saveRoom(): void {
     this.isSaving = true;

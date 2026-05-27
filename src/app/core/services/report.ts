@@ -2,15 +2,18 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+
+import { AppConfigService } from './app.config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ReportService {
-  private apiUrl = `${environment.apiUrl}/reports`;
+  private apiUrl = ``;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient,private config:AppConfigService) {
+     this.apiUrl = `${this.config.apiUrl}/reports`;
+  }
 
   // Occupancy Reports
   getOccupancyForecast(daysAhead: number): Observable<any> {

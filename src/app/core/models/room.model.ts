@@ -253,3 +253,44 @@ export interface RoomWizardData {
   status: string;
   isActive: boolean;
 }
+
+
+export interface RoomWizardDto {
+// Basic Info (First Result Set)
+roomId: number;
+bedType:string;
+roomNumber: string;
+roomTypeId: number;
+roomTypeName: string;
+floorNumber: number;
+roomSize?: number | null;
+viewTypeId?: number | null;
+viewName?: string | null;
+isSmoking: boolean;
+isAccessible: boolean;
+status: string;
+isActive: boolean;
+basePriceOverride?: number | null;
+weeklyDiscount?: number | null;
+monthlyDiscount?: number | null;
+roomTypeBasePrice: number;
+
+// Child Collections mapped from subsequent result sets
+roomImages: RoomImageDto[];
+amenities: RoomAmenityDto[];
+}
+
+export interface RoomImageDto {
+roomId: number;
+imageUrl: string;
+caption?: string | null;
+isPrimary: boolean;
+}
+
+export interface RoomAmenityDto {
+amenityId: number;
+amenityName: string;
+icon?: string | null;
+isConsumable: boolean;
+chargeAmount: number;
+}

@@ -17,9 +17,9 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding(),
       withViewTransitions()
     ),
-   provideAppInitializer(() => {
+   provideAppInitializer(async () => {
       const appConfigService = inject(AppConfigService);
-      return appConfigService.load(); // returns Promise<void> directly
+      return await appConfigService.load(); // returns Promise<void> directly
     }),
     // HTTP Client with interceptors
     provideHttpClient(

@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
+
 import { MenuCategory, MenuItem, MenuRolePermission, UserMenu } from '../models/menu.model';
 import { AppConfigService } from './app.config.service';
 
@@ -39,10 +39,10 @@ export class MenuService {
    * Load user menus from API
    */
 public  loadUserMenus(): Observable<UserMenu> {
-  console.log('Loading user menus from API:', `${this.apiUrl}`);
+//  console.log('Loading user menus from API:', `${this.apiUrl}`);
     return this.http.get<UserMenu>(`${this.apiUrl}/menu/user`).pipe(
       tap((userMenu:any) => {
-        console.log(userMenu.data)
+      //  console.log(userMenu.data)
         this.menusSubject.next(this.buildMenuHierarchy(userMenu.data.menus));
         this.pinnedMenusSubject.next(userMenu.data.pinnedMenus);
       })

@@ -95,28 +95,7 @@
         </div>
       </div>
 
-      <!-- Step 3: Bed Configuration -->
-      <div class="step-content" *ngIf="currentStep === 3" style="display: none;">
-        <h3>Bed Configuration</h3>
-        <div class="beds-container" formArrayName="bedConfigurations">
-          <div *ngFor="let bed of bedConfigurations.controls; let i = index" class="bed-item" [formGroupName]="i">
-            <select formControlName="bedTypeId" class="form-select" (change)="updateBedTypeName(i)" style="flex:2">
-              <option [value]="null">Select Bed Type</option>
-              <option *ngFor="let bedType of bedTypes" [value]="bedType.bedTypeId">
-                {{ bedType.bedTypeName }} (Max {{ bedType.maxOccupancy }} persons)
-              </option>
-            </select>
 
-            <input type="number" formControlName="quantity" min="1" max="10" class="number-input"  style="flex:1">
-
-            <button type="button" class="btn-remove" (click)="removeBedConfiguration(i)">×</button>
-          </div>
-
-          <button type="button" class="btn-add" (click)="addBedConfiguration()">
-            + Add Bed
-          </button>
-        </div>
-      </div>
 
       <!-- Step 4: Amenities -->
       <div class="step-content" *ngIf="currentStep === 3">
@@ -135,8 +114,53 @@
         </div>
       </div>
 
+      <!-- Step 5: Room Images (Using your dynamic row array format) -->
+     <div class="step-content" *ngIf="currentStep === 4">
+  <h3>Room Images</h3>
+  <p class="section-desc mb-3">
+    Upload images for this room. The first image marked as **Main Cover** will be used as the thumbnail.
+  </p>
+
+  <div class="images-container" formArrayName="roomImages">
+    <div *ngFor="let img of roomImages.controls; let i = index" class="image-item" [formGroupName]="i"
+     style="display: flex; flex-direction: column; gap: 10px; align-items: center; margin-bottom: 10px;">
+      <div class="thumb-preview">
+        <img [src]="imagePreviews[i] || 'assets/placeholder.png'" alt="Preview" width="50">
+      </div>
+      <input type="text" formControlName="imageUrl" class="form-control" placeholder="Image Data String" style="flex: 3" readonly>
+      <!-- File input instead of URL text box -->
+
+      <div class="action-buttons" style="margin-top: 15px;">
+      <input #fileInput type="file" (change)="onFileSelected($event,i)" accept="image/*" multiple style="display: none;">
+      <button type="button" class="btn-gen-primary" (click)="fileInput.click()">+ Upload & Compress Image</button>
+    </div>
+
+
+      <!-- Caption field -->
+      <input type="text"
+             formControlName="caption"
+             class="form-input"
+             placeholder="Caption (e.g., Washroom)"
+             style="flex: 2">
+
+      <!-- Primary Selector (Checkbox) -->
+      <label class="checkbox-label" style="flex: 1.2; display: flex; align-items: center; gap: 5px; white-space: nowrap; margin-bottom: 0;">
+        <input type="checkbox" formControlName="isPrimary" (change)="onPrimaryImageChanged(i)">
+        <span>Main Cover</span>
+      </label>
+
+      <!-- Remove Button -->
+      <button type="button" class="btn-remove" (click)="removeRoomImage(i)" style="background: none; border: none; font-size: 24px; color: #dc3545; cursor: pointer; padding: 0 5px;">×</button>
+    </div>
+
+    <!-- Add Button -->
+    <button type="button" class="btn-add" (click)="addRoomImage()" style="margin-top: 10px;">
+      + Add Image
+    </button>
+  </div>
+</div>
       <!-- Step 5: Pricing & Discounts -->
-      <div class="step-content" *ngIf="currentStep === 4">
+      <div class="step-content" *ngIf="currentStep === 5">
         <h3>Pricing & Discounts</h3>
         <div class="form-grid">
           <div class="form-group">
@@ -183,7 +207,7 @@
       </div>
 
       <!-- Step 6: Review & Save -->
-      <div class="step-content" *ngIf="currentStep === 5">
+      <div class="step-content" *ngIf="currentStep === 6">
         <h3>Review & Save</h3>
         <div class="review-section">
           <div class="review-card">
@@ -200,7 +224,15 @@
             <p><strong>Smoking:</strong> {{ roomForm.get('isSmoking')?.value ? 'Allowed' : 'Not Allowed' }}</p>
             <p><strong>Accessible:</strong> {{ roomForm.get('isAccessible')?.value ? 'Yes' : 'No' }}</p>
           </div>
-
+<div class="review-card full-width" *ngIf="roomImages.controls.length > 0">
+            <h4>Configured Room Photos ({{ roomImages.controls.length }})</h4>
+            <div class="review-images-flex" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+              <div *ngFor="let img of roomImages.controls" class="review-img-thumb" style="position: relative; width: 80px; height: 80px; border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
+                <img [src]="img.get('imageUrl')?.value" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='assets/images/placeholder.png'">
+                <span *ngIf="img.get('isPrimary')?.value" style="position: absolute; top: 2px; right: 2px; background: #28a745; color: white; font-size: 9px; padding: 1px 4px; border-radius: 2px;">Cover</span>
+              </div>
+            </div>
+          </div>
           <div class="review-card">
             <h4>Bed Type</h4>
             <div>

@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+
 import { DashboardApiResponse } from '../models/dashboard.model';
 import { AppConfigService } from './app.config.service';
 

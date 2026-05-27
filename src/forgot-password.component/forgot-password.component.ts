@@ -1,4 +1,4 @@
-import { Inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, inject, Inject } from '@angular/core';
 // src/app/modules/auth/components/forgot-password/forgot-password.component.ts
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -19,10 +19,11 @@ export class ForgotPasswordComponent {
   forgotForm: FormGroup;
   isLoading = false;
   isSubmitted = false;
-private authService= Inject(AuthService)
+//private authService= Inject(AuthService)
+cdr =inject(ChangeDetectorRef)
   constructor(
     private fb: FormBuilder,
-
+    private authService:AuthService,
     private router: Router,
     private toastr: ToastrService
   ) {
@@ -42,11 +43,16 @@ private authService= Inject(AuthService)
       next: (response: any) => {
         this.isLoading = false;
         this.isSubmitted = true;
+         this.cdr.detectChanges()
         this.toastr.success('Password reset link sent to your email!', 'Check Your Inbox');
+
       },
       error: (error: any) => {
         this.isLoading = false;
-        this.toastr.error(error.message, 'Failed to send reset link');
+          this.cdr.detectChanges()
+        console.log(error)
+        this.toastr.error(error.error || error.error.message, 'Failed to send reset link');
+
       }
     });
   }

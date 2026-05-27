@@ -6,11 +6,12 @@ import { firstValueFrom } from 'rxjs';
 export interface AppConfig {
   apiUrl: string;
   rootUrl: string;
+  payStackPublicKey: string;
   appName: string;
   appVersion: string;
   tokenKey: string;
   userKey: string;
-  payStackPublicKey: string;
+
   googleMapsApiKey: string;
   enableDebug: boolean;
   sessionTimeout: number;
@@ -24,30 +25,34 @@ export interface AppConfig {
 
 @Injectable({ providedIn: 'root' })
 export class AppConfigService {
-  config!: AppConfig;
+ public AppConfig!: AppConfig;
 
   constructor(private readonly http: HttpClient) {}
 
   async load(): Promise<void> {
     try {
-      this.config = await firstValueFrom(
-        this.http.get<AppConfig>('config.json')
-      );
-    //  console.log('Runtime config loaded:', this.config);
+
+       this.AppConfig = await firstValueFrom(
+      this.http.get<AppConfig>('config.json')
+    );
+
+     // console.log(this.AppConfig.apiUrl);
+
     } catch (err) {
-      console.error('Failed to load runtime config, using defaults', err);
+      console.error(err);
     }
   }
 
   get apiUrl(): string {
-    return this.config?.apiUrl || 'https://pulsehotelx.precleminternationalschool.com.ng/api';
+
+    return this.AppConfig?.apiUrl ;
   }
 
   get rootUrl(): string {
-    return this.config?.rootUrl || 'https://pulsehotelx.precleminternationalschool.com.ng/';
+    return this.AppConfig?.rootUrl || '';
   }
-  get payStackPublicKey(): string {
-    return this.config?.payStackPublicKey || 'sk_test_033ec7c1ab250c4e3c5f08af316791cec9d022b';
-  }
+  // get payStackPublicKey(): string {
+  //   return this.config?.payStackPublicKey || 'sk_test_033ec7c1ab250c4e3c5f08af316791cec9d022b';
+  // }
   // ... other getters as needed
 }

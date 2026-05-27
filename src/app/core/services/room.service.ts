@@ -2,8 +2,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { RoomFilter, Room, RoomStatus, RoomType, BedTypes, RoomWizardData, ViewTypes } from '../models/room.model';
+
+import { RoomFilter, Room, RoomStatus, RoomType, BedTypes, RoomWizardData, ViewTypes, RoomWizardDto } from '../models/room.model';
 import { AppConfigService } from './app.config.service';
 
 @Injectable({
@@ -116,11 +116,11 @@ export class RoomService {
     return this.http.get(`${this.apiUrl}/wizard-lookups`);
   }
 
-  getRoom(roomId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/wizard/${roomId}`);
+  getRoom(roomId: number): Observable<{ success: boolean; data: RoomWizardDto }> {
+    return this.http.get<{ success: boolean; data: RoomWizardDto }>(`${this.apiUrl}/wizard/${roomId}`);
   }
 
-  saveRoom(data: RoomWizardData): Observable<any> {
+  saveRoom(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/wizard-upsert`, data);
   }
 

@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+
 import { Booking, BookingFilter, BookingPagination, BookingStats, CreateBookingRequest } from '../models/booking.model';
 import { AppConfigService } from './app.config.service';
 

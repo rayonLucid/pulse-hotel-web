@@ -17,7 +17,7 @@ export class RoleService {
     this.apiUrl = `${this.config.apiUrl}/roles`;
      // console.log('NotificationService initialized with API URL:', this.apiUrl);
     this.rootUrl = this.config.rootUrl;
-   
+
       }
 
   getAll(): Observable<{ success: boolean; data: Role[] }> {

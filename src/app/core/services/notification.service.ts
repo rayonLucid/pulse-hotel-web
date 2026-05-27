@@ -2,7 +2,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, map } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import { Notification, StaffNotification, NotificationStats } from '../models/notification.model';
 import { AppConfigService } from './app.config.service';
 
