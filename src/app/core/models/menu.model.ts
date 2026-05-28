@@ -1,3 +1,5 @@
+import { Department } from "./ department.model";
+
 export interface MenuCategory {
   categoryId: number;
   categoryName: string;
@@ -28,12 +30,28 @@ export interface MenuItem {
   children?: MenuItem[];
 
 }
-
+export interface MenuDepartmentPermission {
+  menuDeptPermissionId: number;
+  menuItemId: number;
+  departmentId: number;
+  urlPath:string
+  canView: boolean;
+  canAccess: boolean;
+  createdAt: Date | string; // Use Date if instantiated locally, string if raw JSON from API
+  parentMenuItemId:number;
+  categoryId:number;
+  // Navigation properties (Optional, as they are typically lazy-loaded or omitted in shallow payloads)
+  menuItem?: MenuItem;
+  department?: Department;
+}
 export interface MenuRolePermission {
   menuRolePermissionId: number;
   menuItemId: number;
   roleName: string;
   canView: boolean;
+  canCreate:boolean;
+  canEdit:boolean;
+  canApprove:boolean;
   canAccess: boolean;
   createdAt: string;
 }

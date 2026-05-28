@@ -15,6 +15,8 @@ export interface User {
   email: string;
   phoneNumber: string;
   role: string;
+  isStaff:boolean;
+  department:string
   loyaltyPoints: number;
   isActive: boolean;
   profileImageUrl?: string;
@@ -27,6 +29,8 @@ export interface AuthResponse {
     fullName: string;
     email: string;
     token: string;
+    department:string;
+    isStaff:boolean;
     role: string;
     loyaltyPoints: number;
     tokenExpiry: Date;
@@ -120,6 +124,16 @@ export class AuthService {
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
   }
+
+  isFrontDeskStaff(): boolean {
+  const user = this.getCurrentUser();
+  //console.log(user)
+  if (!user) return false;
+
+  return user.isStaff && (user.department?.toLowerCase() === 'front office'|| user.department?.toLowerCase()=='front desk');
+  // Or 'front-end' as per your requirement. Adjust the string comparison.
+}
+
 
   getUserFullName(): string | null {
     const user = this.currentUserSubject.value;
@@ -246,6 +260,8 @@ export class AuthService {
     const user: User = {
       userId: authData.userId,
       fullName: authData.fullName,
+      isStaff :authData.isStaff,
+      department:authData.department,
       email: authData.email,
       phoneNumber: '',
       role: authData.role,

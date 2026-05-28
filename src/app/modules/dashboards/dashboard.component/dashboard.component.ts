@@ -55,9 +55,9 @@ changeDet =inject(ChangeDetectorRef)
   }
 
   ngAfterViewInit(): void {
-    setTimeout(() => {
-      this.initCharts();
-    }, 100);
+    // setTimeout(() => {
+
+    // }, 1000);
   }
 startAutoRefreshRxJS(): void {
     // Refresh every 5 minutes using RxJS
@@ -79,6 +79,7 @@ startAutoRefreshRxJS(): void {
     // Refresh data every 5 minutes
     this.refreshInterval = setInterval(() => {
       this.refreshDashboardData();
+      this.changeDet.markForCheck()
     }, this.REFRESH_INTERVAL_MS);
 
     // Log that auto-refresh is enabled
@@ -151,6 +152,7 @@ getTimeUntilNextRefresh(): string {
   startTimer(): void {
     this.timerInterval = setInterval(() => {
       this.currentTime = new Date();
+      this.changeDet.markForCheck()
     }, 1000);
   }
 
@@ -163,7 +165,8 @@ getTimeUntilNextRefresh(): string {
    //  console.log(response)
       if (response?.success && response.data) {
         this.dashboardData = response.data;
-       this.initOccupancyChart();
+      // this.initOccupancyChart();
+        this.initCharts();
         this.isLoading =false
 
         this.changeDet.detectChanges()
@@ -189,7 +192,7 @@ this.changeDet.detectChanges()
 
   initCharts(): void {
     this.initRevenueChart();
-  //  this.initOccupancyChart();
+   this.initOccupancyChart();
   }
 
   updateCharts(): void {

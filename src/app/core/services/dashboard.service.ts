@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { DashboardApiResponse } from '../models/dashboard.model';
+import { DashboardApiResponse, DashboardData } from '../models/dashboard.model';
 import { AppConfigService } from './app.config.service';
 
 
@@ -26,4 +26,9 @@ this.rootUrl = this.config.rootUrl;
   getDashboardData(): Observable<DashboardApiResponse> {
     return this.http.get<DashboardApiResponse>(`${this.apiUrl}/data`);
   }
+
+  getFrontDeskDashboard(asOfDate?: Date): Observable<{ success: boolean; data: DashboardData }> {
+  const params = asOfDate ? `?asOfDate=${asOfDate.toISOString().split('T')[0]}` : '';
+  return this.http.get<{ success: boolean; data: DashboardData }>(`${this.apiUrl}/frontDesk${params}`);
+}
 }

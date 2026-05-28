@@ -49,6 +49,9 @@ public  loadUserMenus(): Observable<UserMenu> {
     );
   }
 
+  getActiveMenus(): Observable<MenuItem[]> {
+  return this.http.get<MenuItem[]>(`${this.apiUrl}/menu/active`);
+}
   /**
    * Build hierarchical menu structure
    */
@@ -222,11 +225,11 @@ public  loadUserMenus(): Observable<UserMenu> {
   }
 
   getPermissionsByMenuItem(menuItemId: number): Observable<MenuRolePermission[]> {
-    return this.http.get<MenuRolePermission[]>(`${this.apiUrl}/role-permissions/menu-item/${menuItemId}`);
+    return this.http.get<MenuRolePermission[]>(`${this.apiUrl}/menuRolePermissions/menu-item/${menuItemId}`);
   }
 
   createRolePermission(permission: Partial<MenuRolePermission>): Observable<MenuRolePermission> {
-    return this.http.post<MenuRolePermission>(`${this.apiUrl}/role-permissions`, permission).pipe(
+    return this.http.post<MenuRolePermission>(`${this.apiUrl}/menuRolePermissions`, permission).pipe(
       tap(newPermission => {
         const current = this.permissionsSubject.value;
         this.permissionsSubject.next([...current, newPermission]);
@@ -235,7 +238,7 @@ public  loadUserMenus(): Observable<UserMenu> {
   }
 
   updateRolePermission(permissionId: number, updates: Partial<MenuRolePermission>): Observable<MenuRolePermission> {
-    return this.http.patch<MenuRolePermission>(`${this.apiUrl}/role-permissions/${permissionId}`, updates).pipe(
+    return this.http.patch<MenuRolePermission>(`${this.apiUrl}/menuRolePermissions/${permissionId}`, updates).pipe(
       tap(updatedPermission => {
         const current = this.permissionsSubject.value;
         const index = current.findIndex(p => p.menuRolePermissionId === permissionId);

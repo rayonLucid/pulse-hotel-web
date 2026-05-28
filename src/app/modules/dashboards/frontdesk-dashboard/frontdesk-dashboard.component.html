@@ -1,0 +1,42 @@
+ <div class="dashboard-container">
+      <h1>Front Desk Dashboard</h1>
+      <div class="date-picker">
+        <label>View for date:</label>
+        <input type="date" [(ngModel)]="selectedDate" (change)="loadDashboard()" />
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="stats-row">
+        <div class="stat-card available">Available: {{ dashboard?.roomOccupancy?.availableRooms || 0 }}</div>
+        <div class="stat-card occupied">Occupied: {{ dashboard?.roomOccupancy?.occupiedRooms || 0 }}</div>
+        <div class="stat-card reserved">Reserved: {{ dashboard?.roomOccupancy?.reservedRooms || 0 }}</div>
+        <div class="stat-card maintenance">Maintenance: {{ dashboard?.roomOccupancy?.maintenanceRooms || 0 }}</div>
+      </div>
+
+      <div class="two-columns">
+        <div class="col">
+          <h3>Today's Check-ins ({{ dashboard?.todayCheckIns?.length }})</h3>
+          <table class="data-table">
+            <tr *ngFor="let item of dashboard?.todayCheckIns">
+              <td>{{ item.guestName }}</td><td>Room {{ item.roomNumber }}</td><td>{{ item.bookingReference }}</td>
+            </tr>
+            <tr *ngIf="!dashboard?.todayCheckIns?.length"><td colspan="3">No check-ins today</td></tr>
+          </table>
+        </div>
+        <div class="col">
+          <h3>Today's Check-outs ({{ dashboard?.todayCheckOuts?.length }})</h3>
+          <table class="data-table">...</table>
+        </div>
+      </div>
+
+      <div class="two-columns">
+        <div class="col">
+          <h3>Upcoming Reservations (next 7 days)</h3>
+          <table>...</table>
+        </div>
+        <div class="col">
+          <h3>Recent Activity</h3>
+          <table>...</table>
+        </div>
+      </div>
+    </div>

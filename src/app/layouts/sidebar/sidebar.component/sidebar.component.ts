@@ -59,7 +59,7 @@ export class SidebarComponent implements OnInit {
       },
       error: (error:any) => {
         console.error('Error loading menus:', error);
-        this.toastService.error('Failed to load menus. Please try again.', 'Menu Loading Error');
+       // this.toastService.error('Failed to load menus. Please try again.', 'Menu Loading Error');
         this.loadMenus()
       }
     });

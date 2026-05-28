@@ -6,12 +6,13 @@ import { DepartmentFormComponent } from '../department-form/department-form.comp
 import { Department } from '../../../../core/models/ department.model';
 import { DepartmentService } from '../../../../core/services/department';
 import { NgxPaginationModule } from 'ngx-pagination';
+import { DepartmentPermissionModalComponent } from '../../components/department-permission-modal.component/department-permission-modal.component';
 
 
 @Component({
   selector: 'app-department-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, DepartmentFormComponent,NgxPaginationModule],
+  imports: [CommonModule, FormsModule, DepartmentFormComponent,NgxPaginationModule,DepartmentPermissionModalComponent],
   templateUrl: './department-list.component.html',
   styleUrls: ['./department-list.component.scss']
 })
@@ -26,7 +27,8 @@ Math =Math;
   loading = false;
   searchTerm = '';
   showInactive = false;
-
+showPermissionModal = false;
+selectedDepartment: any;
   // Modal
   showModal = false;
   editingDepartment: Department | null = null;
@@ -40,6 +42,20 @@ cdr = inject(ChangeDetectorRef);
   ngOnInit(): void {
     this.loadDepartments();
   }
+
+
+
+openPermissionsModal(dept: any) {
+  this.selectedDepartment = dept;
+  this.showPermissionModal = true;
+  this.cdr.detectChanges()
+}
+
+onPermissionModalClose(refresh: boolean) {
+  this.showPermissionModal = false;
+  this.cdr.detectChanges()
+  if (refresh) this.loadDepartments();
+}
 
   loadDepartments(): void {
     this.loading = true;

@@ -34,12 +34,13 @@ export class LoginComponent implements OnInit {
   }
 changDef =inject(ChangeDetectorRef)
   ngOnInit(): void {
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+   // this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
   // Load saved credentials if Remember Me was checked
     this.loadSavedCredentials();
 
     if (this.authService.isAuthenticated()) {
-      this.router.navigate([this.returnUrl]);
+     this. onLoginSuccess();
+    //  this.router.navigate([this.returnUrl]);
     }
   }
 
@@ -58,10 +59,12 @@ changDef =inject(ChangeDetectorRef)
 
     this.authService.login(loginData).subscribe({
       next: (response) => {
+       // console.log(response)
         this.isLoading = false;
         if (response.success) {
-        //  this.toaStr.success('Welcome back!', 'Login Successful');
-          this.router.navigate([this.returnUrl]);
+         this.toaStr.success('Welcome back!', 'Login Successful');
+        //  this.router.navigate([this.returnUrl]);
+        this.onLoginSuccess();
         } else {
           this.toaStr.error(response.message || 'Login failed', 'Error');
           this.isLoading =false
@@ -77,6 +80,18 @@ changDef =inject(ChangeDetectorRef)
     });
   }
 
+   onLoginSuccess(): void {
+    if (this.authService.isFrontDeskStaff()) {
+      console.log("here")
+      this.router.navigate(['/dashboard/frontDesk']);
+    } else if (this.authService.isAdmin()) {
+      this.router.navigate(['/dashboard']);
+    } else if (this.authService.isGuest()) {
+      this.router.navigate(['/dashboard/guest']);
+    } else {
+      this.router.navigate(['/dashboard/']);
+    }
+  }
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
   }

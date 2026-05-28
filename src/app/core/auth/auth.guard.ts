@@ -11,6 +11,7 @@ export const AuthGuard = (route: any, state: any) => {
     const requiredRoles = route.data?.['roles'] as Array<string>;
     if (requiredRoles && requiredRoles.length > 0) {
       const hasRole = authService.hasAnyRole(requiredRoles);
+      console.log(hasRole)
       if (!hasRole) {
         router.navigate(['/unauthorized']);
         return false;

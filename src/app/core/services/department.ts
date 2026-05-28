@@ -5,6 +5,7 @@ import { catchError, Observable, of } from 'rxjs';
 import { Department } from '../models/ department.model';
 import { AppConfigService } from './app.config.service';
 import { Staff } from '../models/staff.model';
+import { MenuDepartmentPermission, MenuItem } from '../models/menu.model';
 
 
 @Injectable({ providedIn: 'root' })
@@ -18,6 +19,17 @@ export class DepartmentService {
   this.apiUrl = `${this.config.apiUrl}/departments`;
   this.rootUrl = this.config.rootUrl;
     }
+
+// department.service.ts
+
+
+getDepartmentPermissions(departmentId: number): Observable<MenuDepartmentPermission[]> {
+  return this.http.get<MenuDepartmentPermission[]>(`${this.apiUrl}/${departmentId}/permissions`);
+}
+
+saveDepartmentPermissions(departmentId: number, permissions: any[]): Observable<any> {
+  return this.http.post(`${this.apiUrl}/${departmentId}/permissions`, permissions);
+}
 
 
   getDepartments(activeOnly?: boolean): Observable<Department[]> {

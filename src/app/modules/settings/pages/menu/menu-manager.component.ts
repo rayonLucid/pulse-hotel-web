@@ -107,7 +107,20 @@ export class MenuManagerComponent implements OnInit, OnDestroy {
         this.rolePermissions = permissions;
       });
   }
+reloadPermissions(){
+  this.menuService.getRolePermissions().subscribe({
+    next:(response)=>{
+       this.isLoading = false;
+        this.cdr.detectChanges()
+    },
+    error:(error)=>{
+       this.isLoading = false;
+        this.cdr.detectChanges()
+   this.toaStr.error(error.error.message, 'Error');
 
+    }
+  })
+}
   private loadData(): void {
     this.isLoading = true;
     combineLatest([
@@ -122,7 +135,7 @@ export class MenuManagerComponent implements OnInit, OnDestroy {
         this.allMenuItems = this.menuService.menuItemsSubject.value;
       //  console.log('Menu items loaded:', this.allMenuItems);
         this.rolePermissions = this.menuService.permissionsSubject.value;
-      //  console.log('Permissions:', this.rolePermissions);
+       // console.log('Permissions:', this.rolePermissions);
         this.buildMenuHierarchy();
         this.isLoading = false;
         this.cdr.detectChanges()
@@ -160,7 +173,7 @@ export class MenuManagerComponent implements OnInit, OnDestroy {
 
   selectMenuItem(menuItem: MenuItem): void {
  // console.log(menuItem);
-    console.log('Selected menu item:', this.selectedMenuItem);
+   // console.log('Selected menu item:', this.selectedMenuItem);
     // if parentId is null and has children expand
     if(menuItem.parentMenuItemId == null && menuItem.children != undefined && menuItem.children?.length >0){
       this.isChildExpanded =true
@@ -177,7 +190,7 @@ export class MenuManagerComponent implements OnInit, OnDestroy {
       this.isChildExpanded =true
        this.selectedMenuItem =menuItem
     }
-    console.log('Selected menu item:', this.selectedMenuItem);
+   // console.log('Selected menu item:', this.selectedMenuItem);
   }
 
   getSelectedCategoryName(): string {
@@ -187,9 +200,9 @@ export class MenuManagerComponent implements OnInit, OnDestroy {
 
   getMenuItemsForSelectedCategory(): MenuItem[] {
     if (!this.selectedCategoryId) return [];
-console.log( this.categories)
+//console.log( this.categories)
     const category = this.categories.find(c => c.categoryId === this.selectedCategoryId);
-    console.log(category)
+   // console.log(category)
     return category?.menuItems || [];
   }
 
@@ -371,18 +384,35 @@ closeModals(): void {
 
   getPermissionForMenuItem(menuItemId: number, roleName: string): MenuRolePermission | undefined {
 
+
     return this.rolePermissions.find(p => p.menuItemId === menuItemId && p.roleName === roleName);
   }
 
-  updateRolePermission(menuItemId: number, roleName: string, field: 'canView' | 'canAccess', event: any): void {
+  updateRolePermission(menuItemId: number, roleName: string, field:any, event: any): void {
     const value = event.target.checked;
+    console.log(menuItemId,roleName)
     const permission = this.getPermissionForMenuItem(menuItemId, roleName);
+//console.log(permission)
 
     if (permission) {
-      this.menuService.updateRolePermission(permission.menuRolePermissionId, { [field]: value })
+      this.menuService.updateRolePermission(permission!.menuRolePermissionId, { [field]: value })
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          error: (err) => console.error('Error updating permission:', err)
+          next:(response)=>{
+            if(response){
+this.reloadPermissions()
+ this.rolePermissions = this.menuService.permissionsSubject.value;
+  this.loadRoles()
+   this.toaStr.success("Record Updated Successfully","Success" ,{
+  timeOut: 3000  // timeout in milliseconds (3 seconds)
+})
+            }
+          },
+          error: (err) => {
+
+            console.error('Error updating permission:', err)
+            this.toaStr.error(err)
+          }
         });
     } else {
       const newPermission = {
@@ -395,7 +425,19 @@ closeModals(): void {
       this.menuService.createRolePermission(newPermission)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          error: (err) => console.error('Error creating permission:', err)
+          next:(response)=>{
+if(response){
+this.reloadPermissions();
+ this.rolePermissions = this.menuService.permissionsSubject.value;
+ this.loadRoles()
+ this.toaStr.success("Record Created Successfully","Success")
+}
+          }
+          ,
+          error: (err) => {
+            console.error('Error creating permission:', err)
+             this.toaStr.error(err)
+          }
         });
     }
   }

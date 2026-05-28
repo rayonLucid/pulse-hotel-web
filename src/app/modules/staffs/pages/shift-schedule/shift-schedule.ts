@@ -40,6 +40,7 @@ export class ShiftScheduleComponent implements OnInit {
 
   // Available shifts for dropdown
   availableShifts: Shift[] = [];
+
 private changeDet = inject(ChangeDetectorRef)
   constructor(
     private staffService: StaffService,
@@ -82,7 +83,7 @@ private changeDet = inject(ChangeDetectorRef)
         }
       },
       error: (error) => {
-        console.error('Error loading shifts:', error);
+        console.error('Error loading:', error);
         this.toastr.error('Failed to load shifts', 'Error');
       }
     });

@@ -1,0 +1,240 @@
+@use '../../../shared/appStyleVariables.scss' as *;
+
+
+
+.dashboard-container {
+  padding: 1.5rem;
+  background: $container-bg;
+  min-height: 100vh;
+
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: $gray-800;
+    margin-bottom: 0.5rem;
+  }
+
+  .date-picker {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    background: $white;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    width: fit-content;
+
+    label {
+      font-weight: 500;
+      color: $gray-700;
+    }
+
+    input[type="date"] {
+      border: 1px solid $gray-300;
+      border-radius: 0.5rem;
+      padding: 0.5rem;
+      font-size: 0.875rem;
+      background: $white;
+      cursor: pointer;
+
+      &:focus {
+        outline: none;
+        border-color: $primary-500;
+        box-shadow: 0 0 0 2px rgba($primary-500, 0.2);
+      }
+    }
+  }
+
+  .stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+
+    .stat-card {
+      flex: 1;
+      min-width: 150px;
+      background: $white;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+      border-left: 4px solid;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .stat-number {
+        font-size: 1.75rem;
+        font-weight: bold;
+        line-height: 1.2;
+      }
+
+      .stat-label {
+        font-size: 0.875rem;
+        font-weight:bold;
+        color: $gray-500;
+        margin-top: 0.25rem;
+      }
+
+      &.available {
+        border-left-color: $green-500;
+        .stat-number { color: $green-500; }
+      }
+      &.occupied {
+        border-left-color: $yellow-500;
+        .stat-number { color: $yellow-500; }
+      }
+      &.maintenance {
+        border-left-color: $red-500;
+        .stat-number { color: $red-500; }
+      }
+      &.cleaning {
+        border-left-color: $blue-500;
+        .stat-number { color: $blue-500; }
+      }
+      &.reserved {
+        border-left-color: $primary-500;
+        .stat-number { color: $primary-500; }
+      }
+    }
+  }
+
+  .two-columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+
+    .col {
+      flex: 1;
+      min-width: 280px;
+      background: $white;
+      border-radius: 1rem;
+      padding: 1rem 1.25rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+      h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: $gray-800;
+        margin: 0 0 1rem 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid $gray-200;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .badge {
+          background: $gray-200;
+          color: $gray-600;
+          font-size: 0.75rem;
+          padding: 0.25rem 0.5rem;
+          border-radius: 9999px;
+          font-weight: normal;
+        }
+      }
+
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+
+        td {
+          padding: 0.75rem 0;
+          border-bottom: 1px solid $gray-100;
+          font-size: 0.875rem;
+          color: $gray-700;
+
+          &:first-child {
+            font-weight: 500;
+          }
+
+          .room-badge {
+            background: $primary-100;
+            color: $primary-700;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+          }
+
+          .status {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: capitalize;
+
+            &.confirmed { background: $green-100; color: $green-700; }
+            &.checkedin { background: $blue-500; color: $blue-700; }
+            &.checkedout { background: $gray-200; color: $gray-700; }
+            &.cancelled { background: $red-100; color: $red-700; }
+            &.pending { background: $yellow-100; color: $yellow-700; }
+          }
+        }
+
+        tr:last-child td {
+          border-bottom: none;
+        }
+      }
+
+      .empty-message {
+        text-align: center;
+        color: $gray-400;
+        padding: 2rem;
+        font-style: italic;
+      }
+    }
+  }
+
+  // Responsive adjustments
+  @media (max-width: $tablet) {
+    padding: 1rem;
+
+    .stats-row .stat-card {
+      min-width: calc(50% - 0.5rem);
+    }
+
+    .two-columns {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .date-picker {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  // Quick actions section (optional)
+  .quick-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+
+    button {
+      background: $white;
+      border: 1px solid $gray-200;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      color: $gray-700;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: $gray-50;
+        border-color: $primary-500;
+        color: $primary-500;
+      }
+    }
+  }
+}
+
+
+

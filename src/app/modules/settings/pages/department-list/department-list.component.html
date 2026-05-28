@@ -43,6 +43,7 @@
           </td>
           <td class="actions">
             <button class="btn-icon" (click)="openEditModal(dept)" title="Edit">✏️</button>
+             <button class="btn-icon" (click)="openPermissionsModal(dept)" title="Manage Permissions">🔐</button>
           </td>
         </tr>
         <tr *ngIf="filteredDepartments.length === 0">
@@ -71,3 +72,13 @@
   [department]="editingDepartment"
   (close)="onModalClose($event)">
 </app-department-form>
+  <!-- <pre>{{selectedDepartment|json}}</pre> -->
+@if(showPermissionModal==true){
+
+<app-department-permission-modal
+
+  [department]="selectedDepartment"
+  (close)="onPermissionModalClose($event)">
+</app-department-permission-modal>
+}
+
