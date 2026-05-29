@@ -180,7 +180,7 @@
     <div class="empty-icon">🧹</div>
     <h3>No Tasks Found</h3>
     <p>No tasks match your current filters. Try adjusting your search criteria or create a new task.</p>
-    <button class="btn-primary" (click)="showCreateModal = true">Create New Task</button>
+
   </div>
 
   <!-- Pagination -->
@@ -202,6 +202,9 @@
 </div>
 
 <!-- Create Task Modal -->
+<!-- Update the Create Task Modal section in tasks.component.html -->
+
+<!-- Create Task Modal -->
 <div class="modal-overlay" *ngIf="showCreateModal" (click)="showCreateModal = false">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
@@ -209,59 +212,100 @@
       <button class="modal-close" (click)="showCreateModal = false">&times;</button>
     </div>
     <div class="modal-body">
+      <!-- Room Selection Dropdown -->
       <div class="form-group">
-        <label>Room Number *</label>
-        <input type="text" [(ngModel)]="newTask.roomNumber" class="form-control" placeholder="e.g., 101" />
+        <label>Select Room *</label>
+        <select [(ngModel)]="newTask.roomId" (change)="onRoomSelect(newTask.roomId)" class="form-control" required>
+          <option [value]="null">Select a room...</option>
+          <option *ngFor="let room of rooms" [value]="room.id">
+            Room {{ room.roomNumber }} - Floor {{ room.floorNumber }} ({{ room.roomTypeName }})
+          </option>
+        </select>
       </div>
-      <div class="form-group">
-        <label>Room ID *</label>
-        <input type="number" [(ngModel)]="newTask.roomId" class="form-control" placeholder="Room ID" />
+
+      <!-- Room Number (Auto-populated) -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Room Number</label>
+          <input type="text" [(ngModel)]="newTask.roomNumber" class="form-control" readonly disabled />
+        </div>
+        <div class="form-group">
+          <label>Room Type (Auto-populated)</label>
+          <input type="text" [(ngModel)]="newTask.roomType" class="form-control" readonly disabled />
+        </div>
       </div>
-      <div class="form-group">
-        <label>Room Type *</label>
-        <input type="text" [(ngModel)]="newTask.roomType" class="form-control" placeholder="e.g., Deluxe Suite" />
-      </div>
+
+      <!-- Task Type and Priority -->
       <div class="form-row">
         <div class="form-group">
           <label>Task Type *</label>
-          <select [(ngModel)]="newTask.taskType" class="form-control">
-            <option value="Checkout">Checkout</option>
-            <option value="Stayover">Stayover</option>
-            <option value="DeepClean">Deep Clean</option>
-            <option value="Turndown">Turndown</option>
+          <select [(ngModel)]="newTask.taskType" class="form-control" required>
+            <option value="Checkout">Checkout Cleaning</option>
+            <option value="Stayover">Stayover Service</option>
+            <option value="DeepClean">Deep Cleaning</option>
+            <option value="Turndown">Turndown Service</option>
           </select>
         </div>
         <div class="form-group">
           <label>Priority *</label>
-          <select [(ngModel)]="newTask.priority" class="form-control">
-            <option value="High">High</option>
-            <option value="Normal">Normal</option>
-            <option value="Low">Low</option>
+          <select [(ngModel)]="newTask.priority" class="form-control" required>
+            <option value="High">High Priority</option>
+            <option value="Normal">Normal Priority</option>
+            <option value="Low">Low Priority</option>
           </select>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Assign To *</label>
-          <select [(ngModel)]="newTask.assignedTo" class="form-control">
-            <option [value]="null">Select Staff...</option>
-            <option *ngFor="let staff of staffMembers" [value]="staff.id">{{ staff.name }}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Assigned To Name</label>
-          <input type="text" [(ngModel)]="newTask.assignedToName" class="form-control" placeholder="Staff name" />
-        </div>
+
+      <!-- Staff Assignment Dropdown -->
+      <div class="form-group">
+        <label>Assign To (Housekeeping Staff) *</label>
+        <select [(ngModel)]="newTask.assignedTo" class="form-control" required>
+          <option [value]="null">Select staff member...</option>
+          <option *ngFor="let staff of staffMembers" [value]="staff.id">
+            {{ staff.firstName }} {{ staff.lastName }} - {{ staff.position }}
+          </option>
+        </select>
       </div>
+
+      <!-- Notes -->
       <div class="form-group">
         <label>Notes (Optional)</label>
-        <textarea [(ngModel)]="newTask.notes" class="form-control" rows="3" placeholder="Additional instructions..."></textarea>
+        <textarea [(ngModel)]="newTask.notes" class="form-control" rows="3"
+                  placeholder="Additional instructions or special requests..."></textarea>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" (click)="showCreateModal = false">Cancel</button>
-      <button class="btn-primary" (click)="createTask()" [disabled]="isSubmitting">
+      <button class="btn-primary" (click)="createTask()" [disabled]="isSubmitting || !newTask.roomId || !newTask.assignedTo">
         {{ isSubmitting ? 'Creating...' : 'Create Task' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Reassign Task Modal - Also update staff dropdown -->
+<div class="modal-overlay" *ngIf="showReassignModal" (click)="showReassignModal = false">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Reassign Task</h2>
+      <button class="modal-close" (click)="showReassignModal = false">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>Reassign task for Room {{ selectedTask?.roomNumber }} - {{ selectedTask?.taskType }}</p>
+      <div class="form-group">
+        <label>Select Housekeeping Staff</label>
+        <select [(ngModel)]="reassignStaffId" class="form-control">
+          <option [value]="null">Choose staff...</option>
+          <option *ngFor="let staff of staffMembers" [value]="staff.id">
+            {{ staff.firstName }} {{ staff.lastName }} - {{ staff.position }}
+          </option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showReassignModal = false">Cancel</button>
+      <button class="btn-primary" (click)="reassignTask()" [disabled]="isSubmitting || !reassignStaffId">
+        {{ isSubmitting ? 'Reassigning...' : 'Reassign' }}
       </button>
     </div>
   </div>
@@ -357,7 +401,7 @@
         <label>Select Staff Member</label>
         <select [(ngModel)]="reassignStaffId" class="form-control">
           <option [value]="null">Choose staff...</option>
-          <option *ngFor="let staff of staffMembers" [value]="staff.id">{{ staff.name }}</option>
+          <option *ngFor="let staff of staffMembers" [value]="staff.id">{{ staff.firstName }} {{ staff.lastName }}</option>
         </select>
       </div>
     </div>

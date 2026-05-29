@@ -132,10 +132,40 @@ export interface TaskCompletionData {
 }
 
 // Staff Member
-export interface StaffMember {
+// src/app/core/models/housekeeping.model.ts - Add these interfaces
+
+export interface RoomType {
   id: number;
   name: string;
+  code: string;
+  description: string;
+  basePrice: number;
+  capacity: number;
+  bedType: string;
+  amenities: string[];
+}
+
+export interface Room {
+  id: number;
+  roomNumber: string;
+  roomTypeId: number;
+  roomTypeName: string;
+  floorNumber: number;
+  status: string;
+  description: string;
+  capacity: number;
+  view: string;
+  isActive: boolean;
+}
+
+export interface StaffMember {
+  id: number;
+  firstName: string;
+  lastName: string;
   email: string;
-  role: string;
+  phone: string;
+  department: string;
+  position: string;
   isAvailable: boolean;
+  avatar?: string;
 }

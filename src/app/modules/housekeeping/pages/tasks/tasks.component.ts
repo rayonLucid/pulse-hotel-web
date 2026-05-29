@@ -8,7 +8,9 @@ import {
   HousekeepingTask,
   TaskFilter,
   TaskCompletionData,
-  StaffMember
+  StaffMember,
+  Room,
+  RoomType
 } from '../../../../core/models/housekeeping.model';
 
 @Component({
@@ -23,6 +25,8 @@ export class TasksComponent implements OnInit, OnDestroy {
   tasks: HousekeepingTask[] = [];
   selectedTask: HousekeepingTask | null = null;
   staffMembers: StaffMember[] = [];
+  rooms: Room[] = [];
+  roomTypes: RoomType[] = [];
 
   // UI State
   isLoading = false;
@@ -57,11 +61,12 @@ export class TasksComponent implements OnInit, OnDestroy {
     priority: 'Normal',
     status: 'Pending',
     taskType: 'Stayover',
-    roomNumber: '',
     roomId: null,
+    roomNumber: '',
     roomType: '',
     assignedTo: null,
-    assignedToName: ''
+    assignedToName: '',
+    notes: ''
   };
 
   cancelReason: string = '';
@@ -82,7 +87,9 @@ export class TasksComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadTasks();
     this.loadStatistics();
-    this.loadStaffMembers();
+    this.loadHousekeepingStaff();
+    this.loadRooms();
+    this.loadRoomTypes();
     this.startAutoRefresh();
   }
 
@@ -143,17 +150,72 @@ export class TasksComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadStaffMembers(): void {
-    this.housekeepingService.getStaffMembers().subscribe({
+  /**
+   * Load only housekeeping staff for dropdown
+   */
+  loadHousekeepingStaff(): void {
+    this.housekeepingService.getHousekeepingStaff().subscribe({
       next: (response: any) => {
         if (response.success) {
           this.staffMembers = response.data;
         }
       },
       error: (error: any) => {
-        console.error('Error loading staff members:', error);
+        console.error('Error loading housekeeping staff:', error);
+        // Fallback to getStaffByDepartment if needed
+        this.housekeepingService.getStaffByDepartment('housekeeping').subscribe({
+          next: (response2: any) => {
+            if (response2.success) {
+              this.staffMembers = response2.data;
+            }
+          }
+        });
       }
     });
+  }
+
+  /**
+   * Load all rooms for dropdown
+   */
+  loadRooms(): void {
+    this.housekeepingService.getAllRooms().subscribe({
+      next: (response: any) => {
+        if (response.success) {
+          this.rooms = response.data;
+        }
+      },
+      error: (error: any) => {
+        console.error('Error loading rooms:', error);
+      }
+    });
+  }
+
+  /**
+   * Load room types
+   */
+  loadRoomTypes(): void {
+    this.housekeepingService.getRoomTypes().subscribe({
+      next: (response: any) => {
+        if (response.success) {
+          this.roomTypes = response.data;
+        }
+      },
+      error: (error: any) => {
+        console.error('Error loading room types:', error);
+      }
+    });
+  }
+
+  /**
+   * Handle room selection - auto-populate room type
+   */
+  onRoomSelect(roomId: number): void {
+    const selectedRoom = this.rooms.find(r => r.id === roomId);
+    if (selectedRoom) {
+      this.newTask.roomNumber = selectedRoom.roomNumber;
+      this.newTask.roomType = selectedRoom.roomTypeName;
+      this.newTask.roomId = selectedRoom.id;
+    }
   }
 
   loadTaskChecklist(taskType: string): void {
@@ -228,15 +290,17 @@ export class TasksComponent implements OnInit, OnDestroy {
   // ==================== TASK CRUD OPERATIONS ====================
 
   createTask(): void {
-    if (!this.newTask.roomNumber || !this.newTask.roomId || !this.newTask.assignedTo) {
-      alert('Please fill in all required fields');
+    if (!this.newTask.roomId || !this.newTask.assignedTo) {
+      alert('Please select a room and assign a staff member');
       return;
     }
 
     this.isSubmitting = true;
 
+    const selectedStaff = this.staffMembers.find(s => s.id === this.newTask.assignedTo);
     const taskData = {
       ...this.newTask,
+      assignedToName: selectedStaff ? `${selectedStaff.firstName} ${selectedStaff.lastName}` : '',
       assignedAt: new Date(),
       assignedBy: this.getCurrentUserId(),
       assignedByName: this.getCurrentUserName()
@@ -434,11 +498,12 @@ export class TasksComponent implements OnInit, OnDestroy {
       priority: 'Normal',
       status: 'Pending',
       taskType: 'Stayover',
-      roomNumber: '',
       roomId: null,
+      roomNumber: '',
       roomType: '',
       assignedTo: null,
-      assignedToName: ''
+      assignedToName: '',
+      notes: ''
     };
   }
 
@@ -455,9 +520,8 @@ export class TasksComponent implements OnInit, OnDestroy {
     this.completionData.suppliesUsed.splice(index, 1);
   }
 
-  getStaffName(staffId: number): string {
-    const staff = this.staffMembers.find(s => s.id === staffId);
-    return staff ? staff.name : 'Unassigned';
+  getStaffDisplayName(staff: StaffMember): string {
+    return `${staff.firstName} ${staff.lastName} - ${staff.position}`;
   }
 
   getCurrentUserId(): number {
@@ -470,11 +534,26 @@ export class TasksComponent implements OnInit, OnDestroy {
     return 'Current User';
   }
 
-  // ==================== SAFE DATE HANDLING METHODS ====================
+  // ==================== CSS CLASS HELPERS ====================
 
-  getDisplayDate(date: Date | string | undefined | null): Date {
-    if (!date) return new Date();
-    return new Date(date);
+  getPriorityClass(priority: string): string {
+    const classes: Record<string, string> = {
+      'High': 'priority-high',
+      'Normal': 'priority-normal',
+      'Low': 'priority-low'
+    };
+    return classes[priority] || '';
+  }
+
+  getStatusClass(status: string): string {
+    const classes: Record<string, string> = {
+      'Pending': 'status-pending',
+      'InProgress': 'status-progress',
+      'Completed': 'status-completed',
+      'Failed': 'status-failed',
+      'Cancelled': 'status-cancelled'
+    };
+    return classes[status] || '';
   }
 
   formatDueTime(date: Date | string | undefined | null): string {
@@ -504,47 +583,5 @@ export class TasksComponent implements OnInit, OnDestroy {
   dismissError(): void {
     this.errorMessage = '';
     this.checklistError = '';
-  }
-
-  // ==================== CSS CLASS HELPERS ====================
-
-  getPriorityClass(priority: string): string {
-    const classes: Record<string, string> = {
-      'High': 'priority-high',
-      'Normal': 'priority-normal',
-      'Low': 'priority-low'
-    };
-    return classes[priority] || '';
-  }
-
-  getStatusClass(status: string): string {
-    const classes: Record<string, string> = {
-      'Pending': 'status-pending',
-      'InProgress': 'status-progress',
-      'Completed': 'status-completed',
-      'Failed': 'status-failed',
-      'Cancelled': 'status-cancelled'
-    };
-    return classes[status] || '';
-  }
-
-  getStatusIcon(status: string): string {
-    const icons: Record<string, string> = {
-      'Pending': '⏰',
-      'InProgress': '▶',
-      'Completed': '✓',
-      'Failed': '✗',
-      'Cancelled': '⊘'
-    };
-    return icons[status] || '?';
-  }
-
-  getPriorityIcon(priority: string): string {
-    const icons: Record<string, string> = {
-      'High': '🔴',
-      'Normal': '🟡',
-      'Low': '🟢'
-    };
-    return icons[priority] || '⚪';
   }
 }
