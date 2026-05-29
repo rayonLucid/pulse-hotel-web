@@ -12,8 +12,8 @@ export interface Room {
   maxAdults: number;
   maxChildren: number;
   roomSize: number; // in square meters
-  bedType: BedType;
-  viewType: ViewType;
+  bedType: BedTypes;
+  viewType: ViewTypes;
   amenities: Amenity[];
   images: string[];
   description: string;
@@ -31,8 +31,8 @@ export interface RoomType {
   maxAdults: number;
   maxChildren: number;
   roomSize: number;
-  bedType: BedType;
-  viewType: ViewType;
+  bedType: BedTypes;
+  viewType: ViewTypes;
   amenities: Amenity[];
   images: string[];
   isActive: boolean;
@@ -63,8 +63,8 @@ export interface RoomFilter {
   minPrice?: number;
   maxPrice?: number;
   amenities?: string[];
-  bedType?: BedType;
-  viewType?: ViewType;
+  bedType?: BedTypes;
+  viewType?: ViewTypes;
   page: number;
   pageSize: number;
   sortBy?: string;
@@ -128,10 +128,16 @@ export interface UpdateRoomRequest {
 // Enums
 export type RoomStatusType = 'Available' | 'Occupied' | 'Maintenance' | 'Cleaning' | 'Reserved' | 'OutOfService';
 
-export type BedType = 'Single' | 'Double' | 'Queen' | 'King' | 'Emperor' | 'Twin' | 'Sofa Bed';
+//export type BedType = 'Single' | 'Double' | 'Queen' | 'King' | 'Emperor' | 'Twin' | 'Sofa Bed';
 
-export type ViewType = 'City View' | 'Ocean View' | 'Pool View' | 'Garden View' | 'Mountain View' | 'Lagoon View' | 'Panoramic' | 'No View';
+//export type ViewType = 'City View' | 'Ocean View' | 'Pool View' | 'Garden View' | 'Mountain View' | 'Lagoon View' | 'Panoramic' | 'No View';
 
+export interface ViewTypes {
+  viewTypeId: number;
+  description:string;
+  viewName: string;
+  premiumCharge: number;
+}
 // Helper functions
 export const RoomStatusLabels: Record<RoomStatusType, string> = {
   'Available': 'Available',
@@ -160,26 +166,26 @@ export const RoomStatusBgClasses: Record<RoomStatusType, string> = {
   'OutOfService': 'bg-gray-100 text-gray-700'
 };
 
-export const BedTypeLabels: Record<BedType, string> = {
-  'Single': 'Single Bed',
-  'Double': 'Double Bed',
-  'Queen': 'Queen Size Bed',
-  'King': 'King Size Bed',
-  'Emperor': 'Emperor Size Bed',
-  'Twin': 'Twin Beds',
-  'Sofa Bed': 'Sofa Bed'
-};
+// export const BedTypeLabels: Record<BedTypes, string> = {
+//   'Single': 'Single Bed',
+//   'Double': 'Double Bed',
+//   'Queen': 'Queen Size Bed',
+//   'King': 'King Size Bed',
+//   'Emperor': 'Emperor Size Bed',
+//   'Twin': 'Twin Beds',
+//   'Sofa Bed': 'Sofa Bed'
+// };
 
-export const ViewTypeLabels: Record<ViewType, string> = {
-  'City View': 'City View',
-  'Ocean View': 'Ocean View',
-  'Pool View': 'Pool View',
-  'Garden View': 'Garden View',
-  'Mountain View': 'Mountain View',
-  'Lagoon View': 'Lagoon View',
-  'Panoramic': 'Panoramic View',
-  'No View': 'No View'
-};
+// export const ViewTypeLabels: Record<ViewType, string> = {
+//   'City View': 'City View',
+//   'Ocean View': 'Ocean View',
+//   'Pool View': 'Pool View',
+//   'Garden View': 'Garden View',
+//   'Mountain View': 'Mountain View',
+//   'Lagoon View': 'Lagoon View',
+//   'Panoramic': 'Panoramic View',
+//   'No View': 'No View'
+// };
 
 // Utility functions
 export function getRoomStatusLabel(status: RoomStatusType): string {
@@ -194,13 +200,13 @@ export function getRoomStatusClass(status: RoomStatusType): string {
   return RoomStatusBgClasses[status] || 'bg-gray-100 text-gray-700';
 }
 
-export function getBedTypeLabel(bedType: BedType): string {
-  return BedTypeLabels[bedType] || bedType;
-}
+// export function getBedTypeLabel(bedType: BedTypes): string {
+//   return BedTypeLabels[bedType] || bedType;
+// }
 
-export function getViewTypeLabel(viewType: ViewType): string {
-  return ViewTypeLabels[viewType] || viewType;
-}
+// export function getViewTypeLabel(viewType: ViewTypes): string {
+//   return ViewTypeLabels[viewType] || viewType;
+// }
 
 export function formatPrice(price: number): string {
   return `₦${price.toLocaleString()}`;
@@ -211,10 +217,80 @@ export interface Amenity {
   amenityName: string;
   icon?: string | null;
   isActive: boolean;
+  isConsumable?: boolean; // For inventory items that are used as amenities
+  stockItemId?: number | null; // Link to inventory item if isConsumable is true
 }
 
-export interface BedTypes{
-  id: number;
- value: string;
- label: string
+export interface RoomTypeAmenities {
+   amenityId: number
+    roomTypeId:number
+   icon:string
+   isActive:boolean
+  AmenityName :string
+ IsConsumable:boolean
+ StockItemId:number
+}
+export interface BedTypes {
+  bedTypeId: number;
+  bedTypeName: string;
+  Description: string;
+  maxOccupancy: number;
+}
+export interface RoomWizardData {
+  roomId?: number;
+  roomNumber: string;
+  roomTypeId: number;
+  floorNumber: number;
+  roomSize?: number;
+  viewTypeId?: number;
+  isSmoking: boolean;
+  isAccessible: boolean;
+  bedsJson?: string;
+  amenitiesJson?: string;
+  basePriceOverride?: number;
+  weeklyDiscount?: number;
+  monthlyDiscount?: number;
+  status: string;
+  isActive: boolean;
+}
+
+
+export interface RoomWizardDto {
+// Basic Info (First Result Set)
+roomId: number;
+bedType:string;
+roomNumber: string;
+roomTypeId: number;
+roomTypeName: string;
+floorNumber: number;
+roomSize?: number | null;
+viewTypeId?: number | null;
+viewName?: string | null;
+isSmoking: boolean;
+isAccessible: boolean;
+status: string;
+isActive: boolean;
+basePriceOverride?: number | null;
+weeklyDiscount?: number | null;
+monthlyDiscount?: number | null;
+roomTypeBasePrice: number;
+
+// Child Collections mapped from subsequent result sets
+roomImages: RoomImageDto[];
+amenities: RoomAmenityDto[];
+}
+
+export interface RoomImageDto {
+roomId: number;
+imageUrl: string;
+caption?: string | null;
+isPrimary: boolean;
+}
+
+export interface RoomAmenityDto {
+amenityId: number;
+amenityName: string;
+icon?: string | null;
+isConsumable: boolean;
+chargeAmount: number;
 }

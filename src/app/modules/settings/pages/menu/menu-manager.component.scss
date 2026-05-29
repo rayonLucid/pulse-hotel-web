@@ -395,3 +395,13 @@
   position: relative;
   z-index: 2;
 }
+.isSelected {
+  background: #050a10;
+  color: white;
+  border-left-color: #0e1012;
+
+  :not(.isSelected) {
+    background: transparent;
+    border-left-color: transparent;
+  }
+}

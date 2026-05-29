@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
+
 import { MenuCategory, MenuItem, MenuRolePermission, UserMenu } from '../models/menu.model';
 import { AppConfigService } from './app.config.service';
 
@@ -39,15 +39,19 @@ export class MenuService {
    * Load user menus from API
    */
 public  loadUserMenus(): Observable<UserMenu> {
+//  console.log('Loading user menus from API:', `${this.apiUrl}`);
     return this.http.get<UserMenu>(`${this.apiUrl}/menu/user`).pipe(
       tap((userMenu:any) => {
-       // console.log(userMenu.data)
+      //  console.log(userMenu.data)
         this.menusSubject.next(this.buildMenuHierarchy(userMenu.data.menus));
         this.pinnedMenusSubject.next(userMenu.data.pinnedMenus);
       })
     );
   }
 
+  getActiveMenus(): Observable<MenuItem[]> {
+  return this.http.get<MenuItem[]>(`${this.apiUrl}/menu/active`);
+}
   /**
    * Build hierarchical menu structure
    */
@@ -221,11 +225,11 @@ public  loadUserMenus(): Observable<UserMenu> {
   }
 
   getPermissionsByMenuItem(menuItemId: number): Observable<MenuRolePermission[]> {
-    return this.http.get<MenuRolePermission[]>(`${this.apiUrl}/role-permissions/menu-item/${menuItemId}`);
+    return this.http.get<MenuRolePermission[]>(`${this.apiUrl}/menuRolePermissions/menu-item/${menuItemId}`);
   }
 
   createRolePermission(permission: Partial<MenuRolePermission>): Observable<MenuRolePermission> {
-    return this.http.post<MenuRolePermission>(`${this.apiUrl}/role-permissions`, permission).pipe(
+    return this.http.post<MenuRolePermission>(`${this.apiUrl}/menuRolePermissions`, permission).pipe(
       tap(newPermission => {
         const current = this.permissionsSubject.value;
         this.permissionsSubject.next([...current, newPermission]);
@@ -234,7 +238,7 @@ public  loadUserMenus(): Observable<UserMenu> {
   }
 
   updateRolePermission(permissionId: number, updates: Partial<MenuRolePermission>): Observable<MenuRolePermission> {
-    return this.http.patch<MenuRolePermission>(`${this.apiUrl}/role-permissions/${permissionId}`, updates).pipe(
+    return this.http.patch<MenuRolePermission>(`${this.apiUrl}/menuRolePermissions/${permissionId}`, updates).pipe(
       tap(updatedPermission => {
         const current = this.permissionsSubject.value;
         const index = current.findIndex(p => p.menuRolePermissionId === permissionId);
@@ -257,14 +261,17 @@ public  loadUserMenus(): Observable<UserMenu> {
 
   // Helper method to build hierarchical tree
   buildMenuTree(items: MenuItem[], parentId: number | null = null): MenuItem[] {
+   // console.log('Building menu tree with items:', items, 'and parentId:', parentId);
     return items
       .filter(item => item.parentMenuItemId === parentId)
       .sort((a, b) => a.menuOrder - b.menuOrder)
-      .map(item => ({
+      .map((item: MenuItem) => ({
         ...item,
-        children: this.buildMenuTree(items, item.menuItemId)
+        children:item.children?.sort((a, b) => a.menuOrder - b.menuOrder)
+        //this.buildChildMenuTree(item.children || [], item.menuItemId)
       }));
   }
+
 
   // Helper to flatten tree for API operations
   flattenMenuTree(items: MenuItem[]): MenuItem[] {

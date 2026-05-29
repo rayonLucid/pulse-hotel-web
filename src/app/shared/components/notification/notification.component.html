@@ -1,0 +1,82 @@
+
+<div class="notification-container">
+ 
+
+  <button class="notification-icon" (click)="toggleDropdown()">
+    <i class="fas fa-bell"></i>
+    <span class="badge" >{{ unreadCount }}</span>
+  </button>
+
+  <div class="notification-dropdown" *ngIf="showDropdown">
+    <div class="dropdown-header">
+      <h3>Notifications</h3>
+      <div class="tabs">
+        <button class="tab" [class.active]="activeTab === 'guest'" (click)="activeTab = 'guest'">
+          Guest
+        </button>
+        <button class="tab" [class.active]="activeTab === 'staff'" (click)="activeTab = 'staff'">
+          Staff
+        </button>
+      </div>
+      <button class="mark-all-btn" (click)="markAllAsRead()" *ngIf="unreadCount > 0">
+        Mark all as read
+      </button>
+    </div>
+
+    <div class="dropdown-body" *ngIf="activeTab === 'guest'">
+      <div *ngIf="isLoading" class="loading-state">
+        <div class="spinner"></div>
+        Loading...
+      </div>
+
+      <div *ngIf="!isLoading && notifications.length === 0" class="empty-state">
+        <i class="fas fa-bell-slash"></i>
+        <p>No notifications</p>
+      </div>
+
+      <div class="notification-list">
+        <div *ngFor="let notification of notifications"
+             class="notification-item"
+             [class.unread]="!notification.isRead"
+             [class]="getSeverityClass(notification.severity)">
+          <div class="notification-icon">
+            <i [class]="getTypeIcon(notification.type)"></i>
+          </div>
+          <div class="notification-content" (click)="markAsRead(notification, $event)">
+            <div class="notification-title">{{ notification.title }}</div>
+            <div class="notification-message">{{ notification.message }}</div>
+            <div class="notification-time">{{ formatTime(notification.createdAt) }}</div>
+          </div>
+          <button class="delete-btn" (click)="deleteNotification(notification, $event)">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="dropdown-footer" *ngIf="notifications.length > 0">
+        <a routerLink="/notifications" (click)="showDropdown = false">View all notifications</a>
+      </div>
+    </div>
+
+    <div class="dropdown-body" *ngIf="activeTab === 'staff'">
+      <div class="notification-list">
+        <div *ngFor="let notification of staffNotifications"
+             class="notification-item"
+             [class.unread]="!notification.isRead"
+             [class]="getSeverityClass(notification.priority)">
+          <div class="notification-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="notification-content">
+            <div class="notification-title">{{ notification.title }}</div>
+            <div class="notification-message">{{ notification.message }}</div>
+            <div class="notification-meta">
+              <span class="department">{{ notification.department }}</span>
+              <span class="time">{{ formatTime(notification.createdAt) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,121 @@
+<!-- amenities/amenity-list.component.html -->
+<div class="amenity-container">
+  <div class="header">
+    <h2>Amenities</h2>
+    <button class="btn-primary" (click)="openCreateModal()">+ New Amenity</button>
+  </div>
+
+  <div class="filters">
+    <input type="text"
+           placeholder="Search amenities..."
+           [(ngModel)]="searchTerm"
+           (input)="onSearch()"
+           class="search-input">
+    <label class="checkbox-label">
+      <input type="checkbox" [(ngModel)]="showInactive" (change)="toggleInactive()">
+      Show inactive
+    </label>
+  </div>
+
+  <div class="table-wrapper" *ngIf="!loading; else loadingSpinner">
+    <table class="amenity-table">
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Icon</th><th>Consumable</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let a of filteredAmenities | paginate: { itemsPerPage: itemsPerPage, currentPage: currentPage }">
+          <td>{{ a.amenityId }}</td>
+          <td><strong>{{ a.amenityName }}</strong></td>
+          <td>{{ a.icon || '—' }}</td>
+          <td>{{ a.isConsumable ? 'Yes' : 'No' }}</td>
+          <td><span class="status-badge" [class.inactive]="!a.isActive">
+            {{ a.isActive ? 'Active' : 'Inactive' }}
+          </span></td>
+          <td class="actions">
+            <button class="btn-icon" (click)="openEditModal(a)" title="Edit">✏️</button>
+            <!-- <button class="btn-icon" (click)="deleteAmenity(a.amenityId!, a.amenityName)" title="Delete">🗑️</button> -->
+          </td>
+        </tr>
+        <tr *ngIf="filteredAmenities.length === 0">
+          <td colspan="6" class="empty">No amenities found</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ngx-pagination controls -->
+    <div class="pagination-wrapper" *ngIf="filteredAmenities.length > 0">
+      <pagination-controls
+        (pageChange)="currentPage = $event"
+        previousLabel="Previous"
+        nextLabel="Next"
+        screenReaderPaginationLabel="Pagination"
+        screenReaderPageLabel="Page"
+        screenReaderCurrentLabel="You're on page">
+      </pagination-controls>
+    </div>
+  </div>
+
+  <ng-template #loadingSpinner>
+    <div class="spinner"></div>
+  </ng-template>
+</div>
+
+<!-- Modal Form - Reactive version -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ isEditing ? 'Edit Amenity' : 'New Amenity' }}</h3>
+      <button class="close-btn" (click)="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="amenityForm">
+        <div class="form-group">
+          <label>Amenity Name *</label>
+          <input type="text" formControlName="amenityName" class="form-control" placeholder="e.g., WiFi, Pool, Spa">
+          <div class="error" *ngIf="f['amenityName'].invalid && f['amenityName'].touched">
+            Amenity name is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Icon (emoji or FontAwesome class)</label>
+          <input type="text" formControlName="icon" class="form-control" placeholder="🧺, 🏊, wifi, etc.">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="isActive">
+              Active
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="isConsumable">
+              Consumable (tracks inventory)
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" *ngIf="f['isConsumable'].value">
+          <label>Stock Item</label>
+          <select formControlName="stockItemId" class="form-control">
+            <option [value]="null">— Select Stock Item —</option>
+            <option *ngFor="let item of stockItems" [value]="item.itemId">
+              {{ item.itemName }}
+            </option>
+          </select>
+          <small>Links to inventory for usage tracking</small>
+          <div class="error" *ngIf="f['isConsumable'].value && f['stockItemId'].invalid && f['stockItemId'].touched">
+            Please select a stock item
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModal()">Cancel</button>
+      <button class="btn-primary" (click)="saveAmenity()" [disabled]="amenityForm.invalid">Save</button>
+    </div>
+  </div>
+</div>
+

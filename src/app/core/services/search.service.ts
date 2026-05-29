@@ -3,7 +3,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
+import { AppConfigService } from './app.config.service';
+
 
 export interface SearchResult {
   id: number;
@@ -19,9 +20,11 @@ export interface SearchResult {
   providedIn: 'root'
 })
 export class SearchService {
-  private apiUrl = environment.apiUrl;
+  private apiUrl = "";
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient,private appConfigService:AppConfigService) {
+this.apiUrl =this.appConfigService.apiUrl
+  }
 
   globalSearch(query: string): Observable<SearchResult[]> {
     if (!query || query.length < 2) {

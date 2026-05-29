@@ -80,6 +80,7 @@ changDet =inject(ChangeDetectorRef)
   startTimer(): void {
     this.timerInterval = setInterval(() => {
       this.currentTime = new Date();
+      this.changDet.markForCheck()
     }, 1000);
   }
 

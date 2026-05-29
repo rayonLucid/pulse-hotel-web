@@ -6,7 +6,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { RoomService } from '../../../../core/services/room.service';
-import { RoomType, BedType, ViewType, getBedTypeLabel, getViewTypeLabel, formatPrice, Amenity } from '../../../../core/models/room.model';
+import { RoomType, formatPrice, Amenity, ViewTypes, BedTypes } from '../../../../core/models/room.model';
 import { AmenityService } from '../../../../core/services/amenity.service';
 
 @Component({
@@ -27,26 +27,9 @@ export class RoomTypesComponent implements OnInit {
   roomTypeForm: FormGroup;
 
   // Available options
-  bedTypeOptions: { value: BedType; label: string }[] = [
-    { value: 'Single', label: 'Single Bed' },
-    { value: 'Double', label: 'Double Bed' },
-    { value: 'Queen', label: 'Queen Size Bed' },
-    { value: 'King', label: 'King Size Bed' },
-    { value: 'Emperor', label: 'Emperor Size Bed' },
-    { value: 'Twin', label: 'Twin Beds' },
-    { value: 'Sofa Bed', label: 'Sofa Bed' }
-  ];
+  bedTypeOptions: BedTypes[] = [];
 
-  viewTypeOptions: { value: ViewType; label: string }[] = [
-    { value: 'City View', label: 'City View' },
-    { value: 'Ocean View', label: 'Ocean View' },
-    { value: 'Pool View', label: 'Pool View' },
-    { value: 'Garden View', label: 'Garden View' },
-    { value: 'Mountain View', label: 'Mountain View' },
-    { value: 'Lagoon View', label: 'Lagoon View' },
-    { value: 'Panoramic', label: 'Panoramic View' },
-    { value: 'No View', label: 'No View' }
-  ];
+  viewTypeOptions: ViewTypes[] =[] ;
 
   amenityOptions!: Amenity[];
 private roomService: RoomService = inject(RoomService);
@@ -76,8 +59,30 @@ private roomService: RoomService = inject(RoomService);
 
   ngOnInit(): void {
      this.loadAmenities();
+     this.loadviewTypes()
     this.loadRoomTypes();
+    this.loadBedTypes()
 
+  }
+  loadBedTypes() {
+    this.roomService.getBedTypes().subscribe({
+       next:(response)=>{
+        this.bedTypeOptions =response.data
+      },
+      error:(err) =>{
+        this.toastr.error(err.error.message,"Error")
+      }
+    })
+  }
+  loadviewTypes() {
+    this.roomService.getViewTypes().subscribe({
+      next:(response)=>{
+        this.viewTypeOptions =response.data
+      },
+      error:(err) =>{
+        this.toastr.error(err.error.message,"Error")
+      }
+    })
   }
   loadAmenities() {
     this.amenityService.getAmenities().subscribe({
@@ -87,8 +92,8 @@ private roomService: RoomService = inject(RoomService);
       //  console.log('Loaded amenities:', this.amenityOptions);
       },
       error: (error) => {
-        console.error('Error loading amenities:', error.message || error);
-        this.toastr.error('Failed to load amenities', 'Error');
+        console.error('Error loading :', error.error.message || error);
+        this.toastr.error( error.error.message || 'Failed to load amenities', 'Error');
       }
     });
   }
@@ -109,7 +114,7 @@ private roomService: RoomService = inject(RoomService);
         }
       },
       error: (error) => {
-        console.error('Error loading room type:', error);
+        console.error('Error loading room type:', error.error.message || error);
         this.toastr.error('Failed to load room types', 'Error');
         this.isLoading = false;
         this.changeDet.detectChanges();
@@ -134,10 +139,26 @@ private roomService: RoomService = inject(RoomService);
       isActive: false
     });
   }
+getAmenityColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
 
+  // Convert the hash into a 6-digit hex code
+  let color = '#';
+  for (let i = 0; i < 3; i++) {
+    // Extract a byte value (0-255) from the hash
+    const value = (hash >> (i * 8)) & 0xFF;
+    // Format it as a 2-digit hex string and append
+    color += ('00' + value.toString(16)).slice(-2);
+  }
+
+  return color;
+}
   openEditModal(roomType: RoomType): void {
     this.isEditing = true;
-    console.log('Editing room type:', roomType);
+   // console.log('Editing room type:', roomType);
     this.selectedRoomType = roomType;
     this.roomTypeForm.patchValue({
       typeName: roomType.typeName,
@@ -152,6 +173,12 @@ private roomService: RoomService = inject(RoomService);
       amenities: roomType.amenities || [],
       isActive: roomType.isActive
     });
+   // console.log('Form values after patching:', roomType.amenities);
+     roomType.amenities .forEach(a => {
+    //   console.log('Form values after patching:', a);
+      this.isAmenitySelected(a)
+     });
+
   }
 
   closeModal(): void {
@@ -186,7 +213,7 @@ console.log('Form Value:', formValue);
         },
         error: (error:any) => {
           this.isSaving = false;
-          this.toastr.error(error.message || 'Failed to update room type', 'Error');
+          this.toastr.error(error.error.message || 'Failed to update room type', 'Error');
        //   console.log(error)
 this.cdr.detectChanges();
         }
@@ -206,7 +233,7 @@ this.cdr.detectChanges();
         },
         error: (error:any) => {
           this.isSaving = false;
-          this.toastr.error(error.message || 'Failed to create room type', 'Error');
+          this.toastr.error(error.error.message || 'Failed to create room type', 'Error');
         }
       });
     }
@@ -234,14 +261,19 @@ this.cdr.detectChanges();
       },
       error: (error:any) => {
         this.isSaving = false;
-        this.toastr.error(error.message || 'Failed to delete room type', 'Error');
+        this.toastr.error(error.error.message || 'Failed to delete room type', 'Error');
       }
     });
   }
 
+  getAmenities(): Amenity[] {
+
+    return this.amenityOptions || [];
+  }
   isAmenitySelected(amenity: Amenity): boolean {
-    const amenities = this.roomTypeForm.get('amenities')?.value || [];
-    return amenities.includes(amenity);
+
+
+     return this.selectedRoomType?.amenities?.some(a => a.amenityId === amenity.amenityId) ?? false;
   }
 
   toggleAmenity(amenity: Amenity): void {
@@ -257,11 +289,7 @@ this.cdr.detectChanges();
     return formatPrice(price);
   }
 
-  getBedTypeLabel(bedType: BedType): string {
-    return getBedTypeLabel(bedType);
-  }
 
-  getViewTypeLabel(viewType: ViewType): string {
-    return getViewTypeLabel(viewType);
-  }
+
+
 }

@@ -9,6 +9,8 @@ import { MenuCategory, MenuItem, MenuRolePermission } from '../../../../core/mod
 import { MenuService } from '../../../../core/services/Menu.service';
 import { MenuTreeNodeComponent } from '../../components/menu-tree-node/menu-tree-node.component';
 import { ToastrService } from 'ngx-toastr';
+import { Role } from '../../../../core/models/roles.model';
+import { RoleService } from '../../../../core/services/role.service';
 
 @Component({
   selector: 'app-menu-manager',
@@ -25,14 +27,15 @@ export class MenuManagerComponent implements OnInit, OnDestroy {
 
   selectedCategoryId: number | null = null;
   selectedMenuItem: MenuItem | null = null;
-  availableRoles: string[] = ['Admin', 'Manager', 'FrontDesk', 'Housekeeping', 'Guest'];
+  availableRoles: Role[] = [];
 
   isLoading = false;
   showMenuItemModal = false;
   showCategoryModal = false;
+  isChildExpanded =false
   isEditing = false;
   cdr =inject(ChangeDetectorRef);
-
+  roleService = inject(RoleService)
   menuItemForm: Partial<MenuItem> = {
     menuTitle: '',
     menuIcon: '',
@@ -55,11 +58,23 @@ export class MenuManagerComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
+
   constructor(public menuService: MenuService, private toaStr: ToastrService) {}
 
   ngOnInit(): void {
     this.loadData();
+    this.loadRoles();
    // this.setupSubscriptions();
+  }
+  loadRoles() {
+    this.roleService.getAll().subscribe({
+      next: (roles: any) => {
+        this.availableRoles = roles.data;
+      },
+      error: (err: any) => {
+        console.error('Error loading roles:', err);
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -92,7 +107,20 @@ export class MenuManagerComponent implements OnInit, OnDestroy {
         this.rolePermissions = permissions;
       });
   }
+reloadPermissions(){
+  this.menuService.getRolePermissions().subscribe({
+    next:(response)=>{
+       this.isLoading = false;
+        this.cdr.detectChanges()
+    },
+    error:(error)=>{
+       this.isLoading = false;
+        this.cdr.detectChanges()
+   this.toaStr.error(error.error.message, 'Error');
 
+    }
+  })
+}
   private loadData(): void {
     this.isLoading = true;
     combineLatest([
@@ -103,11 +131,11 @@ export class MenuManagerComponent implements OnInit, OnDestroy {
     .subscribe({
       next: () => {
         this.categories = this.menuService.categoriesSubject.value.sort((a:any, b:any) => a.displayOrder - b.displayOrder);
-     //   console.log('Categories loaded:', this.categories);
+      //  console.log('Categories loaded:', this.categories);
         this.allMenuItems = this.menuService.menuItemsSubject.value;
       //  console.log('Menu items loaded:', this.allMenuItems);
         this.rolePermissions = this.menuService.permissionsSubject.value;
-      //  console.log('Permissions loaded:', this.rolePermissions);
+       // console.log('Permissions:', this.rolePermissions);
         this.buildMenuHierarchy();
         this.isLoading = false;
         this.cdr.detectChanges()
@@ -117,28 +145,52 @@ export class MenuManagerComponent implements OnInit, OnDestroy {
           this.toaStr.error(err.error.message, 'Error');
         this.isLoading = false;
          this.cdr.detectChanges()
+         this.loadData()
       }
     });
   }
 
   private buildMenuHierarchy(): void {
     // Group menu items by category
+  //  console.log('Building menu hierarchy with categories:', this.allMenuItems);
     this.categories.forEach(category => {
     //   console.log(this.allMenuItems);
       const categoryItems = this.allMenuItems.filter(item => item.categoryId === category.categoryId);
     //  console.log(categoryItems);
       category.menuItems = this.menuService.buildMenuTree(categoryItems);
-      console.log(`Menu items for category '${category.categoryName}':`, category.menuItems);
+       // console.log('Building menu hierarchy with categories:',  category.menuItems);
+
     });
   }
 
   selectCategory(categoryId: number): void {
     this.selectedCategoryId = categoryId;
-    this.selectedMenuItem = null;
+     this.selectedMenuItem = null;
+     this.isChildExpanded =false
+     this.cdr.detectChanges()
+
   }
 
   selectMenuItem(menuItem: MenuItem): void {
-    this.selectedMenuItem = menuItem;
+ // console.log(menuItem);
+   // console.log('Selected menu item:', this.selectedMenuItem);
+    // if parentId is null and has children expand
+    if(menuItem.parentMenuItemId == null && menuItem.children != undefined && menuItem.children?.length >0){
+      this.isChildExpanded =true
+       this.selectedMenuItem =null
+       this.cdr.detectChanges()
+    }
+    // if parentId is not null and has no children collapse
+  if(menuItem.parentMenuItemId == null && menuItem.children != undefined && menuItem.children?.length ==0){
+      this.isChildExpanded =false
+       this.selectedMenuItem =menuItem
+    }
+    // if parentId is not null then it is a child select it
+    if(menuItem.parentMenuItemId != null && menuItem.children !=undefined && menuItem.children?.length ==0){
+      this.isChildExpanded =true
+       this.selectedMenuItem =menuItem
+    }
+   // console.log('Selected menu item:', this.selectedMenuItem);
   }
 
   getSelectedCategoryName(): string {
@@ -148,7 +200,9 @@ export class MenuManagerComponent implements OnInit, OnDestroy {
 
   getMenuItemsForSelectedCategory(): MenuItem[] {
     if (!this.selectedCategoryId) return [];
+//console.log( this.categories)
     const category = this.categories.find(c => c.categoryId === this.selectedCategoryId);
+   // console.log(category)
     return category?.menuItems || [];
   }
 
@@ -329,18 +383,36 @@ closeModals(): void {
   }
 
   getPermissionForMenuItem(menuItemId: number, roleName: string): MenuRolePermission | undefined {
+
+
     return this.rolePermissions.find(p => p.menuItemId === menuItemId && p.roleName === roleName);
   }
 
-  updateRolePermission(menuItemId: number, roleName: string, field: 'canView' | 'canAccess', event: any): void {
+  updateRolePermission(menuItemId: number, roleName: string, field:any, event: any): void {
     const value = event.target.checked;
+    console.log(menuItemId,roleName)
     const permission = this.getPermissionForMenuItem(menuItemId, roleName);
+//console.log(permission)
 
     if (permission) {
-      this.menuService.updateRolePermission(permission.menuRolePermissionId, { [field]: value })
+      this.menuService.updateRolePermission(permission!.menuRolePermissionId, { [field]: value })
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          error: (err) => console.error('Error updating permission:', err)
+          next:(response)=>{
+            if(response){
+this.reloadPermissions()
+ this.rolePermissions = this.menuService.permissionsSubject.value;
+  this.loadRoles()
+   this.toaStr.success("Record Updated Successfully","Success" ,{
+  timeOut: 3000  // timeout in milliseconds (3 seconds)
+})
+            }
+          },
+          error: (err) => {
+
+            console.error('Error updating permission:', err)
+            this.toaStr.error(err)
+          }
         });
     } else {
       const newPermission = {
@@ -353,7 +425,19 @@ closeModals(): void {
       this.menuService.createRolePermission(newPermission)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          error: (err) => console.error('Error creating permission:', err)
+          next:(response)=>{
+if(response){
+this.reloadPermissions();
+ this.rolePermissions = this.menuService.permissionsSubject.value;
+ this.loadRoles()
+ this.toaStr.success("Record Created Successfully","Success")
+}
+          }
+          ,
+          error: (err) => {
+            console.error('Error creating permission:', err)
+             this.toaStr.error(err)
+          }
         });
     }
   }

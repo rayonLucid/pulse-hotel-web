@@ -48,6 +48,17 @@ $green-900: #064e3b;
 
 $red-500: #ef4444;
 $white: #ffffff;
+$status-inactive-bg: #fef2f2;
+$status-inactive-color: #b91c1c;
+$status-active-bg: #d1fae5;
+$status-active-color: #059669;
+
+// Extra Global Variables for unspecified hardcoded colors
+$blue-500: #3b82f6;
+$orange-500: #f59e0b;
+$body-text: #333333;
+$body-bg: #f5f5f5;
+$scroll-track: #f1f1f1;
 
 // Breakpoints
 $mobile: 320px;
@@ -753,17 +764,18 @@ $large-desktop: 1280px;
     animation: none;
   }
 }
-// Add to your component's SCSS file
+
+// Component Specific Button Refactor
 
 .back-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: $white;
+  border: 1px solid $gray-200;
   border-radius: 8px;
-  color: #4b5563;
+  color: $gray-600;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -775,9 +787,9 @@ $large-desktop: 1280px;
   }
 
   &:hover {
-    background: #f3f4f6;
-    border-color: #c49a6c;
-    color: #c49a6c;
+    background: $gray-100;
+    border-color: $primary-500;
+    color: $primary-500;
 
     i {
       transform: translateX(-3px);
@@ -802,15 +814,15 @@ $large-desktop: 1280px;
 // Alternative: Different variants
 .back-btn-outline {
   background: transparent;
-  border: 1px solid #c49a6c;
-  color: #c49a6c;
+  border: 1px solid $primary-500;
+  color: $primary-500;
 
   &:hover {
-    background: #c49a6c;
-    color: white;
+    background: $primary-500;
+    color: $white;
 
     i {
-      color: white;
+      color: $white;
     }
   }
 }
@@ -818,43 +830,43 @@ $large-desktop: 1280px;
 .back-btn-ghost {
   background: transparent;
   border: none;
-  color: #6b7280;
+  color: $gray-400;
 
   &:hover {
-    background: #f3f4f6;
-    color: #374151;
+    background: $gray-100;
+    color: $gray-700;
   }
 }
 
 .back-btn-dark {
-  background: #1f2937;
-  border-color: #374151;
-  color: #e5e7eb;
+  background: $gray-800;
+  border-color: $gray-700;
+  color: $gray-200;
 
   &:hover {
-    background: #374151;
-    border-color: #c49a6c;
-    color: #c49a6c;
+    background: $gray-700;
+    border-color: $primary-500;
+    color: $primary-500;
   }
 }
 
- .btn-gen-primary {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    background: #c49a6c !important;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 500;
-    cursor: pointer;
+.btn-gen-primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: $primary-500 !important;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
   margin: auto;
-    &:hover {
-      background: #a87b4e;
-    }
-  }
 
+  &:hover {
+    background: $primary-600;
+  }
+}
 
 * {
   margin: 0;
@@ -867,8 +879,8 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: 14px;
   line-height: 1.6;
-  color: #333;
-  background-color: #f5f5f5;
+  color: $body-text;
+  background-color: $body-bg;
   overflow-x: hidden;
 }
 
@@ -884,32 +896,138 @@ body.mobile-menu-open {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: $scroll-track;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c49a6c;
+  background: $primary-500;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a87b4e;
+  background: $primary-600;
 }
 
 // Toast customization
 .toast-success {
-  background-color: #10b981 !important;
+  background-color: $green-500 !important;
 }
 
 .toast-error {
-  background-color: #ef4444 !important;
+  background-color: $red-500 !important;
 }
 
 .toast-info {
-  background-color: #3b82f6 !important;
+  background-color: $blue-500 !important;
 }
 
 .toast-warning {
-  background-color: #f59e0b !important;
+  background-color: $orange-500 !important;
+}
+
+// Assuming you have your variables defined (from earlier)
+$select-bg: $white;
+$select-border: $gray-300;
+$select-text: $gray-900;
+$select-focus-border: $primary-500;
+$select-focus-shadow: rgba($primary-500, 0.15);
+
+.custom-select-wrapper {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 300px; // Adjust as needed
+}
+
+.form-select {
+  width: 100%;
+  padding: 10px 40px 10px 14px; // Extra right padding to prevent text overlapping the arrow
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: $select-text;
+  background-color: $select-bg;
+  border: 1px solid $select-border;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+
+  // 1. CRITICAL: Removes the default browser arrow (Chrome, Safari, Firefox, Edge)
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  // 2. Add a custom arrow using an inline SVG background image
+  // This is a clean, modern SVG chevron down icon
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 14px;
+
+  // Focus state styling
+  &:focus {
+    outline: none;
+    border-color: $select-focus-border;
+    box-shadow: 0 0 0 3px $select-focus-shadow;
+  }
+
+  // Hover state styling
+  &:hover:not(:disabled) {
+    border-color: $gray-400;
+  }
+
+  // Disabled state styling
+  &:disabled {
+    background-color: $gray-100;
+    color: $gray-400;
+    cursor: not-allowed;
+    opacity: 0.7;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  }
+}
+
+// Optional: Style the dropdown options (Limited cross-browser capabilities)
+.form-select option {
+  color: $gray-900;
+  background-color: $white;
+  padding: 8px;
+}
+
+
+// Hide the up/down arrows (spinners) across all browsers
+input[type="number"] {
+  -moz-appearance: textfield; // Firefox
+  appearance: textfield;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none; // Chrome, Safari, Edge, Opera
+    margin: 0;
+  }
+}
+
+// Custom modern styling for the input
+.number-input {
+  width: 100%;
+  max-width: 200px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: $gray-900;
+  background-color: $white;
+  border: 1px solid $gray-300;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: $primary-500;
+    box-shadow: 0 0 0 3px rgba($primary-500, 0.15);
+  }
+
+  &:disabled {
+    background-color: $gray-100;
+    color: $gray-400;
+    cursor: not-allowed;
+  }
 }

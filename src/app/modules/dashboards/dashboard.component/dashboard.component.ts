@@ -50,14 +50,14 @@ changeDet =inject(ChangeDetectorRef)
   ngOnInit(): void {
     this.loadDashboardData();
     this.startTimer();
-   // this.startAutoRefresh();
-    this.startAutoRefreshRxJS()
+    this.startAutoRefresh();
+   // this.startAutoRefreshRxJS()
   }
 
   ngAfterViewInit(): void {
-    setTimeout(() => {
-      this.initCharts();
-    }, 100);
+    // setTimeout(() => {
+
+    // }, 1000);
   }
 startAutoRefreshRxJS(): void {
     // Refresh every 5 minutes using RxJS
@@ -79,6 +79,7 @@ startAutoRefreshRxJS(): void {
     // Refresh data every 5 minutes
     this.refreshInterval = setInterval(() => {
       this.refreshDashboardData();
+      this.changeDet.markForCheck()
     }, this.REFRESH_INTERVAL_MS);
 
     // Log that auto-refresh is enabled
@@ -151,6 +152,7 @@ getTimeUntilNextRefresh(): string {
   startTimer(): void {
     this.timerInterval = setInterval(() => {
       this.currentTime = new Date();
+      this.changeDet.markForCheck()
     }, 1000);
   }
 
@@ -158,18 +160,26 @@ getTimeUntilNextRefresh(): string {
     this.isLoading = true;
 
     try {
-      const response = await this.dashboardService.getDashboardData().toPromise();
-              //console.log(response)
+       await this.dashboardService.getDashboardData().subscribe({
+        next:(response)=>{
+   //  console.log(response)
       if (response?.success && response.data) {
         this.dashboardData = response.data;
+      // this.initOccupancyChart();
+        this.initCharts();
         this.isLoading =false
+
         this.changeDet.detectChanges()
-      } else {
-        this.setFallbackData();
       }
+        },
+        error:(err)=>{
+            console.error('Error loading dashboard:', err.error.message);
+        }
+      })
+
     } catch (error) {
       console.error('Error loading dashboard:', error);
-      this.setFallbackData();
+      //this.setFallbackData();
       this.isLoading =false
 this.changeDet.detectChanges()
     } finally {
@@ -179,55 +189,10 @@ this.changeDet.detectChanges()
     }
   }
 
-  setFallbackData(): void {
-    this.dashboardData = {
-      roomStats: {
-        totalRooms: 250,
-        availableRooms: 85,
-        occupiedRooms: 120,
-        maintenanceRooms: 15,
-        cleaningRooms: 20,
-        reservedRooms: 10,
-        occupancyRate: 68
-      },
-      bookingStats: {
-        totalBookings: 1245,
-        confirmedBookings: 120,
-        todayCheckIns: 32,
-        todayCheckOuts: 28,
-        pendingBookings: 15,
-        totalRevenue: 18500000,
-        dailyRevenue: 620000,
-        weeklyRevenue: 4350000,
-        monthlyRevenue: 18500000,
-        yearlyRevenue: 195000000
-      },
-      recentBookings: [
-        { bookingId: 1, guestName: 'John Doe', roomNumber: '1204', checkInDate: new Date(), checkOutDate: new Date(Date.now() + 86400000 * 3), status: 'Confirmed', totalAmount: 182750 },
-        { bookingId: 2, guestName: 'Jane Smith', roomNumber: '805', checkInDate: new Date(), checkOutDate: new Date(Date.now() + 86400000 * 2), status: 'Confirmed', totalAmount: 483750 },
-        { bookingId: 3, guestName: 'Michael Johnson', roomNumber: '1502', checkInDate: new Date(), checkOutDate: new Date(Date.now() + 86400000), status: 'Pending', totalAmount: 129000 }
-      ],
-      upcomingCheckouts: [
-        { bookingId: 1, guestName: 'Sarah Williams', roomNumber: '901', checkOutDate: new Date() },
-        { bookingId: 2, guestName: 'David Brown', roomNumber: '304', checkOutDate: new Date() }
-      ],
-      staffOnDuty: [
-        { staffId: 1, name: 'Alice Manager', role: 'Front Desk Manager', department: 'Front Desk', isOnline: true, shift: 'Morning' },
-        { staffId: 2, name: 'Bob Housekeeper', role: 'Senior Housekeeper', department: 'Housekeeping', isOnline: true, shift: 'Morning' },
-        { staffId: 3, name: 'Carol Security', role: 'Security Officer', department: 'Security', isOnline: false, shift: 'Night' }
-      ],
-      housekeepingStats: {
-        dirtyRooms: 35,
-        cleaningInProgress: 20,
-        cleanRooms: 150,
-        inspectedRooms: 120
-      }
-    };
-  }
 
   initCharts(): void {
     this.initRevenueChart();
-    this.initOccupancyChart();
+   this.initOccupancyChart();
   }
 
   updateCharts(): void {
@@ -292,6 +257,7 @@ this.changeDet.detectChanges()
   }
 
   initOccupancyChart(): void {
+    console.log('Initializing occupancy chart with data:', this.dashboardData); // Debug log to verify data before chart initialization
     const canvas = document.getElementById('occupancyChart') as HTMLCanvasElement;
     if (!canvas) return;
 
@@ -340,6 +306,7 @@ this.changeDet.detectChanges()
         }
       }
     });
+    this.changeDet.markForCheck()
   }
 
   loadRevenueData(): void {

@@ -1,18 +1,22 @@
 // src/app/core/services/staff.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { catchError, Observable } from 'rxjs';
+
 import { Staff, StaffFilter, StaffStats, Shift, ShiftAssignment, AttendanceLog, LeaveRequest, LeaveBalance } from '../models/staff.model';
 import { PerformanceReview, CreatePerformanceReview, PerformanceDashboard, PerformanceMetric } from '../models/performance.model';
+import { SearchResult } from './search.service';
+import { AppConfigService } from './app.config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StaffService {
-  private apiUrl = `${environment.apiUrl}/staff`;
+  private apiUrl = ``;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient,private config :AppConfigService) {
+      this.apiUrl = `${this.config.apiUrl}/staff`;
+  }
 
   // Staff Management
   getStaff(filter: StaffFilter): Observable<{ data: Staff[]; pagination: any }> {

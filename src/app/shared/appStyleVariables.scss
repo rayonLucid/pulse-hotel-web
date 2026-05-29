@@ -1,0 +1,80 @@
+// Color Variables
+$primary-50: #fdf8f2;
+$primary-100: #f9ede0;
+$primary-200: #f2d6b8;
+$primary-300: #eabf90;
+$primary-400: #e2a868;
+$primary-500: #c49a6c;
+$primary-600: #a87b4e;
+$primary-700: #8c5f3a;
+$primary-800: #704626;
+$primary-900: #543016;
+
+$secondary-50: #f0f4f8;
+$secondary-100: #d9e2ec;
+$secondary-200: #bccde0;
+$secondary-300: #9fb3c8;
+$secondary-400: #829ab1;
+$secondary-500: #2c3e50;
+$secondary-600: #1e2e3e;
+$secondary-700: #15232e;
+$secondary-800: #0c181f;
+$secondary-900: #060c0f;
+
+$gray-50: #f9fafb;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+$gray-300: #d1d5db;
+$gray-400: #9ca3af;
+$gray-500: #6b7280;
+$gray-600: #4b5563;
+$gray-700: #374151;
+$gray-800: #1f2937;
+$gray-900: #111827;
+
+$green-50: #ecfdf5;
+$green-100: #d1fae5;
+$green-200: #a7f3d0;
+$green-300: #6ee7b7;
+$green-400: #34d399;
+$green-500: #10b981;
+$green-600: #059669;
+$green-700: #047857;
+$green-800: #065f46;
+$green-900: #064e3b;
+$text-primary:#000;
+$red-500: #ef4444;
+$white: #ffffff;
+$status-inactive-bg: #fef2f2;
+$status-inactive-color: #b91c1c;
+$status-active-bg: #d1fae5;
+$status-active-color: #059669;
+$yellow-500: #f59e0b;
+$yellow-600: #d97706;
+$container-bg: #f5f7fa;;
+// Extra Global Variables for unspecified hardcoded colors
+$blue-500: #3b82f6;
+$blue-100: #dbeafe;
+$blue-700: #1d4ed8;
+
+$orange-500: #f59e0b;
+$body-text: #333333;
+$body-bg: #f5f5f5;
+$scroll-track: #f1f1f1;
+
+// Breakpoints
+$mobile: 320px;
+$tablet: 768px;
+$desktop: 1024px;
+$large-desktop: 1280px;
+$secondary-bg:#181e36;
+
+
+$red-100: #fee2e2;
+$red-700: #b91c1c;
+$yellow-100: #fef3c7;
+$yellow-700: #a16207;
+$primary-100: $primary-100; // already defined
+$primary-700: $primary-700;
+$green-100: $green-100;
+$green-700: $green-700;

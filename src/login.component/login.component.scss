@@ -1,0 +1,923 @@
+// @use 'ngx-toastr/toastr';
+// @import '@fortawesome/fontawesome-free/css/all.min.css';
+
+// // Color Variables
+// $primary-50: #fdf8f2;
+// $primary-100: #f9ede0;
+// $primary-200: #f2d6b8;
+// $primary-300: #eabf90;
+// $primary-400: #e2a868;
+// $primary-500: #c49a6c;
+// $primary-600: #a87b4e;
+// $primary-700: #8c5f3a;
+// $primary-800: #704626;
+// $primary-900: #543016;
+
+// $secondary-50: #f0f4f8;
+// $secondary-100: #d9e2ec;
+// $secondary-200: #bccde0;
+// $secondary-300: #9fb3c8;
+// $secondary-400: #829ab1;
+// $secondary-500: #2c3e50;
+// $secondary-600: #1e2e3e;
+// $secondary-700: #15232e;
+// $secondary-800: #0c181f;
+// $secondary-900: #060c0f;
+
+// $gray-50: #f9fafb;
+// $gray-100: #f3f4f6;
+// $gray-200: #e5e7eb;
+// $gray-300: #d1d5db;
+// $gray-400: #9ca3af;
+// $gray-500: #6b7280;
+// $gray-600: #4b5563;
+// $gray-700: #374151;
+// $gray-800: #1f2937;
+// $gray-900: #111827;
+
+// $green-50: #ecfdf5;
+// $green-100: #d1fae5;
+// $green-200: #a7f3d0;
+// $green-300: #6ee7b7;
+// $green-400: #34d399;
+// $green-500: #10b981;
+// $green-600: #059669;
+// $green-700: #047857;
+// $green-800: #065f46;
+// $green-900: #064e3b;
+
+// $red-500: #ef4444;
+// $white: #ffffff;
+
+// // Extra Global Variables for unspecified hardcoded colors
+// $blue-500: #3b82f6;
+// $orange-500: #f59e0b;
+// $body-text: #333333;
+// $body-bg: #f5f5f5;
+// $scroll-track: #f1f1f1;
+
+// // Breakpoints
+// $mobile: 320px;
+// $tablet: 768px;
+// $desktop: 1024px;
+// $large-desktop: 1280px;
+
+// // Mixins for responsive design
+// @mixin mobile {
+//   @media (max-width: #{$tablet - 1px}) {
+//     @content;
+//   }
+// }
+
+// @mixin tablet {
+//   @media (min-width: #{$tablet}) and (max-width: #{$desktop - 1px}) {
+//     @content;
+//   }
+// }
+
+// @mixin desktop {
+//   @media (min-width: #{$desktop}) {
+//     @content;
+//   }
+// }
+
+// @mixin mobile-only {
+//   @media (max-width: #{$mobile}) {
+//     @content;
+//   }
+// }
+
+// // Animation Keyframes
+// @keyframes fadeInUp {
+//   from {
+//     opacity: 0;
+//     transform: translateY(20px);
+//   }
+//   to {
+//     opacity: 1;
+//     transform: translateY(0);
+//   }
+// }
+
+// @keyframes spin {
+//   from {
+//     transform: rotate(0deg);
+//   }
+//   to {
+//     transform: rotate(360deg);
+//   }
+// }
+
+// @keyframes shake {
+//   0%, 100% {
+//     transform: translateX(0);
+//   }
+//   10%, 30%, 50%, 70%, 90% {
+//     transform: translateX(-5px);
+//   }
+//   20%, 40%, 60%, 80% {
+//     transform: translateX(5px);
+//   }
+// }
+
+// // Main Container - Mobile First
+// .login-container {
+//   min-height: 100vh;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   background: linear-gradient(135deg, $secondary-900 0%, $secondary-800 50%, $primary-900 100%);
+//   padding: 16px;
+
+//   @include tablet {
+//     padding: 24px;
+//   }
+
+//   @include desktop {
+//     padding: 32px;
+//   }
+// }
+
+// // Login Card - Mobile First
+// .login-card {
+//   background: $white;
+//   border-radius: 16px;
+//   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+//   width: 100%;
+//   max-width: 95%;
+//   padding: 20px;
+//   animation: fadeInUp 0.5s ease-out;
+
+//   @include mobile-only {
+//     max-width: 100%;
+//     padding: 16px;
+//     border-radius: 12px;
+//   }
+
+//   @include tablet {
+//     max-width: 80%;
+//     padding: 28px;
+//     border-radius: 20px;
+//   }
+
+//   @include desktop {
+//     max-width: 28rem;
+//     padding: 32px;
+//     border-radius: 24px;
+//   }
+// }
+
+// // Header Section - Mobile First
+// .login-header {
+//   text-align: center;
+//   margin-bottom: 24px;
+
+//   @include mobile-only {
+//     margin-bottom: 20px;
+//   }
+
+//   @include tablet {
+//     margin-bottom: 28px;
+//   }
+
+//   @include desktop {
+//     margin-bottom: 32px;
+//   }
+
+//   .logo-wrapper {
+//     margin-bottom: 12px;
+//     display: flex;
+//     justify-content: center;
+
+//     @include mobile-only {
+//       margin-bottom: 8px;
+//     }
+
+//     @include tablet {
+//       margin-bottom: 16px;
+//     }
+
+//     .logo-icon {
+//       width: 56px;
+//       height: 56px;
+//       background: $primary-100;
+//       border-radius: 9999px;
+//       display: flex;
+//       align-items: center;
+//       justify-content: center;
+
+//       @include mobile-only {
+//         width: 48px;
+//         height: 48px;
+//       }
+
+//       @include tablet {
+//         width: 72px;
+//         height: 72px;
+//       }
+
+//       @include desktop {
+//         width: 80px;
+//         height: 80px;
+//       }
+
+//       span {
+//         font-size: 28px;
+
+//         @include mobile-only {
+//           font-size: 24px;
+//         }
+
+//         @include tablet {
+//           font-size: 36px;
+//         }
+
+//         @include desktop {
+//           font-size: 40px;
+//         }
+//       }
+//     }
+//   }
+
+//   .hotel-title {
+//     font-size: 20px;
+//     font-weight: 700;
+//     color: $secondary-800;
+//     margin-bottom: 6px;
+
+//     @include mobile-only {
+//       font-size: 18px;
+//       margin-bottom: 4px;
+//     }
+
+//     @include tablet {
+//       font-size: 26px;
+//       margin-bottom: 8px;
+//     }
+
+//     @include desktop {
+//       font-size: 28px;
+//       margin-bottom: 8px;
+//     }
+//   }
+
+//   .welcome-text {
+//     color: $gray-500;
+//     font-size: 12px;
+
+//     @include mobile-only {
+//       font-size: 11px;
+//     }
+
+//     @include tablet {
+//       font-size: 14px;
+//     }
+
+//     @include desktop {
+//       font-size: 14px;
+//     }
+//   }
+// }
+
+// // Form Styles
+// .login-form {
+//   display: flex;
+//   flex-direction: column;
+//   gap: 16px;
+
+//   @include mobile-only {
+//     gap: 12px;
+//   }
+
+//   @include tablet {
+//     gap: 20px;
+//   }
+
+//   @include desktop {
+//     gap: 20px;
+//   }
+// }
+
+// // Form Group - Mobile First
+// .form-group {
+//   display: flex;
+//   flex-direction: column;
+//   gap: 6px;
+
+//   .form-label {
+//     display: block;
+//     font-size: 13px;
+//     font-weight: 500;
+//     color: $gray-700;
+//     margin-bottom: 2px;
+
+//     @include mobile-only {
+//       font-size: 12px;
+//     }
+
+//     @include tablet {
+//       font-size: 14px;
+//     }
+//   }
+
+//   .input-wrapper {
+//     position: relative;
+//     display: flex;
+//     align-items: center;
+
+//     .input-icon {
+//       position: absolute;
+//       left: 12px;
+//       display: flex;
+//       align-items: center;
+//       pointer-events: none;
+//       z-index: 1;
+
+//       i {
+//         color: $gray-400;
+//         font-size: 14px;
+
+//         @include mobile-only {
+//           font-size: 12px;
+//         }
+//       }
+//     }
+
+//     .form-input {
+//       width: 100%;
+//       padding: 10px 12px 10px 36px;
+//       border: 1px solid $gray-300;
+//       border-radius: 12px;
+//       background-color: $gray-50;
+//       transition: all 0.2s ease;
+//       font-size: 14px;
+//       -webkit-appearance: none;
+//       appearance: none;
+
+//       @include mobile-only {
+//         padding: 8px 10px 8px 32px;
+//         font-size: 13px;
+//         border-radius: 10px;
+//       }
+
+//       @include tablet {
+//         padding: 12px 14px 12px 40px;
+//         font-size: 14px;
+//       }
+
+//       &:focus {
+//         outline: none;
+//         border-color: $primary-500;
+//         box-shadow: 0 0 0 3px rgba($primary-500, 0.1);
+//         background-color: $white;
+//       }
+
+//       &.is-invalid {
+//         border-color: $red-500;
+//         animation: shake 0.3s ease-in-out;
+
+//         &:focus {
+//           box-shadow: 0 0 0 3px rgba($red-500, 0.1);
+//         }
+//       }
+//     }
+
+//     .password-toggle {
+//       position: absolute;
+//       right: 12px;
+//       background: none;
+//       border: none;
+//       cursor: pointer;
+//       color: $gray-400;
+//       transition: color 0.2s ease;
+//       display: flex;
+//       align-items: center;
+//       z-index: 1;
+//       padding: 8px;
+
+//       @include mobile-only {
+//         padding: 6px;
+//         right: 8px;
+//       }
+
+//       &:hover {
+//         color: $gray-600;
+//       }
+
+//       &:active {
+//         transform: scale(0.95);
+//       }
+//     }
+//   }
+
+//   .error-message {
+//     margin-top: 4px;
+//     font-size: 11px;
+//     color: $red-500;
+
+//     @include mobile-only {
+//       font-size: 10px;
+//     }
+
+//     @include tablet {
+//       font-size: 12px;
+//     }
+//   }
+// }
+
+// // Form Options - Mobile First
+// .form-options {
+//   display: flex;
+//   align-items: center;
+//   justify-content: space-between;
+//   flex-wrap: wrap;
+//   gap: 10px;
+
+//   @include mobile-only {
+//     gap: 8px;
+//   }
+
+//   .checkbox-label {
+//     display: flex;
+//     align-items: center;
+//     cursor: pointer;
+//     min-height: 44px; // Better touch target on mobile
+
+//     @include mobile-only {
+//       min-height: 40px;
+//     }
+
+//     .checkbox-input {
+//       width: 16px;
+//       height: 16px;
+//       color: $primary-600;
+//       border-color: $gray-300;
+//       border-radius: 4px;
+//       cursor: pointer;
+//       margin-right: 8px;
+
+//       @include mobile-only {
+//         width: 18px;
+//         height: 18px;
+//       }
+
+//       &:focus {
+//         outline: none;
+//         box-shadow: 0 0 0 2px rgba($primary-500, 0.2);
+//       }
+//     }
+
+//     .checkbox-text {
+//       font-size: 13px;
+//       color: $gray-600;
+
+//       @include mobile-only {
+//         font-size: 12px;
+//       }
+
+//       @include tablet {
+//         font-size: 14px;
+//       }
+//     }
+//   }
+
+//   .forgot-link {
+//     font-size: 13px;
+//     color: $primary-600;
+//     font-weight: 500;
+//     text-decoration: none;
+//     transition: color 0.2s ease;
+//     min-height: 44px;
+//     display: inline-flex;
+//     align-items: center;
+
+//     @include mobile-only {
+//       font-size: 12px;
+//       min-height: 40px;
+//     }
+
+//     @include tablet {
+//       font-size: 14px;
+//     }
+
+//     &:hover {
+//       color: $primary-700;
+//       text-decoration: underline;
+//     }
+
+//     &:active {
+//       transform: scale(0.98);
+//     }
+//   }
+// }
+
+// // Login Button - Mobile First
+// .btn-login {
+//   width: 100%;
+//   background-color: $primary-500;
+//   color: $white;
+//   font-weight: 600;
+//   padding: 12px 16px;
+//   border-radius: 12px;
+//   border: none;
+//   cursor: pointer;
+//   transition: all 0.2s ease;
+//   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+//   font-size: 15px;
+//   min-height: 48px;
+
+//   @include mobile-only {
+//     padding: 10px 14px;
+//     font-size: 14px;
+//     min-height: 44px;
+//     border-radius: 10px;
+//   }
+
+//   @include tablet {
+//     padding: 14px 20px;
+//     font-size: 16px;
+//     min-height: 52px;
+//   }
+
+//   &:hover:not(:disabled) {
+//     background-color: $primary-600;
+//     transform: translateY(-2px);
+//     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+//   }
+
+//   &:active:not(:disabled) {
+//     transform: translateY(0);
+//   }
+
+//   &:disabled {
+//     opacity: 0.6;
+//     cursor: not-allowed;
+
+//     &:hover {
+//       transform: none;
+//     }
+//   }
+// }
+
+// // Loading Spinner
+// .loading-spinner {
+//   display: inline-flex;
+//   align-items: center;
+//   justify-content: center;
+//   gap: 8px;
+
+//   .spinner-icon {
+//     width: 18px;
+//     height: 18px;
+//     animation: spin 1s linear infinite;
+
+//     @include mobile-only {
+//       width: 16px;
+//       height: 16px;
+//     }
+
+//     .spinner-track {
+//       opacity: 0.25;
+//     }
+
+//     .spinner-head {
+//       opacity: 0.75;
+//     }
+//   }
+// }
+
+// // Divider - Mobile First
+// .divider {
+//   position: relative;
+//   margin: 16px 0;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+
+//   @include mobile-only {
+//     margin: 12px 0;
+//   }
+
+//   @include tablet {
+//     margin: 20px 0;
+//   }
+
+//   .divider-line {
+//     flex: 1;
+//     height: 1px;
+//     background-color: $gray-200;
+//   }
+
+//   .divider-text {
+//     position: relative;
+//     display: flex;
+//     justify-content: center;
+//     font-size: 12px;
+
+//     span {
+//       padding: 0 12px;
+//       background-color: $white;
+//       color: $gray-500;
+
+//       @include mobile-only {
+//         padding: 0 8px;
+//         font-size: 11px;
+//       }
+
+//       @include tablet {
+//         font-size: 13px;
+//       }
+//     }
+//   }
+// }
+
+// // Register Link - Mobile First
+// .register-link {
+//   text-align: center;
+
+//   .register-link-text {
+//     display: inline-flex;
+//     align-items: center;
+//     gap: 6px;
+//     color: $primary-600;
+//     font-weight: 500;
+//     text-decoration: none;
+//     transition: all 0.2s ease;
+//     min-height: 44px;
+//     padding: 8px 16px;
+
+//     @include mobile-only {
+//       gap: 4px;
+//       font-size: 13px;
+//       min-height: 40px;
+//       padding: 6px 12px;
+//     }
+
+//     @include tablet {
+//       gap: 8px;
+//       font-size: 14px;
+//     }
+
+//     i {
+//       font-size: 11px;
+
+//       @include mobile-only {
+//         font-size: 10px;
+//       }
+//     }
+
+//     &:hover {
+//       color: $primary-700;
+//       gap: 8px;
+
+//       @include mobile-only {
+//         gap: 6px;
+//       }
+//     }
+
+//     &:active {
+//       transform: scale(0.98);
+//     }
+//   }
+// }
+
+// // Touch-friendly adjustments for mobile
+// @media (hover: none) and (pointer: coarse) {
+//   .btn-login,
+//   .password-toggle,
+//   .checkbox-label,
+//   .forgot-link,
+//   .register-link-text {
+//     cursor: default;
+//   }
+
+//   .form-input {
+//     font-size: 16px !important; // Prevents zoom on iOS
+//   }
+
+//   .checkbox-input {
+//     width: 20px !important;
+//     height: 20px !important;
+//   }
+// }
+
+// // Landscape mode optimization
+// @media (max-width: 768px) and (orientation: landscape) {
+//   .login-container {
+//     padding: 8px;
+//   }
+
+//   .login-card {
+//     padding: 16px;
+//     max-width: 90%;
+//   }
+
+//   .login-header {
+//     margin-bottom: 16px;
+
+//     .logo-icon {
+//       width: 40px;
+//       height: 40px;
+
+//       span {
+//         font-size: 20px;
+//       }
+//     }
+
+//     .hotel-title {
+//       font-size: 16px;
+//     }
+//   }
+
+//   .login-form {
+//     gap: 10px;
+//   }
+
+//   .form-group {
+//     gap: 4px;
+//   }
+// }
+
+// // High-resolution screens optimization
+// @media (min-resolution: 192dpi) {
+//   .form-input,
+//   .btn-login {
+//     border-width: 0.5px;
+//   }
+// }
+
+// // Reduced motion preference
+// @media (prefers-reduced-motion: reduce) {
+//   .login-card {
+//     animation: none;
+//   }
+
+//   .btn-login {
+//     transition: none;
+//   }
+
+//   .spinner-icon {
+//     animation: none;
+//   }
+// }
+
+// // Component Specific Button Refactor
+
+// .back-btn {
+//   display: inline-flex;
+//   align-items: center;
+//   gap: 8px;
+//   padding: 8px 16px;
+//   background: $white;
+//   border: 1px solid $gray-200;
+//   border-radius: 8px;
+//   color: $gray-600;
+//   font-size: 14px;
+//   font-weight: 500;
+//   cursor: pointer;
+//   transition: all 0.2s ease;
+
+//   i {
+//     font-size: 12px;
+//     transition: transform 0.2s ease;
+//   }
+
+//   &:hover {
+//     background: $gray-100;
+//     border-color: $primary-500;
+//     color: $primary-500;
+
+//     i {
+//       transform: translateX(-3px);
+//     }
+//   }
+
+//   &:active {
+//     transform: scale(0.98);
+//   }
+
+//   // Mobile optimization
+//   @media (max-width: 768px) {
+//     padding: 6px 12px;
+//     font-size: 13px;
+
+//     i {
+//       font-size: 11px;
+//     }
+//   }
+// }
+
+// // Alternative: Different variants
+// .back-btn-outline {
+//   background: transparent;
+//   border: 1px solid $primary-500;
+//   color: $primary-500;
+
+//   &:hover {
+//     background: $primary-500;
+//     color: $white;
+
+//     i {
+//       color: $white;
+//     }
+//   }
+// }
+
+// .back-btn-ghost {
+//   background: transparent;
+//   border: none;
+//   color: $gray-400;
+
+//   &:hover {
+//     background: $gray-100;
+//     color: $gray-700;
+//   }
+// }
+
+// .back-btn-dark {
+//   background: $gray-800;
+//   border-color: $gray-700;
+//   color: $gray-200;
+
+//   &:hover {
+//     background: $gray-700;
+//     border-color: $primary-500;
+//     color: $primary-500;
+//   }
+// }
+
+// .btn-gen-primary {
+//   display: flex;
+//   align-items: center;
+//   gap: 8px;
+//   padding: 10px 20px;
+//   background: $primary-500 !important;
+//   color: $white;
+//   border: none;
+//   border-radius: 8px;
+//   font-weight: 500;
+//   cursor: pointer;
+//   margin: auto;
+
+//   &:hover {
+//     background: $primary-600;
+//   }
+// }
+
+// * {
+//   margin: 0;
+//   padding: 0;
+//   box-sizing: border-box;
+//   scrollbar-width: 0px !important;
+// }
+
+// body {
+//   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+//   font-size: 14px;
+//   line-height: 1.6;
+//   color: $body-text;
+//   background-color: $body-bg;
+//   overflow-x: hidden;
+// }
+
+// // Prevent body scroll when mobile menu is open
+// body.mobile-menu-open {
+//   overflow: hidden;
+// }
+
+// // Custom scrollbar
+// ::-webkit-scrollbar {
+//   width: 8px;
+//   height: 8px;
+// }
+
+// ::-webkit-scrollbar-track {
+//   background: $scroll-track;
+//   border-radius: 4px;
+// }
+
+// ::-webkit-scrollbar-thumb {
+//   background: $primary-500;
+//   border-radius: 4px;
+// }
+
+// ::-webkit-scrollbar-thumb:hover {
+//   background: $primary-600;
+// }
+
+// // Toast customization
+// .toast-success {
+//   background-color: $green-500 !important;
+// }
+
+// .toast-error {
+//   background-color: $red-500 !important;
+// }
+
+// .toast-info {
+//   background-color: $blue-500 !important;
+// }
+
+// .toast-warning {
+//   background-color: $orange-500 !important;
+// }

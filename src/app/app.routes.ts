@@ -18,7 +18,7 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayoutComponent,
-    canActivate: [AuthGuard,SingleTabGuard],
+    canActivate: [AuthGuard],
     children: [
       {
         path: 'dashboard',
@@ -54,6 +54,8 @@ export const routes: Routes = [
         path: 'settings',
         loadChildren: () => import('./modules/settings/settings.routes').then(m => m.SETTINGS_ROUTES)
       }
+      // app.routes.ts
+
     ]
   },
 
@@ -64,5 +66,5 @@ export const routes: Routes = [
   },
 
   // Fallback route
-  { path: '**', redirectTo: '/dashboard' }
+  { path: '**', redirectTo: '/unauthorized' }
 ];

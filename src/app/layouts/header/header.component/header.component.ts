@@ -8,11 +8,14 @@ import { of, Subscription } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SearchResult, SearchService } from '../../../core/services/search.service';
 import { Breadcrumb } from '../../../core/models/auth.models';
+import { NotificationComponent } from "../../../shared/components/notification/notification.component";
+
+
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, NotificationComponent],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })

@@ -5,8 +5,9 @@ import { RouterModule, Router, ActivatedRoute, isActive } from '@angular/router'
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { RoomService } from '../../../../core/services/room.service';
-import { Room, RoomStatusType, BedType, ViewType, getRoomStatusLabel, getBedTypeLabel, getViewTypeLabel, formatPrice, Amenity, BedTypes, RoomType } from '../../../../core/models/room.model';
+
 import { RenderAmenitiesDirective } from '../../../../core/directives/RenderAmenities.directive';
+import { Room, RoomStatusType, BedTypes, Amenity, RoomType, getRoomStatusLabel, formatPrice, ViewTypes } from '../../../../core/models/room.model';
 
 @Component({
   selector: 'app-room-detail',
@@ -39,15 +40,8 @@ export class RoomDetailComponent implements OnInit {
 
   bedTypeOptions: BedTypes[] = [];
 
-  viewTypeOptions: { value: ViewType; label: string }[] = [
-    { value: 'City View', label: 'City View' },
-    { value: 'Ocean View', label: 'Ocean View' },
-    { value: 'Pool View', label: 'Pool View' },
-    { value: 'Garden View', label: 'Garden View' },
-    { value: 'Mountain View', label: 'Mountain View' },
-    { value: 'Lagoon View', label: 'Lagoon View' },
-    { value: 'Panoramic', label: 'Panoramic View' },
-    { value: 'No View', label: 'No View' }
+  viewTypeOptions: ViewTypes[] = [
+
   ];
 
   amenityOptions: Amenity[] = [];
@@ -78,6 +72,7 @@ private changeDet = inject(ChangeDetectorRef);
   }
 
   ngOnInit(): void {
+    this.loadViewTypes()
     this.loadBedTypes();
     this.loadRoomTypes();
     const id = this.route.snapshot.paramMap.get('id');
@@ -87,6 +82,16 @@ private changeDet = inject(ChangeDetectorRef);
     } else {
       this.router.navigate(['/rooms']);
     }
+  }
+  loadViewTypes() {
+   this.roomService.getViewTypes().subscribe({
+    next:(response) =>{
+      this.viewTypeOptions =response.data
+    },
+    error:(err) =>{
+      this.toastr.error(err.error.message,"Error Loading View Types")
+    }
+   })
   }
   loadRoomTypes() {
     this.roomService.getRoomTypes().subscribe({
@@ -310,16 +315,16 @@ private changeDet = inject(ChangeDetectorRef);
     }
   }
 
-  getBedTypeLabel(bedType: BedType): string {
-  return getBedTypeLabel(bedType);
-}
+//   getBedTypeLabel(bedType: BedType): string {
+//   return getBedTypeLabel(bedType);
+// }
 
 /**
  * Get view type label from enum
  */
-getViewTypeLabel(viewType: ViewType): string {
-  return getViewTypeLabel(viewType);
-}
+// getViewTypeLabel(viewType: ViewType): string {
+//   return getViewTypeLabel(viewType);
+// }
 
 /**
  * Get room status label

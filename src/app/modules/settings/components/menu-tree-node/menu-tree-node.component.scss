@@ -56,14 +56,14 @@
 
     .menu-title {
       font-size: 14px;
-      font-weight: 500;
-      color: #1f2937;
+      font-weight: bold;
+      color: #0d0c0c;
       margin-bottom: 4px;
     }
 
     .menu-path {
       font-size: 12px;
-      color: #9ca3af;
+      color: #05070a;
     }
 
     .badge {
@@ -130,6 +130,16 @@
     background: #f9fafb;
   }
 
+  &.isSelected {
+  background: #050a10;
+  color: white;
+  border-left-color: #0e1012;
+
+  :not(.isSelected) {
+    background: transparent;
+    border-left-color: transparent;
+  }
+}
   .menu-node-content {
     display: flex;
     align-items: center;
@@ -233,3 +243,4 @@
     padding-top: 8px;
   }
 }
+

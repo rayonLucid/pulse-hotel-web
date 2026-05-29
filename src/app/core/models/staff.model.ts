@@ -23,7 +23,7 @@ export interface Staff {
   emergencyContactPhone?: string;
   profilePhotoUrl?: string;
   isActive?: boolean;
-  role: string;
+  roleName: string;
 }
 
 export interface Shift {

@@ -1,0 +1,41 @@
+  <ng-template #loadingSpinner><div class="spinner"></div></ng-template>
+
+<div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Manage Permissions: {{ department?.departmentName }}</h3>
+          <button class="close-btn" (click)="closeModal()">×</button>
+        </div>
+
+        <div class="modal-body" *ngIf="!loading; else loadingSpinner">
+          <form [formGroup]="permissionsForm">
+            <div class="table-wrapper" *ngIf="permissionsArray.length > 0; else noMenus">
+              <table class="permissions-table">
+                <thead>
+                  <tr>
+                    <th>Menu</th>
+                    <th>Menu Path</th>
+                    <th>Can View</th>
+                    <th>Can Access</th>
+                  </tr>
+                </thead>
+                <tbody formArrayName="permissions">
+                  <tr *ngFor="let perm of permissionsArray.controls; let i = index" [formGroupName]="i">
+                    <td>{{ getMenuName(i) }}</td>
+                    <td>{{ getMenuUrl(i) }}</td>
+                    <td><input type="checkbox" formControlName="canView"></td>
+                    <td><input type="checkbox" formControlName="canAccess"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <ng-template #noMenus><p class="empty-message">No active menus found.</p></ng-template>
+          </form>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">Cancel</button>
+          <button class="btn-primary" (click)="savePermissions()" [disabled]="loading || !permissionsForm.valid">Save Permissions</button>
+        </div>
+      </div>
+    </div>

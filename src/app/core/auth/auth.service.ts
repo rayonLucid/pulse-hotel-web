@@ -1,12 +1,13 @@
 // src/app/core/auth/auth.service.ts
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, tap, map } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { environment } from '../../../environments/environment';
+
+import { AppConfigService } from '../services/app.config.service';
 
 export interface User {
   userId: number;
@@ -14,6 +15,8 @@ export interface User {
   email: string;
   phoneNumber: string;
   role: string;
+  isStaff:boolean;
+  department:string
   loyaltyPoints: number;
   isActive: boolean;
   profileImageUrl?: string;
@@ -26,6 +29,8 @@ export interface AuthResponse {
     fullName: string;
     email: string;
     token: string;
+    department:string;
+    isStaff:boolean;
     role: string;
     loyaltyPoints: number;
     tokenExpiry: Date;
@@ -37,7 +42,7 @@ export interface AuthResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = environment.apiUrl;
+
   private tokenKey = 'access_token';
   private userKey = 'user_data';
   private jwtHelper = new JwtHelperService();
@@ -47,15 +52,21 @@ export class AuthService {
 
   private isLoggedInSubject = new BehaviorSubject<boolean>(this.hasToken());
   public isLoggedIn$ = this.isLoggedInSubject.asObservable();
-
+    //config=inject(AppConfigService)
   constructor(
     private http: HttpClient,
     private router: Router,
-    private toastr: ToastrService
+    private configService:AppConfigService,
+    private toastr: ToastrService,
+
   ) {
+    console.log(this.configService.apiUrl)
+   // this.apiUrl = `${this.configService.apiUrl}`;
     this.loadStoredUser();
   }
-
+  private get apiUrl(): string {
+    return this.configService.apiUrl;
+  }
   // ==================== AUTHENTICATION METHODS ====================
 
   login(credentials: { email: string; password: string }): Observable<AuthResponse> {
@@ -113,6 +124,16 @@ export class AuthService {
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
   }
+
+  isFrontDeskStaff(): boolean {
+  const user = this.getCurrentUser();
+  //console.log(user)
+  if (!user) return false;
+
+  return user.isStaff && (user.department?.toLowerCase() === 'front office'|| user.department?.toLowerCase()=='front desk');
+  // Or 'front-end' as per your requirement. Adjust the string comparison.
+}
+
 
   getUserFullName(): string | null {
     const user = this.currentUserSubject.value;
@@ -239,6 +260,8 @@ export class AuthService {
     const user: User = {
       userId: authData.userId,
       fullName: authData.fullName,
+      isStaff :authData.isStaff,
+      department:authData.department,
       email: authData.email,
       phoneNumber: '',
       role: authData.role,
@@ -318,4 +341,23 @@ export class AuthService {
       originalError: error
     }));
   }
+
+  // Add this method to your AuthService class
+
+forgotPassword(email: string): Observable<{success:boolean,message:string}> {
+ // console.log(this.apiUrl)
+  return this.http.post<{success:boolean,message:string}>(`${this.apiUrl}/auth/forgot-password`, { email }).pipe(
+    tap(response => {
+      console.log(response)
+      this.toastr.success('If your email is registered, you will receive password reset instructions.', 'Check Your Email');
+    }),
+    catchError((error) => this.handleError(error))
+  );
+}
+
+resetPassword(email: string, token: string, newPassword: string): Observable<any> {
+  return this.http.post(`${this.apiUrl}/auth/reset-password`, { email, token, newPassword }).pipe(
+    catchError(this.handleError.bind(this))
+  );
+}
 }

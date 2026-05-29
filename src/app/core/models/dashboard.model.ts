@@ -58,3 +58,66 @@ export interface DashboardApiResponse {
   data: DashboardData;
   message?: string;
 }
+
+
+// export interface DashboardData {
+//   todayCheckIns: any[];
+//   todayCheckOuts: any[];
+//   roomOccupancy: {
+//     availableRooms: number;
+//     occupiedRooms: number;
+//     maintenanceRooms: number;
+//     cleaningRooms: number;
+//     reservedRooms: number;
+//     totalRooms: number;
+//   };
+//   upcomingReservations: any[];
+//   recentActivities: any[];
+// }
+
+
+// dashboard.interface.ts
+export interface CheckInOutItem {
+  bookingId: number;
+  bookingReference: string;
+  guestName: string;
+  roomNumber: string;
+  checkDate: string;    // ISO date string
+  totalAmount: number;
+}
+
+export interface RoomOccupancy {
+  availableRooms: number;
+  occupiedRooms: number;
+  maintenanceRooms: number;
+  cleaningRooms: number;
+  reservedRooms: number;
+  totalRooms: number;
+}
+
+export interface UpcomingReservation {
+  bookingId: number;
+  bookingReference: string;
+  guestName: string;
+  roomNumber: string;
+  checkInDate: string;
+  checkOutDate: string;
+  bookingStatus: string;
+}
+
+export interface RecentActivity {
+  bookingId: number;
+  bookingReference: string;
+  guestName: string;
+  roomNumber: string;
+  createdAt: string;
+  bookingStatus: string;
+}
+
+export interface DashboardData {
+  todayCheckIns: CheckInOutItem[];
+  todayCheckOuts: CheckInOutItem[];
+  roomOccupancy: RoomOccupancy;
+  upcomingReservations: UpcomingReservation[];
+  recentActivities: RecentActivity[];
+}

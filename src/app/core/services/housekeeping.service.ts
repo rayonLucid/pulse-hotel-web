@@ -1,9 +1,10 @@
+import { AppConfigService } from './app.config.service';
 // src/app/core/services/housekeeping.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry, map } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
+
 import {
   HousekeepingTask,
   RoomStatus,
@@ -22,9 +23,11 @@ import { Room, RoomType } from '../models/room.model';
   providedIn: 'root'
 })
 export class HousekeepingService {
-  private apiUrl = `${environment.apiUrl}/housekeeping`;
+  private apiUrl = ``;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient,private config :AppConfigService) {
+    this.apiUrl = `${this.config.apiUrl}/housekeeping`;
+  }
 
   // ==================== TASK MANAGEMENT ====================
 
