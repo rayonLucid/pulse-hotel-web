@@ -17,6 +17,7 @@ import {
   TaskCompletionData,
   StaffMember
 } from '../models/housekeeping.model';
+import { Room, RoomType } from '../models/room.model';
 
 @Injectable({
   providedIn: 'root'
@@ -204,6 +205,29 @@ export class HousekeepingService {
       .pipe(catchError(this.handleError.bind(this)));
   }
 
+  getRoomTypes(): Observable<{ success: boolean; data: RoomType[] }> {
+  return this.http.get<{ success: boolean; data: RoomType[] }>(`${this.apiUrl}/room-types`)
+    .pipe(catchError(this.handleError.bind(this)));
+}
+
+/**
+ * Get all rooms (for dropdown)
+ */
+getAllRooms(): Observable<{ success: boolean; data: Room[] }> {
+  return this.http.get<{ success: boolean; data: Room[] }>(`${this.apiUrl}/rooms/list`)
+    .pipe(catchError(this.handleError.bind(this)));
+}
+
+/**
+ * Get room by ID with full details
+ */
+getRoomDetails(roomId: number): Observable<{ success: boolean; data: Room }> {
+  return this.http.get<{ success: boolean; data: Room }>(`${this.apiUrl}/rooms/${roomId}`)
+    .pipe(catchError(this.handleError.bind(this)));
+}
+
+
+
   /**
    * Batch update room statuses
    */
@@ -360,6 +384,19 @@ export class HousekeepingService {
     return this.http.get<ApiResponse<any>>(`${this.apiUrl}/staff/${staffId}/performance`, { params })
       .pipe(catchError(this.handleError.bind(this)));
   }
+
+  getStaffByDepartment(department: string): Observable<{ success: boolean; data: StaffMember[] }> {
+  return this.http.get<{ success: boolean; data: StaffMember[] }>(`${this.apiUrl}/staff/department/${department}`)
+    .pipe(catchError(this.handleError.bind(this)));
+}
+
+/**
+ * Get housekeeping staff only
+ */
+getHousekeepingStaff(): Observable<{ success: boolean; data: StaffMember[] }> {
+  return this.http.get<{ success: boolean; data: StaffMember[] }>(`${this.apiUrl}/staff/housekeeping`)
+    .pipe(catchError(this.handleError.bind(this)));
+}
 
   // ==================== REPORTS ====================
 
