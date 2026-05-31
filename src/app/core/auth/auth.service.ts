@@ -29,7 +29,7 @@ export interface AuthResponse {
     fullName: string;
     email: string;
     token: string;
-    department:string;
+    departmentId:number;
     isStaff:boolean;
     role: string;
     loyaltyPoints: number;
@@ -263,7 +263,7 @@ export class AuthService {
       isStaff :authData.isStaff,
       department:authData.department,
       email: authData.email,
-      phoneNumber: '',
+      phoneNumber: authData.phoneNumber,
       role: authData.role,
       loyaltyPoints: authData.loyaltyPoints,
       isActive: true

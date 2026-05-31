@@ -7,6 +7,7 @@ import { Department } from '../../../../core/models/ department.model';
 import { DepartmentService } from '../../../../core/services/department';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { DepartmentPermissionModalComponent } from '../../components/department-permission-modal.component/department-permission-modal.component';
+import { ToastrService } from 'ngx-toastr';
 
 
 @Component({
@@ -18,7 +19,7 @@ import { DepartmentPermissionModalComponent } from '../../components/department-
 })
 export class DepartmentListComponent implements OnInit {
   private deptService = inject(DepartmentService);
-
+toastService = inject(ToastrService)
   // Data
   departments: Department[] = [];
   filteredDepartments: Department[] = [];
@@ -59,9 +60,10 @@ onPermissionModalClose(refresh: boolean) {
 
   loadDepartments(): void {
     this.loading = true;
+  //  console.log(this.showInactive)
     this.deptService.getDepartments(!this.showInactive).subscribe({
       next: (result: any) => {
-      //  console.log('API Response:', result);
+       // console.log('API Response:', result);
         this.departments = result.data;
         this.applyFilterAndPagination();
         this.loading = false;
@@ -104,6 +106,7 @@ onPermissionModalClose(refresh: boolean) {
   }
 
   toggleInactive(): void {
+    this.showInactive =true
     this.currentPage = 1;
     this.loadDepartments();
   }
@@ -150,6 +153,7 @@ onPermissionModalClose(refresh: boolean) {
 
   onModalClose(refresh = false): void {
     this.showModal = false;
+      this.toastService.success("Record Saved Successfully","Success",{timeOut:3000})
     if (refresh) this.loadDepartments();
   }
 
@@ -157,7 +161,10 @@ onPermissionModalClose(refresh: boolean) {
     if (confirm(`Delete department "${name}"? This will soft-delete it.`)) {
       this.deptService.deleteDepartment(id).subscribe({
         next: () => this.loadDepartments(),
-        error: (err) => alert('Delete failed: ' + err.message)
+        error: (err) =>{
+          console.log('Delete failed: ' + err.message)
+          this.toastService.error(err.message)
+        }
       });
     }
   }

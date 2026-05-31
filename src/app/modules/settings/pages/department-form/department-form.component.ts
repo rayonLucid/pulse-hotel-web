@@ -6,6 +6,7 @@ import { Department } from '../../../../core/models/ department.model';
 import { DepartmentService } from '../../../../core/services/department';
 import { AuthService } from '../../../../core/auth/auth.service';
 import { Staff } from '../../../../core/models/staff.model';
+import { ToastrService } from 'ngx-toastr';
 
 
 @Component({
@@ -23,6 +24,7 @@ export class DepartmentFormComponent implements OnInit {
   private deptService = inject(DepartmentService);
 private cdr = inject(ChangeDetectorRef);
 userService =inject(AuthService);
+toastService =inject(ToastrService)
   form!: FormGroup;
   parentDepartments: Department[] = [];
   managingStaff: Staff[] = [];
@@ -39,7 +41,7 @@ userService =inject(AuthService);
   loadManagingStaff(): void {
     this.deptService.getManagingStaff().subscribe({
       next: (response) => {
-       // console.log('Managing staff response:', response);
+        console.log('Managing staff response:', response);
         this.managingStaff = response.data
         this.cdr.markForCheck();
       },
@@ -82,9 +84,12 @@ userService =inject(AuthService);
         this.close.emit(true);
       },
       error: (err) => {
-        console.error(err);
+        console.error(err.error.message);
         this.loading = false;
-        alert('Save failed: ' + err.message);
+        this.cdr.detectChanges()
+      //  alert('Save failed: ' + err.message);
+         // console.log('Save failed: ' + err.message)
+          this.toastService.error(err.error.message)
       }
     });
   }

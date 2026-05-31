@@ -1,10 +1,13 @@
 // src/app/modules/settings/pages/profile/profile.component.ts
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService, User } from '../../../../core/auth/auth.service';
 import { SettingsSidebarComponent } from '../../components/settings-sidebar/settings-sidebar.component';
+import { StaffService } from '../../../../core/services/staff.service';
+import { Department } from '../../../../core/models/ department.model';
+import { DepartmentService } from '../../../../core/services/department';
 
 
 @Component({
@@ -19,36 +22,98 @@ export class ProfileComponent implements OnInit {
   isLoading = false;
   isSaving = false;
   user!: User | null;
-
+depts:Department[]=[]
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private toastr: ToastrService
+    private cdr :ChangeDetectorRef,
+    private userService:StaffService,
+    private toastr: ToastrService,
+    private deptService:DepartmentService
   ) {
     this.profileForm = this.fb.group({
       fullName: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       phoneNumber: ['', [Validators.required, Validators.pattern('^[0-9]{10,15}$')]],
       department: [''],
-      position: [''],
-      bio: ['', [Validators.maxLength(500)]]
+      position: ['']
+
     });
   }
 
   ngOnInit(): void {
+    this.loadDepartments()
     this.loadUserData();
   }
 
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+
+  imageSrc: string | null = null;
+  selectedFile: File | null = null;
+
+  triggerFileInput(): void {
+    this.fileInput.nativeElement.click();
+  }
+
+  onFileSelected(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+
+    if (file) {
+      this.selectedFile = file;
+
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imageSrc = reader.result as string;
+        this.cdr.detectChanges()
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // Optional: Reset/clear the image
+  clearImage(): void {
+    this.imageSrc = null;
+    this.selectedFile = null;
+    if (this.fileInput.nativeElement) {
+      this.fileInput.nativeElement.value = '';
+    }
+  }
+
+loadDepartments(){
+  this.deptService.getDepartments(true).subscribe({
+    next:(response)=>{
+     // console.log(response)
+      this.depts =response.data
+    },
+    error(err) {
+     console.log(err)
+    },
+  })
+}
   loadUserData(): void {
      this.user = this.authService.getCurrentUser();
-   // console.log('Loaded user data:', this.user);
-    if (this.user) {
+   console.log('Loaded user data:', this.user);
+   this.loadUserInfo()
+
+  }
+  loadUserInfo() {
+    this.userService.getStaffById(this.user?.userId!)
+    .subscribe({
+      next:(response)=>{
+        console.log(response)
+             if (response.success) {
       this.profileForm.patchValue({
-        fullName: this.user.fullName,
-        email: this.user.email,
-        phoneNumber: this.user.phoneNumber
+        fullName: response.data.firstName +" "+response.data.lastName,
+        email:  response.data.email,
+        phoneNumber: response.data.phoneNumber,
+        department:response.data.department
       });
+      this.cdr.detectChanges()
     }
+      }
+    })
   }
 
   onSubmit(): void {

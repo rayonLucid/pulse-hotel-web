@@ -400,9 +400,7 @@ closeModals(): void {
         .subscribe({
           next:(response)=>{
             if(response){
-this.reloadPermissions()
- this.rolePermissions = this.menuService.permissionsSubject.value;
-  this.loadRoles()
+this.loadData()
    this.toaStr.success("Record Updated Successfully","Success" ,{
   timeOut: 3000  // timeout in milliseconds (3 seconds)
 })
@@ -427,9 +425,12 @@ this.reloadPermissions()
         .subscribe({
           next:(response)=>{
 if(response){
-this.reloadPermissions();
- this.rolePermissions = this.menuService.permissionsSubject.value;
- this.loadRoles()
+  this.loadData()
+//this.reloadPermissions();
+// this.rolePermissions = this.menuService.permissionsSubject.value;
+// console.log(this.rolePermissions)
+ this.cdr.detectChanges()
+
  this.toaStr.success("Record Created Successfully","Success")
 }
           }

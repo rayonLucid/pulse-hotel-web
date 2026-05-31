@@ -32,9 +32,11 @@ saveDepartmentPermissions(departmentId: number, permissions: any[]): Observable<
 }
 
 
-  getDepartments(activeOnly?: boolean): Observable<Department[]> {
-    const params = activeOnly ? '?isActive=true' : '';
-    return this.http.get<Department[]>(`${this.apiUrl}${params}`);
+  getDepartments(activeOnly?: boolean): Observable<{success:boolean,data:Department[]}> {
+
+    const params = activeOnly ? '?isActive=true' : '?isActive=false';
+
+    return this.http.get<{success:boolean,data:Department[]}>(`${this.apiUrl}${params}`);
   }
  getManagingStaff(): Observable<{ success: boolean; data: Staff[] }> {
    return this.http.get<{ success: boolean; data: Staff[] }>(`${this.apiUrl}/managing-staff`)

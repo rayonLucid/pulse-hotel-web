@@ -21,6 +21,7 @@ export class RoleManagementComponent implements OnInit {
 displayModal=false;
    currentPage = 1;
   itemsPerPage = 6;
+  isSaving=false
   cdr = inject(ChangeDetectorRef)
   constructor(
     private fb: FormBuilder,
@@ -72,11 +73,13 @@ displayModal=false;
     if (this.roleForm.invalid) return;
 
     const formValue = this.roleForm.value;
-
+this.isSaving =true
     if (this.isEditing && this.selectedRole) {
       this.roleService.update(this.selectedRole.roleId, formValue).subscribe(() => {
         this.loadRoles();
+        this.displayModal=false
         this.selectedRole = null;
+        this.isSaving =false
       });
     } else {
       this.roleService.create(formValue).subscribe(() => this.loadRoles());

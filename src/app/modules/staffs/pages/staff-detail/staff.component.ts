@@ -9,6 +9,8 @@ import { Staff, ShiftAssignment, AttendanceLog, LeaveRequest, PerformanceReview 
 import { Bank, BankService } from '../../../../core/services/bank.service';
 import { Role } from '../../../../core/models/roles.model';
 import { RoleService } from '../../../../core/services/role.service';
+import { Department } from '../../../../core/models/ department.model';
+import { DepartmentService } from '../../../../core/services/department';
 
 @Component({
   selector: 'app-staff-detail',
@@ -46,7 +48,7 @@ export class StaffDetailComponent implements OnInit {
   attendanceStartDate: Date;
   attendanceEndDate: Date;
 mismatch:boolean =false
-  departments: Role[] = [];
+  departments: Department[] = [];
   employmentTypes: string[] = ['Full-Time', 'Part-Time', 'Contract', 'Casual'];
   positions: string[] = ['Manager', 'Supervisor', 'Senior Staff', 'Junior Staff', 'Trainee'];
 private changeDet =inject(ChangeDetectorRef);
@@ -55,6 +57,7 @@ private changeDet =inject(ChangeDetectorRef);
     private router: Router,
     private fb: FormBuilder,
     private roleService: RoleService,
+    private deptService:DepartmentService,
     private staffService: StaffService,
     private bankService: BankService,
     private toastr: ToastrService
@@ -125,13 +128,13 @@ private changeDet =inject(ChangeDetectorRef);
     }
   }
   loadDepartments() {
-    this.roleService.getAll().subscribe(
+    this.deptService.getDepartments(true).subscribe(
     {
 
       next:(res: any) =>
         {
       this.departments = res.data;
-      //console.log('Loaded departments:', this.departments);
+      console.log('Loaded departments:', this.departments);
     }
     ,error:(error) => {
          console.error('Error loading departments:', error);

@@ -20,13 +20,17 @@
   <div class="table-wrapper" *ngIf="!loading; else loadingSpinner">
     <table class="amenity-table">
       <thead>
-        <tr><th>ID</th><th>Name</th><th>Icon</th><th>Consumable</th><th>Status</th><th>Actions</th></tr>
+        <tr><th>ID</th><th>Name</th>
+          <th>Icon</th>
+          <th>Icon Image</th>
+          <th>Consumable</th><th>Status</th><th>Actions</th></tr>
       </thead>
       <tbody>
         <tr *ngFor="let a of filteredAmenities | paginate: { itemsPerPage: itemsPerPage, currentPage: currentPage }">
           <td>{{ a.amenityId }}</td>
           <td><strong>{{ a.amenityName }}</strong></td>
           <td>{{ a.icon || '—' }}</td>
+           <td><i class= "fa {{a.icon || 'fa-minus'}}" [style.color]="getIconColor(a.amenityName)"></i></td>
           <td>{{ a.isConsumable ? 'Yes' : 'No' }}</td>
           <td><span class="status-badge" [class.inactive]="!a.isActive">
             {{ a.isActive ? 'Active' : 'Inactive' }}

@@ -81,7 +81,21 @@ cdr = inject(ChangeDetectorRef);
       }
     });
   }
+getIconColor(str: string): string {
+  if (!str) return '#6c757d';
 
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  // Convert to RGB then hex
+  const r = (hash >> 16) & 255;
+  const g = (hash >> 8) & 255;
+  const b = hash & 255;
+
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
   loadStockItems(): void {
     this.stockService.getAllItems().subscribe({
       next: (response) => {
