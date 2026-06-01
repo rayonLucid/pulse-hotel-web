@@ -1,0 +1,33 @@
+<div class="modal-overlay" (click)="closeModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Record Payment for Invoice #{{ invoice?.invoiceNumber }}</h3>
+      <button class="close-btn" (click)="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="paymentForm">
+        <div class="form-group">
+          <label>Amount *</label>
+          <input type="number" formControlName="amount" class="form-control" step="0.01">
+          <div class="error" *ngIf="paymentForm.get('amount')?.invalid && paymentForm.get('amount')?.touched">Valid amount required (max {{ invoice?.balanceDue | currency }})</div>
+        </div>
+        <div class="form-group">
+          <label>Payment Method *</label>
+          <select formControlName="paymentMethod" class="form-control">
+            <option value="Cash">Cash</option>
+            <option value="CreditCard">Credit Card</option>
+            <option value="BankTransfer">Bank Transfer</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Reference Number (optional)</label>
+          <input type="text" formControlName="referenceNumber" class="form-control">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModal()">Cancel</button>
+      <button class="btn-primary" (click)="submitPayment()" [disabled]="paymentForm.invalid || submitting">Submit Payment</button>
+    </div>
+  </div>
+</div>

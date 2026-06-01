@@ -1,0 +1,23 @@
+<div class="reports-container">
+  <h2>Expense Reports</h2>
+  <div class="controls">
+    <label>Start Date:</label>
+    <input type="date" [(ngModel)]="startDate">
+    <label>End Date:</label>
+    <input type="date" [(ngModel)]="endDate">
+    <button class="btn-primary" (click)="loadReport()">Generate</button>
+  </div>
+  <div class="table-wrapper" *ngIf="!loading; else loadingSpinner">
+    <table class="report-table">
+      <thead><tr><th>Period</th><th>Total Expenses</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let item of reportData">
+          <td>{{ item.period }}</td>
+          <td class="number">{{ item.totalExpenses | currency }}</td>
+        </tr>
+        <tr *ngIf="reportData.length === 0"><td colspan="2">No data found</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <ng-template #loadingSpinner><div class="spinner"></div></ng-template>
+</div>

@@ -23,7 +23,7 @@ export class SidebarComponent implements OnInit {
   pinnedMenus: MenuItem[] = [];
   isCollapsed = false;
   openSubmenus: Set<number> = new Set();
-
+isLoading=false
   private menuService = inject(MenuService)
      authService = inject(AuthService)
    private  changeDet = inject(ChangeDetectorRef)
@@ -47,17 +47,22 @@ export class SidebarComponent implements OnInit {
   }
 
   loadMenus(): void {
+      this.isLoading =true
     this.menuService.loadUserMenus().subscribe({
       next: (userMenu:any) => {
+
    //    console.log('User menus loaded:', userMenu.data.menus);
         this.menus = userMenu.data.menus;
        // console.log('Menus set in component:', this.menus);
         this.pinnedMenus = userMenu.data.pinnedMenus;
+          this.isLoading =false
          this.changeDet.detectChanges();
         // this.toastService.success('Menus loaded successfully', 'Success');
        // console.log('Pinned menus set in component:', this.pinnedMenus);
+
       },
       error: (error:any) => {
+          this.isLoading =false
         console.error('Error loading menus:', error);
        // this.toastService.error('Failed to load menus. Please try again.', 'Menu Loading Error');
         this.loadMenus()

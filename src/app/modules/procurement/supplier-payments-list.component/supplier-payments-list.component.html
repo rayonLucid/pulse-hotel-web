@@ -1,0 +1,30 @@
+<div class="payments-container">
+  <h2>Supplier Payments</h2>
+  <div class="filters">
+    <input type="text" placeholder="Supplier Name" [(ngModel)]="supplierFilter" (input)="applyFilters()" class="filter-input">
+    <input type="date" [(ngModel)]="startDate" (change)="applyFilters()" class="filter-date">
+    <input type="date" [(ngModel)]="endDate" (change)="applyFilters()" class="filter-date">
+    <button class="btn-refresh" (click)="refresh()">Refresh</button>
+  </div>
+  <div class="table-wrapper" *ngIf="!loading; else loadingSpinner">
+    <table class="data-table">
+      <thead>
+        <tr><th>Payment ID</th><th>Invoice #</th><th>Supplier</th><th>Amount</th><th>Method</th><th>Reference</th><th>Date</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of payments | paginate: { itemsPerPage: pageSize, currentPage: currentPage, totalItems: totalItems }">
+          <td>{{ p.supplierPaymentId }}</td>
+          <td>{{ p.invoiceNumber }}</td>
+          <td>{{ p.supplierName }}</td>
+          <td class="amount">{{ p.amount | currency }}</td>
+          <td>{{ p.paymentMethod }}</td>
+          <td>{{ p.referenceNumber || '—' }}</td>
+          <td>{{ p.paymentDate | date:'short' }}</td>
+        </tr>
+        <tr *ngIf="payments.length === 0"><td colspan="7" class="empty">No payments found</td></tr>
+      </tbody>
+    </table>
+    <pagination-controls (pageChange)="pageChanged($event)"></pagination-controls>
+  </div>
+  <ng-template #loadingSpinner><div class="spinner"></div></ng-template>
+</div>

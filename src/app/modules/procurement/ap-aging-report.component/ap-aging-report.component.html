@@ -1,0 +1,27 @@
+<div class="aging-container">
+  <h2>Accounts Payable Aging</h2>
+  <div class="controls">
+    <label>As of Date:</label>
+    <input type="date" [(ngModel)]="asOfDate" (change)="loadReport()">
+  </div>
+  <div class="table-wrapper" *ngIf="!loading; else loadingSpinner">
+    <table class="aging-table">
+      <thead>
+        <tr><th>Supplier</th><th>Current</th><th>1-30 Days</th><th>31-60 Days</th><th>61-90 Days</th><th>90+ Days</th><th>Total Outstanding</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of agingData">
+          <td>{{ item.supplierName }}</td>
+          <td class="number">{{ item.current | currency }}</td>
+          <td class="number">{{ item.days1_30 | currency }}</td>
+          <td class="number">{{ item.days31_60 | currency }}</td>
+          <td class="number">{{ item.days61_90 | currency }}</td>
+          <td class="number">{{ item.days90Plus | currency }}</td>
+          <td class="number total">{{ item.totalOutstanding | currency }}</td>
+        </tr>
+        <tr *ngIf="agingData.length === 0"><td colspan="7" class="empty">No aging data found</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <ng-template #loadingSpinner><div class="spinner"></div></ng-template>
+</div>

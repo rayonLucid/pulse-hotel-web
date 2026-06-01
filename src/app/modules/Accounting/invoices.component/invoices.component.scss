@@ -1,0 +1,83 @@
+.invoices-container {
+  padding: 1.5rem;
+  background: #f9fafb;
+}
+.filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.filter-input, .filter-select, .filter-date {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+}
+.btn-refresh {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  padding: 0 1rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+.data-table th, .data-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+.data-table th {
+  background: #f3f4f6;
+  font-weight: 600;
+}
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  background: #fef3c7;
+  color: #92400e;
+}
+.status-badge.paid {
+  background: #d1fae5;
+  color: #065f46;
+}
+.status-badge.partial {
+  background: #fed7aa;
+  color: #92400e;
+}
+.btn-pay {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+.btn-pay:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+.spinner {
+  border: 2px solid #e5e7eb;
+  border-top-color: #c49a6c;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 2rem auto;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

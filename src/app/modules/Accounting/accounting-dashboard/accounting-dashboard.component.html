@@ -1,0 +1,41 @@
+<div class="dashboard-container">
+  <h2>Accounting Dashboard</h2>
+  <div class="loading" *ngIf="loading"><div class="spinner"></div></div>
+  <div *ngIf="!loading && dashboard">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Today's Revenue</div>
+        <div class="stat-number">{{ dashboard.todayRevenue | currency:'NGN ':'symbol':'1.0-0':'en-NG' }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pending Payments</div>
+        <div class="stat-number">{{ dashboard.pendingPayments | currency:'NGN ':'symbol':'1.0-0':'en-NG' }}</div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Monthly Revenue Trend</h3>
+      <canvas #revenueChart></canvas>
+    </div>
+    <div class="recent-card">
+      <h3>Recent Payments</h3>
+      <table class="recent-table">
+        <thead>
+
+            <th>Guest</th><th>Invoice #</th><th>Amount</th>
+            <th>Method</th><th>Date</th>
+
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of dashboard.recentPayments">
+            <td>{{ p.guestName }}</td>
+            <td>{{ p.invoiceNumber }}</td>
+            <td>{{ p.amount | currency }}</td>
+            <td>{{ p.paymentMethod }}</td>
+            <td>{{ p.paymentDate | date:'short' }}</td>
+          </tr>
+          <tr *ngIf="dashboard.recentPayments.length === 0"><td colspan="5">No recent payments</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

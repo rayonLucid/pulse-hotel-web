@@ -1,0 +1,46 @@
+<div class="invoices-container">
+  <h2>Guest Invoices</h2>
+  <div class="filters">
+    <select [(ngModel)]="statusFilter" (change)="applyFilters()" class="filter-select">
+      <option value="">All Status</option>
+      <option value="Unpaid">Unpaid</option>
+      <option value="PartiallyPaid">Partially Paid</option>
+      <option value="Paid">Paid</option>
+      <option value="Overdue">Overdue</option>
+    </select>
+    <input type="date" [(ngModel)]="startDate" (change)="applyFilters()" class="filter-date">
+    <input type="date" [(ngModel)]="endDate" (change)="applyFilters()" class="filter-date">
+    <button class="btn-refresh" (click)="refresh()">Refresh</button>
+  </div>
+
+  <div class="table-wrapper" *ngIf="!loading; else loadingSpinner">
+    <table class="data-table">
+      <thead>
+        <tr><th>Invoice #</th><th>Guest</th><th>Booking Ref</th><th>Issue Date</th><th>Due Date</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let inv of invoices | paginate: { itemsPerPage: pageSize, currentPage: currentPage, totalItems: totalItems }">
+          <td>{{ inv.invoiceNumber }}</td>
+          <td>{{ inv.guestName }}</td>
+          <td>{{ inv.bookingReference }}</td>
+          <td>{{ inv.issueDate | date }}</td>
+          <td>{{ inv.dueDate | date }}</td>
+          <td>{{ inv.totalAmount | currency }}</td>
+          <td>{{ inv.paidAmount | currency }}</td>
+          <td>{{ inv.balanceDue | currency }}</td>
+          <td><span class="status-badge" [class.paid]="inv.status === 'Paid'" [class.partial]="inv.status === 'PartiallyPaid'" [class.overdue]="inv.status === 'Overdue'">{{ inv.status }}</span></td>
+          <td><button class="btn-pay" (click)="openPaymentModal(inv)" [disabled]="inv.status === 'Paid'">Record Payment</button></td>
+        </tr>
+        <tr *ngIf="invoices.length === 0"><td colspan="10" class="empty">No invoices found</td></tr>
+      </tbody>
+    </table>
+    <pagination-controls (pageChange)="pageChanged($event)"></pagination-controls>
+  </div>
+  <ng-template #loadingSpinner><div class="spinner"></div></ng-template>
+</div>
+
+<app-payment-modal
+  *ngIf="showPaymentModal"
+  [invoice]="selectedInvoice"
+  (close)="onPaymentModalClose($event)">
+</app-payment-modal>

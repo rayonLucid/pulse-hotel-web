@@ -54,6 +54,17 @@ export const routes: Routes = [
         path: 'settings',
         loadChildren: () => import('./modules/settings/settings.routes').then(m => m.SETTINGS_ROUTES)
       }
+,
+ {
+        path: 'accounting',
+        loadChildren: () => import('./modules/Accounting/accounting.routes').then(m => m.ACCOUNTING_ROUTES)
+      },
+      // NEW: Procurement module
+      {
+        path: 'procurement',
+        loadChildren: () => import('./modules/procurement/procurement.routes').then(m => m.PROCUREMENT_ROUTES)
+      }
+
       // app.routes.ts
 
     ]

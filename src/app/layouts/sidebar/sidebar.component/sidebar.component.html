@@ -13,7 +13,9 @@
 
   <!-- Main Menu -->
   <div class="sidebar-menu">
+    <i *ngIf="isLoading==true" style="font-size: x-large;" class="fas  fa-spinner fa-spin"></i>
     @for (menu of menus; track menu.menuItemId) {
+      
       <div class="menu-item">
         @if (menu.children && menu.children.length) {
           <!-- Parent menu with children -->
