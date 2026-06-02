@@ -480,4 +480,22 @@ Math =Math
   trackByPurchaseOrder(index: number, po: PurchaseOrder): number {
     return po.poNumber;
   }
+ printPO(poNumber: number) {
+  if (!poNumber) {
+    this.toastr.error('Please enter a PO number to print.', 'Error');
+    return;
+  }
+  this.inventoryService.printPO(poNumber).subscribe(
+    (blob) => {
+     // console.log('Received blob for PO print:', blob);
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      window.URL.revokeObjectURL(url);
+    }
+    ,(error) => {
+      console.error('Error printing PO:', error);
+      this.toastr.error('Failed to print purchase order', 'Error');
+    }
+  );
+}
 }

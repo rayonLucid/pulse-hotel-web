@@ -1,0 +1,34 @@
+<div class="modal-overlay" (click)="close()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Request Leave</h3>
+      <button class="close-btn" (click)="close()">×</button>
+    </div>
+    <form [formGroup]="leaveForm" (ngSubmit)="submit()">
+      <div class="form-group">
+        <label>Leave Type</label>
+        <select formControlName="leaveType" class="form-control">
+          <option value="Annual">Annual</option>
+          <option value="Sick">Sick</option>
+          <option value="Unpaid">Unpaid</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Start Date</label>
+        <input type="date" formControlName="startDate" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>End Date</label>
+        <input type="date" formControlName="endDate" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Reason (optional)</label>
+        <textarea formControlName="reason" rows="3" class="form-control"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="close()">Cancel</button>
+        <button type="submit" class="btn-primary" [disabled]="leaveForm.invalid">Submit</button>
+      </div>
+    </form>
+  </div>
+</div>

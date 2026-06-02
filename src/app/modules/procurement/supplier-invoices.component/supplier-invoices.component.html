@@ -11,7 +11,12 @@
     <input type="date" [(ngModel)]="startDate" (change)="applyFilters()" class="filter-date">
     <input type="date" [(ngModel)]="endDate" (change)="applyFilters()" class="filter-date">
     <button class="btn-refresh" (click)="refresh()">Refresh</button>
+
+<!-- <button class="btn-print" (click)="printPO(poNumber)">🖨️ Print</button> -->
+    <button class="btn-primary" (click)="openNewInvoiceModal()">+ New Invoice</button>
+
   </div>
+
 
   <div class="table-wrapper" *ngIf="!loading; else loadingSpinner">
     <table class="data-table">
@@ -25,9 +30,9 @@
           <td>{{ inv.invoiceNumber }}</td>
           <td>{{ inv.invoiceDate | date }}</td>
           <td>{{ inv.dueDate | date }}</td>
-          <td>{{ inv.totalAmount | currency }}</td>
-          <td>{{ inv.paidAmount | currency }}</td>
-          <td>{{ inv.balanceDue | currency }}</td>
+          <td>{{ inv.totalAmount | currency:'NGN ' }}</td>
+          <td>{{ inv.paidAmount | currency:'NGN ' }}</td>
+          <td>{{ inv.balanceDue | currency:'NGN ' }}</td>
           <td><span class="status-badge" [class.paid]="inv.status === 'Paid'" [class.partial]="inv.status === 'PartiallyPaid'">{{ inv.status }}</span></td>
           <td><button class="btn-pay" (click)="openPaymentModal(inv)" [disabled]="inv.status === 'Paid'">Record Payment</button></td>
         </tr>
@@ -45,3 +50,9 @@
   [invoice]="selectedInvoice"
   (close)="onPaymentModalClose($event)">
 </app-payment-modal>
+
+<!-- New Invoice Modal -->
+<app-supplier-invoice-modal
+  *ngIf="showNewInvoiceModal"
+  (close)="onNewInvoiceModalClose($event)">
+</app-supplier-invoice-modal>

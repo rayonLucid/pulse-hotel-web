@@ -8,6 +8,8 @@ import { SettingsSidebarComponent } from '../../components/settings-sidebar/sett
 import { StaffService } from '../../../../core/services/staff.service';
 import { Department } from '../../../../core/models/ department.model';
 import { DepartmentService } from '../../../../core/services/department';
+import { RoleService } from '../../../../core/services/role.service';
+import { Role } from '../../../../core/models/roles.model';
 
 
 @Component({
@@ -22,6 +24,7 @@ export class ProfileComponent implements OnInit {
   isLoading = false;
   isSaving = false;
   user!: User | null;
+  Roles:Role[]=[]
 depts:Department[]=[]
   constructor(
     private fb: FormBuilder,
@@ -29,7 +32,8 @@ depts:Department[]=[]
     private cdr :ChangeDetectorRef,
     private userService:StaffService,
     private toastr: ToastrService,
-    private deptService:DepartmentService
+    private deptService:DepartmentService,
+    private roleService:RoleService
   ) {
     this.profileForm = this.fb.group({
       fullName: ['', [Validators.required, Validators.minLength(3)]],
@@ -42,10 +46,23 @@ depts:Department[]=[]
   }
 
   ngOnInit(): void {
+this.LoadRoles()
     this.loadDepartments()
     this.loadUserData();
   }
 
+  LoadRoles() {
+    this.roleService.getAll().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.Roles = response.data;
+        }
+      },
+      error: (err) => {
+        console.log(err);
+      }
+    });
+  }
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   imageSrc: string | null = null;
@@ -94,7 +111,7 @@ loadDepartments(){
 }
   loadUserData(): void {
      this.user = this.authService.getCurrentUser();
-   console.log('Loaded user data:', this.user);
+  // console.log('Loaded user data:', this.user);
    this.loadUserInfo()
 
   }
@@ -102,13 +119,14 @@ loadDepartments(){
     this.userService.getStaffById(this.user?.userId!)
     .subscribe({
       next:(response)=>{
-        console.log(response)
+      //  console.log(response)
              if (response.success) {
       this.profileForm.patchValue({
         fullName: response.data.firstName +" "+response.data.lastName,
         email:  response.data.email,
         phoneNumber: response.data.phoneNumber,
-        department:response.data.department
+        department:response.data.department,
+        position:response.data.position
       });
       this.cdr.detectChanges()
     }

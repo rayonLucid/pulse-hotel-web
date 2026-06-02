@@ -104,8 +104,11 @@ private changeDet = inject(ChangeDetectorRef);
       },
       error: (error) => {
         console.error('Error loading room statuses:', error);
-        this.toastr.error('Failed to load room statuses', 'Error');
+      //  this.toastr.error('Failed to load room statuses', 'Error');
         this.isLoading = false;
+          this.changeDet.detectChanges();
+  const match = error.error.error.match(/'([^']+)'/);
+          this.toastr.error( (match ? match[1] : 'Failed to load bookings') || error.error.message , 'Error');
       }
     });
   }

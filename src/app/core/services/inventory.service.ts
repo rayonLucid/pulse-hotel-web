@@ -117,7 +117,11 @@ getAllItems(): Observable<{ success: boolean; data: InventoryItem[] }> {
     if (status) params = params.set('status', status);
     return this.http.get<{ success: boolean; data: PurchaseOrder[] }>(`${this.apiUrl}/purchase-orders`, { params });
   }
-
+printPO(poNumber: number) : Observable<Blob> {
+  return this.http.get(`${this.apiUrl}/purchase-orders/${poNumber}/print`, {
+    responseType: 'blob'
+  });
+}
   getPurchaseOrderById(poNumber: number): Observable<{ success: boolean; data: PurchaseOrder }> {
     return this.http.get<{ success: boolean; data: PurchaseOrder }>(`${this.apiUrl}/purchase-orders/${poNumber}`);
   }

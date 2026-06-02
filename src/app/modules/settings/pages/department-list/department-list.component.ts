@@ -6,7 +6,7 @@ import { DepartmentFormComponent } from '../department-form/department-form.comp
 import { Department } from '../../../../core/models/ department.model';
 import { DepartmentService } from '../../../../core/services/department';
 import { NgxPaginationModule } from 'ngx-pagination';
-import { DepartmentPermissionModalComponent } from '../../components/department-permission-modal.component/department-permission-modal.component';
+import { DepartmentPermissionModalComponent } from '../../components/department-permission-modal/department-permission-modal.component';
 import { ToastrService } from 'ngx-toastr';
 
 

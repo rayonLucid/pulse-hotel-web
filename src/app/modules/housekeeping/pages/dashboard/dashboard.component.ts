@@ -12,7 +12,7 @@ import { DashboardStats, RoomStatus, HousekeepingTask } from '../../../../core/m
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
-export class DashboardComponent implements OnInit, OnDestroy {
+export class HouseKeepingDashboardComponent implements OnInit, OnDestroy {
   stats: DashboardStats | null = null;
   roomStatuses: RoomStatus[] = [];
   pendingTasks: HousekeepingTask[] = [];

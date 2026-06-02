@@ -59,10 +59,10 @@ changDef =inject(ChangeDetectorRef)
 
     this.authService.login(loginData).subscribe({
       next: (response) => {
-       // console.log(response)
+        console.log(response)
         this.isLoading = false;
         if (response.success) {
-         this.toaStr.success('Welcome back!', 'Login Successful');
+       //  this.toaStr.success('Welcome back!', 'Login Successful');
         //  this.router.navigate([this.returnUrl]);
         this.onLoginSuccess();
         } else {
@@ -81,10 +81,18 @@ changDef =inject(ChangeDetectorRef)
   }
 
    onLoginSuccess(): void {
-    if (this.authService.isFrontDeskStaff()) {
-      console.log("here")
-      this.router.navigate(['/dashboard/frontDesk']);
-    } else if (this.authService.isAdmin()) {
+   let UserDepartment = this.authService.getUserDepartment()
+   console.log(UserDepartment)
+    if (UserDepartment !=null && UserDepartment.toLowerCase().includes("front")) {
+             this.router.navigate(['/dashboard/frontDesk']);
+    }
+  else if (UserDepartment !=null && UserDepartment.toLowerCase().includes("account")) {
+             this.router.navigate(['/dashboard/accounting']);
+    }
+   else  if (UserDepartment !=null && UserDepartment.toLowerCase().includes("house")) {
+             this.router.navigate(['/dashboard/housekeeping']);
+    }
+    else if (UserDepartment==null && this.authService.isAdmin()) {
       this.router.navigate(['/dashboard']);
     } else if (this.authService.isGuest()) {
       this.router.navigate(['/dashboard/guest']);

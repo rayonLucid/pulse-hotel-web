@@ -55,8 +55,17 @@ isLoading=false
         this.menus = userMenu.data.menus;
        // console.log('Menus set in component:', this.menus);
         this.pinnedMenus = userMenu.data.pinnedMenus;
-          this.isLoading =false
+        if(this.menus.length ==0) {
+          console.log('Pinned menus set in component:', this.pinnedMenus);
+             this.isLoading =true
          this.changeDet.detectChanges();
+           this.loadMenus()
+        }else{
+          this.isLoading =false
+             this.changeDet.detectChanges();
+
+        }
+
         // this.toastService.success('Menus loaded successfully', 'Success');
        // console.log('Pinned menus set in component:', this.pinnedMenus);
 
@@ -64,7 +73,7 @@ isLoading=false
       error: (error:any) => {
           this.isLoading =false
         console.error('Error loading menus:', error);
-       // this.toastService.error('Failed to load menus. Please try again.', 'Menu Loading Error');
+        this.toastService.error('Failed to load menus. Please try again.', 'Menu Loading Error');
         this.loadMenus()
       }
     });

@@ -2,6 +2,8 @@
 import { Routes } from '@angular/router';
 import { DashboardComponent } from './dashboard.component/dashboard.component';
 import { FrontDeskDashboardComponent } from './frontdesk-dashboard/frontdesk-dashboard.component';
+import { AccountingDashboardComponent } from '../Accounting/accounting-dashboard/accounting-dashboard.component';
+import {HouseKeepingDashboardComponent} from '../housekeeping/pages/dashboard/dashboard.component'
 
 
 
@@ -9,5 +11,7 @@ export const DASHBOARD_ROUTES: Routes = [
   { path: '', component: DashboardComponent },
   { path: 'admin', component: DashboardComponent },
   { path: 'manager', component: DashboardComponent },
-  { path: 'frontDesk', component: FrontDeskDashboardComponent }
+  { path: 'frontDesk', component: FrontDeskDashboardComponent },
+  { path: 'accounting', component: AccountingDashboardComponent, data: { title: 'Accounting Dashboard' } },
+   { path: 'housekeeping', component: HouseKeepingDashboardComponent },
 ];

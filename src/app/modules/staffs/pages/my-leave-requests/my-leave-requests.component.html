@@ -1,0 +1,53 @@
+<!-- my-leave-requests.component.html -->
+<div class="requests-container">
+  <div class="header">
+    <h3>My Leave Requests</h3>
+    <button class="btn-primary" (click)="openRequestModal()">+ Request New Leave</button>
+  </div>
+
+  <div *ngIf="loading" class="spinner"></div>
+
+  <div *ngIf="!loading && requests.length === 0" class="empty">
+    No leave requests found.
+  </div>
+
+  <div *ngIf="!loading && requests.length">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Status</th>
+          <th>Reason</th>
+          <th>Submitted</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let req of requests | paginate: { itemsPerPage: pageSize, currentPage: currentPage }">
+          <td>{{ req.leaveType }}</td>
+          <td>{{ req.startDate | date }}</td>
+          <td>{{ req.endDate | date }}</td>
+          <td><span class="status-badge" [class.approved]="req.status === 'Approved'" [class.rejected]="req.status === 'Rejected'">{{ req.status }}</span></td>
+          <td>{{ req.reason || '—' }}</td>
+          <td>{{ req.createdAt | date:'short' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pagination-wrapper">
+      <pagination-controls
+        (pageChange)="pageChanged($event)"
+        previousLabel="Prev"
+        nextLabel="Next"
+        [responsive]="true"
+      ></pagination-controls>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Component -->
+<app-leave-request-modal
+  *ngIf="showRequestModal"
+  (closeModal)="onModalClose($event)">
+</app-leave-request-modal>

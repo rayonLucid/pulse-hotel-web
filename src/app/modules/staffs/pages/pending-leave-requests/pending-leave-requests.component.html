@@ -1,0 +1,24 @@
+<div class="pending-container">
+  <h3>Pending Leave Requests</h3>
+  <div *ngIf="loading" class="spinner"></div>
+  <div *ngIf="!loading && pendingRequests.length === 0" class="empty">No pending requests.</div>
+  <table *ngIf="!loading && pendingRequests.length" class="data-table">
+    <thead>
+      <tr><th>Employee</th><th>Department</th><th>Type</th><th>Dates</th><th>Days</th><th>Reason</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let req of pendingRequests">
+        <td>{{ req.employeeName }}</td>
+        <td>{{ req.department || '—' }}</td>
+        <td>{{ req.leaveType }}</td>
+        <td>{{ req.startDate | date }} - {{ req.endDate | date }}</td>
+        <td>{{ req.daysRequested }}</td>
+        <td>{{ req.reason || '—' }}</td>
+        <td class="actions">
+          <button class="btn-approve" (click)="approve(req.leaveRequestId, 'Approved')">Approve</button>
+          <button class="btn-reject" (click)="approve(req.leaveRequestId, 'Rejected')">Reject</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

@@ -34,6 +34,7 @@ export interface FinancialDashboard {
   todayRevenue: number;
   pendingPayments: number;
   monthlyTrend: { year: number; month: number; total: number }[];
+  dueSupplierInvoices: SupplierInvoiceDto[];
   recentPayments: {
     paymentId: number;
     amount: number;
@@ -42,6 +43,23 @@ export interface FinancialDashboard {
     invoiceNumber: string;
     guestName: string;
   }[];
+}
+
+export interface SupplierInvoiceDto {
+  supplierInvoiceId: number;
+  pONumber: string;
+  supplierId: number;
+  supplierName: string;
+  invoiceNumber: string;
+  invoiceDate: Date;
+  daysOverdue : number;
+  amountDue: number;
+  dueDate: Date;
+  totalAmount: number;
+  paidAmount: number;
+  balanceDue: number;
+  status: string;
+  createdAt: Date;
 }
 
 export interface RevenueReportItem {

@@ -4,7 +4,22 @@
         <label>View for date:</label>
         <input type="date" [(ngModel)]="selectedDate" (change)="loadDashboard()" />
       </div>
-
+<div class="status-card">
+  <h3>Your Status</h3>
+  <div class="headers">
+  <p>On Duty: {{ status.isOnDuty ? 'Yes' : 'No' }}</p>
+  <p *ngIf="status.hasShiftAssignment">Today's Shift: {{ status.shiftName }} ({{ status.shiftStartTime }} - {{ status.shiftEndTime }})</p>
+  <p *ngIf="status.isOnDuty && status.lateMinutes > 0">Late by: {{ status.lateMinutes }} minutes</p>
+  <p class="countdown" *ngIf="status.isOnDuty && status.hasShiftAssignment">
+      Time until shift ends: <strong>{{ countdown }}</strong>
+    </p>
+     <p *ngIf="showShiftEndWarning" class="warning-message">
+      ⚠️ Your shift has ended! Please clock out. Overtime will be recorded automatically.
+    </p>
+  </div>
+  <button class="clock-in" *ngIf="!status.isOnDuty" (click)="clockIn()">Clock In</button>
+  <button class=" clock-out " *ngIf="status.isOnDuty" (click)="clockOut()">Clock Out</button>
+</div>
       <!-- Stats Cards -->
       <div class="stats-row">
         <div class="stat-card available">Available: {{ dashboard?.roomOccupancy?.availableRooms || 0 }}</div>

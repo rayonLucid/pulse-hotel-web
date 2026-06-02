@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { RoomService } from '../../../../core/services/room.service';
 import { Room, RoomStatusType, getRoomStatusClass, formatPrice } from '../../../../core/models/room.model';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-rooms-list',
@@ -42,6 +43,7 @@ export class RoomsListComponent implements OnInit {
     maintenanceRooms: 0
   };
 private changeDet = inject(ChangeDetectorRef);
+toastr = inject(ToastrService);
   constructor(private roomService: RoomService) {}
 
   ngOnInit(): void {
@@ -70,7 +72,8 @@ private changeDet = inject(ChangeDetectorRef);
         console.error('Error:', error);
         this.isLoading = false;
         this.changeDet.detectChanges();
-
+  const match = error.error.error.match(/'([^']+)'/);
+          this.toastr.error( (match ? match[1] : 'Failed to load bookings') || error.error.message , 'Error');
       }
     });
   }

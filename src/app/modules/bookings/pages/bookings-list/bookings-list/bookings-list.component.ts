@@ -97,7 +97,8 @@ export class BookingsListComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error loading booking:', error);
-          this.toastr.error('Failed to load bookings', 'Error');
+          const match = error.error.error.match(/'([^']+)'/);
+          this.toastr.error( (match ? match[1] : 'Failed to load bookings') || error.error.message , 'Error');
           this.isLoading = false;
  this.changeDet.detectChanges();
         }

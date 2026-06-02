@@ -238,3 +238,100 @@
 
 
 
+.status-card {
+  background: #17203b;
+  border-radius: 1rem;
+
+  padding: 1.5rem;
+  margin: 1rem 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  h3 {
+    margin: 0 0 0.75rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #adb3bc;
+  }
+.headers{
+  display: flex;
+  flex: 1;
+  gap:24px;
+  margin-bottom: 12px;
+
+}
+  p {
+    margin: 0.5rem 0;
+    font-size: 1rem;
+    color: #01060c;
+background-color: adjust-hue($color: white, $degrees: 10);
+border-left: #bfafaf solid 2px;
+border-radius: 0.5rem;
+padding: 0.5rem;
+    strong {
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+  }
+
+  .button-group {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+
+  button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+ .countdown {
+    background-color: #fff;
+
+    }
+  .clock-in {
+    background: #10b981;
+    color: white;
+    &:hover:not(:disabled) { background: #059669; }
+  }
+
+  .clock-out {
+    background: #ef4444;
+    color: white;
+    &:hover:not(:disabled) { background: #dc2626; }
+  }
+}
+
+.warning-message {
+  color: #dc2626;
+  background: #fee2e2;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}

@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { AuthGuard } from './core/auth/auth.guard';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component/main-layout.component';
 import { SingleTabGuard } from './core/auth/single-tab.guard';
+import { RoleGuard } from './core/auth/role.guard-guard';
 
 
 export const routes: Routes = [
@@ -62,6 +63,8 @@ export const routes: Routes = [
       // NEW: Procurement module
       {
         path: 'procurement',
+         canActivate: [RoleGuard],
+    data: { roles: ['Admin', 'Manager', 'Senior Staff','Supervisor'] },
         loadChildren: () => import('./modules/procurement/procurement.routes').then(m => m.PROCUREMENT_ROUTES)
       }
 

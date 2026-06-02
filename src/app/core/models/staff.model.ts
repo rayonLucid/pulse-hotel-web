@@ -55,6 +55,18 @@ export interface ShiftAssignment {
   overtimeHours?: number;
 }
 
+export interface ClockInRequest {
+  shiftId?: number;
+  clockInMethod?: string;
+  notes?: string;
+}
+
+export interface ClockOutRequest {
+  clockOutMethod?: string;
+  notes?: string;
+
+}
+
 export interface AttendanceLog {
   logId: number;
   staffId: number;
@@ -107,7 +119,17 @@ export interface StaffStats {
   absentToday: number;
   departments: { name: string; count: number }[];
 }
-
+export interface StaffCurrentStatusDto {
+  shiftId?: number;
+  shiftName?: string;
+  shiftStartTime?: string; // TimeSpan is string in JS/TS
+  shiftEndTime?: string; // TimeSpan is string in JS/TS
+  clockInTime?: Date;
+  logId?: number;
+  isOnDuty: boolean;
+  hasShiftAssignment: boolean;
+  lateMinutes: number;
+}
 export interface StaffFilter {
   department?: string;
   status?: string;

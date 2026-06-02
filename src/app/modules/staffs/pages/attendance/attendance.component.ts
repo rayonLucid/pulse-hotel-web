@@ -174,7 +174,7 @@ changDet =inject(ChangeDetectorRef)
     this.isCheckingIn = true;
     const method = this.clockInForm.get('clockInMethod')?.value;
 
-    this.staffService.clockIn(this.selectedStaffForClockIn.staffId, method).subscribe({
+    this.staffService.StaffClockIn(this.selectedStaffForClockIn.staffId, method).subscribe({
       next: (response) => {
         this.isCheckingIn = false;
         if (response.success) {
@@ -194,7 +194,7 @@ changDet =inject(ChangeDetectorRef)
 
   clockOut(staffId: number, staffName: string): void {
     if (confirm(`Clock out ${staffName}?`)) {
-      this.staffService.clockOut(staffId).subscribe({
+      this.staffService.StaffClockOut(staffId).subscribe({
         next: (response) => {
           if (response.success) {
             this.toastr.success(`${staffName} checked out successfully`, 'Clock Out');

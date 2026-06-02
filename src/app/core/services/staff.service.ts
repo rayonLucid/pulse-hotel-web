@@ -3,7 +3,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { catchError, Observable } from 'rxjs';
 
-import { Staff, StaffFilter, StaffStats, Shift, ShiftAssignment, AttendanceLog, LeaveRequest, LeaveBalance } from '../models/staff.model';
+import { Staff, StaffFilter, StaffStats, Shift, ShiftAssignment,
+   AttendanceLog, LeaveRequest, LeaveBalance,
+   StaffCurrentStatusDto,
+   ClockInRequest,
+   ClockOutRequest} from '../models/staff.model';
 import { PerformanceReview, CreatePerformanceReview, PerformanceDashboard, PerformanceMetric } from '../models/performance.model';
 import { SearchResult } from './search.service';
 import { AppConfigService } from './app.config.service';
@@ -52,6 +56,11 @@ export class StaffService {
     return this.http.get<{ success: boolean; data: StaffStats }>(`${this.apiUrl}/stats`);
   }
 
+  getCurrentStatus(): Observable<StaffCurrentStatusDto> {
+  return this.http.get<StaffCurrentStatusDto>(`${this.apiUrl}/current-status`);
+}
+
+//
   // Shift Management
   // getShifts(): Observable<{ success: boolean; data: Shift[] }> {
   //   return this.http.get<{ success: boolean; data: Shift[] }>(`${this.apiUrl}/shifts`);
@@ -85,12 +94,31 @@ export class StaffService {
     return this.http.get<{ success: boolean; data: AttendanceLog[] }>(`${this.apiUrl}/${staffId}/attendance`, { params });
   }
 
-  clockIn(staffId: number, method: string): Observable<{ success: boolean; message: string }> {
-    return this.http.post<{ success: boolean; message: string }>(`${this.apiUrl}/attendance/clockin`, { staffId, method });
+  clockIn(request: ClockInRequest): Observable<{ success: boolean; message: string; logId?: number }> {
+    return this.http.post<{ success: boolean; message: string; logId?: number }>(
+      `${this.apiUrl}/attendance/clock-in`,
+      request
+    );
   }
 
-  clockOut(staffId: number): Observable<{ success: boolean; message: string }> {
-    return this.http.post<{ success: boolean; message: string }>(`${this.apiUrl}/attendance/clockout`, { staffId });
+  // POST /staff/clock-out
+  clockOut(request: ClockOutRequest): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(
+      `${this.apiUrl}/attendance/clock-out`,
+      request
+    );
+  }
+StaffClockIn(staffId:number, method:string): Observable<{ success: boolean; message: string; logId?: number }> {
+    return this.http.post<{ success: boolean; message: string; logId?: number }>(
+      `${this.apiUrl}/clock-in`,
+      {staffId,method}
+    );
+  }
+  StaffClockOut(request: number): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(
+      `${this.apiUrl}/clock-out`,
+    {request}
+    );
   }
 
   // Leave Management

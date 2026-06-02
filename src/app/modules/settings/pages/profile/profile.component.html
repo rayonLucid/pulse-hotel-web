@@ -73,7 +73,12 @@
           <div class="form-row">
             <div class="form-group">
               <label for="position">Position</label>
-              <input type="text" id="position" formControlName="position" class="form-control">
+              <!-- <input type="text" id="position" formControlName="position" class="form-control"> -->
+              <select formControlName="position" class="form-select">
+               @for (role of Roles; track role) {
+              <option [value]="role.roleName">{{ role.roleName }}</option>
+}
+              </select>
             </div>
           </div>
 
@@ -85,9 +90,9 @@
         </div>
 
         <!-- Form Actions -->
-        <div class="form-actions">
-          <button type="button" class="btn-secondary" (click)="loadUserData()">Cancel</button>
-          <button type="submit" class="btn-primary" [disabled]="isSaving || profileForm.invalid">
+        <div class="form-actions" *ngIf="user?.role == 'Admin'">
+          <button  type="button" class="btn-secondary" (click)="loadUserData()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="isSaving || profileForm.invalid" >
             @if (isSaving) {
               <i class="fas fa-spinner fa-spin"></i>
               Saving...

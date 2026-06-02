@@ -5,12 +5,14 @@ import { NgxPaginationModule } from 'ngx-pagination';
 import { SupplierInvoice } from '../../../core/models/procurement';
 import { ProcurementService } from '../../../core/services/procurement.service';
 import { PaymentModalComponent } from '../payment-modal.component/payment-modal.component';
+import { SupplierInvoiceModalComponent } from '../supplier-invoice-modal/supplier-invoice-modal.component';
+import { ToastrService } from 'ngx-toastr';
 
 
 @Component({
   selector: 'app-supplier-invoices',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgxPaginationModule, PaymentModalComponent],
+  imports: [CommonModule, FormsModule, NgxPaginationModule, PaymentModalComponent,SupplierInvoiceModalComponent],
   templateUrl: './supplier-invoices.component.html',
   styleUrls: ['./supplier-invoices.component.scss']
 })
@@ -30,6 +32,7 @@ export class SupplierInvoicesComponent implements OnInit {
   showPaymentModal = false;
   selectedInvoice: SupplierInvoice | null = null;
 cdr =inject(ChangeDetectorRef)
+toaster = inject(ToastrService)
   ngOnInit() { this.loadInvoices(); }
 
   loadInvoices() {
@@ -62,4 +65,22 @@ cdr =inject(ChangeDetectorRef)
     this.showPaymentModal = false;
     if (refresh) this.loadInvoices();
   }
+
+   showNewInvoiceModal = false;
+
+  openNewInvoiceModal() {
+    this.showNewInvoiceModal = true;
+  }
+
+  onNewInvoiceModalClose(refresh: boolean) {
+    this.showNewInvoiceModal = false;
+    if (refresh) this.loadInvoices();
+  }
+private printPO(poNumber: string) {
+  if (!poNumber) {
+    this.toaster.error('Please enter a PO number to print.');
+    return;
+  }
+  this.procurementService.printPO(poNumber);
+}
 }

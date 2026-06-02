@@ -28,8 +28,10 @@ export class AccountingDashboardComponent implements OnInit {
     this.loading = true;
     this.accountingService.getFinancialDashboard().subscribe({
       next: (data) => {
+     //   console.log('Financial dashboard data:', data);
         this.dashboard = data;
         this.loading = false;
+        this.cdr.detectChanges();
         this.renderChart();
       },
       error: (err) => {
@@ -44,6 +46,7 @@ this.loadDashboard()
   }
 
   renderChart() {
+  //  console.log('Rendering chart with dashboard data:', this.dashboard);
     if (!this.dashboard || !this.revenueChartCanvas) return;
     if (this.chart) this.chart.destroy();
     const trend = this.dashboard.monthlyTrend;

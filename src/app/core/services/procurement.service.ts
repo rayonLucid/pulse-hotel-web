@@ -27,7 +27,19 @@ getExpenseReport(startDate: string, endDate: string): Observable<ExpenseReportIt
   getSupplierInvoiceById(id: number): Observable<SupplierInvoice> {
     return this.http.get<SupplierInvoice>(`${this.apiUrl}/invoices/${id}`);
   }
-
+getNextInvoiceNumber(): Observable<any> {
+  return this.http.get<any>(`${this.apiUrl}/next-invoice-number`);
+}
+getPurchaseOrder(poNumber: string): Observable<any> {
+  return this.http.get(`${this.apiUrl}/purchase-order/${poNumber}`);
+}
+printPO(poNumber: string) {
+  window.open(`${this.apiUrl}/purchase-order/${poNumber}/print`, '_blank');
+}
+  // procurement.service.ts
+createSupplierInvoice(data: any): Observable<any> {
+  return this.http.post(`${this.apiUrl}/invoices`, data);
+}
   recordPayment(payment: SupplierPaymentRequest): Observable<any> {
     return this.http.post(`${this.apiUrl}/payments`, payment);
   }

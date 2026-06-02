@@ -7,6 +7,7 @@
   gap: 1rem;
   margin-bottom: 1rem;
   flex-wrap: wrap;
+  flex:1;
 }
 .filter-input, .filter-select, .filter-date {
   padding: 0.5rem;
@@ -20,6 +21,15 @@
   padding: 0 1rem;
   border-radius: 0.25rem;
   cursor: pointer;
+}
+.btn-primary {
+  background: #c49a6c;
+  color: white;
+  border: none;
+  padding: 0 1rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  margin-left: auto;
 }
 .data-table {
   width: 100%;

@@ -38,6 +38,16 @@ export interface AuthResponse {
   message: string;
 }
 
+interface JwtPayload {
+  department: string;
+  userId: string;
+  roleId: string;
+  isStaff: string;
+  departmentId: string;
+  // ... other claims
+}
+
+
 @Injectable({
   providedIn: 'root'
 })
@@ -202,6 +212,22 @@ export class AuthService {
     return null;
   }
 
+  getUserDepartment(): string | null {
+    const user = this.currentUserSubject.value;
+    if (user) return user.department;
+
+    const token = this.getToken();
+    if (token) {
+      try {
+        const decoded = this.jwtHelper.decodeToken(token) as JwtPayload;
+        return  decoded.department  ||  decoded.departmentId|| null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+
   getUserLoyaltyPoints(): number {
     const user = this.currentUserSubject.value;
     return user?.loyaltyPoints || 0;
@@ -240,7 +266,7 @@ export class AuthService {
   }
 
   isStaff(): boolean {
-    return this.hasAnyRole(['Admin', 'Manager', 'Supervisor', 'Staff']);
+    return this.hasAnyRole(['Admin', 'Manager', 'Supervisor', 'Junior Staff','Senior Staff']);
   }
 
   isGuest(): boolean {
