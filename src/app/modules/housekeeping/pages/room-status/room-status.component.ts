@@ -1,15 +1,17 @@
 // src/app/modules/housekeeping/pages/room-status/room-status.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { HousekeepingService } from '../../../../core/services/housekeeping.service';
 import { RoomStatus } from '../../../../core/models/housekeeping.model';
+import { ToastrService } from 'ngx-toastr';
+import { NgxPaginationModule } from 'ngx-pagination';
 
 @Component({
   selector: 'app-room-status',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule,NgxPaginationModule],
   templateUrl: './room-status.component.html',
   styleUrls: ['./room-status.component.scss']
 })
@@ -18,12 +20,14 @@ export class RoomStatusComponent implements OnInit, OnDestroy {
   rooms: RoomStatus[] = [];
   filteredRooms: RoomStatus[] = [];
   selectedRoom: RoomStatus | null = null;
-
+cdr = inject(ChangeDetectorRef);
   // UI State
   isLoading = false;
   isSubmitting = false;
   viewMode: 'grid' | 'list' = 'grid';
-
+currentPage = 1;
+itemsPerPage = 12;   // adjust as needed
+totalItems = 0;
   // Filters
   selectedFloor: string = 'all';
   selectedStatus: string = 'all';
@@ -46,12 +50,12 @@ export class RoomStatusComponent implements OnInit, OnDestroy {
   errorMessage: string = '';
 
   private refreshInterval: any;
-
+toastService = inject(ToastrService);
   constructor(private housekeepingService: HousekeepingService) {}
 
   ngOnInit(): void {
     this.loadRooms();
-    this.startAutoRefresh();
+   // this.startAutoRefresh();
   }
 
   ngOnDestroy(): void {
@@ -60,17 +64,19 @@ export class RoomStatusComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ==================== DATA LOADING ====================
 
-  /**
-   * Load all rooms from API
-   */
+
+// onFilterChange() {
+//   this.currentPage = 1;  // reset to first page when filters change
+//   this.applyFilters();   // your existing filtering logic
+// }
   loadRooms(): void {
     this.isLoading = true;
     this.errorMessage = '';
 
     this.housekeepingService.getAllRoomStatuses().subscribe({
       next: (response: any) => {
+        console.log('Rooms response:', response);
         if (response.success && response.data) {
           this.rooms = response.data;
           this.extractAvailableFloors();
@@ -81,6 +87,7 @@ export class RoomStatusComponent implements OnInit, OnDestroy {
           this.filteredRooms = [];
         }
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (error: any) => {
         console.error('Error loading rooms:', error);
@@ -88,6 +95,7 @@ export class RoomStatusComponent implements OnInit, OnDestroy {
         this.rooms = [];
         this.filteredRooms = [];
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -189,14 +197,16 @@ export class RoomStatusComponent implements OnInit, OnDestroy {
           this.showUpdateModal = false;
           this.loadRooms();
         } else {
-          alert(response.message || 'Failed to update room status');
+          this.toastService.error(response.message || 'Failed to update room status');
         }
         this.isSubmitting = false;
+        this.cdr.detectChanges();
       },
       error: (error: any) => {
         console.error('Error updating room status:', error);
-        alert(typeof error === 'string' ? error : 'Failed to update room status. Please try again.');
+        this.toastService.error(typeof error === 'string' ? error : 'Failed to update room status. Please try again.');
         this.isSubmitting = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -210,7 +220,7 @@ export class RoomStatusComponent implements OnInit, OnDestroy {
         if (response.success) {
           this.loadRooms();
         } else {
-          alert(response.message || 'Failed to update room status');
+          this.toastService.error(response.message || 'Failed to update room status');
         }
       },
       error: (error: any) => {

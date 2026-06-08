@@ -1,15 +1,15 @@
 // src/app/modules/housekeeping/pages/lost-found/lost-found.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { HousekeepingService } from '../../../../core/services/housekeeping.service';
 import { LostAndFoundItem, RoomStatus } from '../../../../core/models/housekeeping.model';
-
+import { AngularMultiSelectModule } from '@stackline/angular-multiselect-dropdown';
 @Component({
   selector: 'app-lost-found',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule,AngularMultiSelectModule],
   templateUrl: './lost-found.component.html',
   styleUrls: ['./lost-found.component.scss']
 })
@@ -37,7 +37,7 @@ export class LostFoundComponent implements OnInit, OnDestroy {
   pageSize = 10;
   totalItems = 0;
   totalPages = 0;
-
+cdr = inject(ChangeDetectorRef);
   // Statistics
   statistics: any = null;
 
@@ -75,6 +75,23 @@ export class LostFoundComponent implements OnInit, OnDestroy {
   errorMessage: string = '';
 
   private refreshInterval: any;
+ dropdownList: any[] = [];
+  dropdownSettings = {
+  singleSelection: false,
+
+   text: 'Select room (optional)',
+
+  enableCheckAll: false,
+  enableSearchFilter: true,
+  searchPlaceholderText: 'Search',
+  badgeShowLimit: 4,
+  maxHeight: 260,
+ 
+  noDataLabel: 'No data',
+  skin: 'classic',
+
+  tagToBody: false
+};
 
   constructor(private housekeepingService: HousekeepingService) {}
 
@@ -105,6 +122,7 @@ export class LostFoundComponent implements OnInit, OnDestroy {
 
     this.housekeepingService.getLostAndFoundItems(status, category).subscribe({
       next: (response: any) => {
+       // console.log('Lost and found items loaded:', response);
         if (response.success && response.data) {
           this.items = response.data;
           this.totalItems = response.totalCount || response.data.length;
@@ -117,6 +135,7 @@ export class LostFoundComponent implements OnInit, OnDestroy {
           this.filteredItems = [];
         }
         this.isLoading = false;
+          this.cdr.detectChanges();
       },
       error: (error: any) => {
         console.error('Error loading lost and found items:', error);
@@ -124,6 +143,7 @@ export class LostFoundComponent implements OnInit, OnDestroy {
         this.items = [];
         this.filteredItems = [];
         this.isLoading = false;
+          this.cdr.detectChanges();
       }
     });
   }
@@ -165,6 +185,7 @@ export class LostFoundComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         console.error('Error loading statistics:', error);
+        this.cdr.detectChanges();
       }
     });
   }
@@ -175,12 +196,20 @@ export class LostFoundComponent implements OnInit, OnDestroy {
   loadAvailableRooms(): void {
     this.housekeepingService.getAllRoomStatuses().subscribe({
       next: (response: any) => {
+        console.log('Available rooms loaded:', response);
         if (response.success && response.data) {
           this.availableRooms = response.data;
+            this.dropdownList = this.availableRooms.map(room => ({
+      id: room.roomId,
+      itemName: `Room ${room.roomNumber} - ${room.roomType}`
+    }));
+
+          this.cdr.detectChanges();
         }
       },
       error: (error: any) => {
         console.error('Error loading rooms:', error);
+        this.cdr.detectChanges();
       }
     });
   }

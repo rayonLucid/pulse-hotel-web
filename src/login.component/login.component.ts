@@ -18,6 +18,7 @@ export class LoginComponent implements OnInit {
   isLoading = false;
   returnUrl: string = '/dashboard';
   showPassword = false;
+  passwordId: string= '';
 
   constructor(
     private fb: FormBuilder,
@@ -34,12 +35,13 @@ export class LoginComponent implements OnInit {
   }
 changDef =inject(ChangeDetectorRef)
   ngOnInit(): void {
+      this.passwordId = 'password_' + Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9);
    // this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
   // Load saved credentials if Remember Me was checked
     this.loadSavedCredentials();
 
     if (this.authService.isAuthenticated()) {
-     this. onLoginSuccess();
+    // this. onLoginSuccess();
     //  this.router.navigate([this.returnUrl]);
     }
   }
@@ -59,7 +61,7 @@ changDef =inject(ChangeDetectorRef)
 
     this.authService.login(loginData).subscribe({
       next: (response) => {
-        console.log(response)
+      //  console.log(response)
         this.isLoading = false;
         if (response.success) {
        //  this.toaStr.success('Welcome back!', 'Login Successful');
@@ -81,6 +83,7 @@ changDef =inject(ChangeDetectorRef)
   }
 
    onLoginSuccess(): void {
+
    let UserDepartment = this.authService.getUserDepartment()
    console.log(UserDepartment)
     if (UserDepartment !=null && UserDepartment.toLowerCase().includes("front")) {

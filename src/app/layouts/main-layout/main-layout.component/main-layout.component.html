@@ -3,7 +3,8 @@
   <!-- Sidebar Component -->
   <app-sidebar
     (sidebarToggled)="onSidebarToggle($event)"
-    [class.mobile-open]="isMobileMenuOpen"
+     [isMobile]="isMobile"
+    [isOpen]="isMobileMenuOpen"
   ></app-sidebar>
 
   <!-- Mobile Menu Overlay -->
@@ -12,12 +13,14 @@
   }
 
   <!-- Main Content Area -->
+
   <div
     class="main-content"
     [class.sidebar-collapsed]="isSidebarCollapsed && !isMobile"
     [class.sidebar-expanded]="!isSidebarCollapsed && !isMobile"
     [class.sidebar-open]="isMobileMenuOpen && isMobile"
   >
+
     <!-- Header -->
     <app-header [isMobile]="isMobile" (menuToggle)="toggleMobileMenu()"></app-header>
 
@@ -50,7 +53,7 @@
   </div>
 
   <!-- Mobile Bottom Navigation -->
-  @if (isMobile) {
+  <!-- @if (isMobile) {
     <div class="mobile-bottom-nav">
       <a
         routerLink="/dashboard"
@@ -98,7 +101,7 @@
         <span>Profile</span>
       </a>
     </div>
-  }
+  } -->
 
   <!-- Back to Top Button -->
   @if (showBackToTop) {

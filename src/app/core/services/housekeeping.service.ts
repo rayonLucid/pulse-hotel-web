@@ -243,8 +243,18 @@ getRoomDetails(roomId: number): Observable<{ success: boolean; data: Room }> {
    */
   getInspections(taskId?: number): Observable<ApiResponse<InspectionReport[]>> {
     let params = new HttpParams();
-    if (taskId) params = params.set('taskId', taskId.toString());
-    return this.http.get<ApiResponse<InspectionReport[]>>(`${this.apiUrl}/inspections`, { params })
+     console.log('Fetching inspections with params:', taskId);
+
+    if (taskId)
+      {
+        params = params.set('taskId', taskId.toString());
+           console.log('Fetching inspections with params:', taskId);
+      }else{
+       params = params.set('taskId', "0");
+         console.log('Fetching inspections with params:', taskId);
+      }
+
+    return this.http.get<ApiResponse<InspectionReport[]>>(`${this.apiUrl}/tasks/${taskId}/inspections`)
       .pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -300,7 +310,7 @@ getRoomDetails(roomId: number): Observable<{ success: boolean; data: Room }> {
     let params = new HttpParams();
     if (status) params = params.set('status', status);
     if (category) params = params.set('category', category);
-    return this.http.get<ApiResponse<LostAndFoundItem[]>>(`${this.apiUrl}/lost-found`, { params })
+    return this.http.get<ApiResponse<LostAndFoundItem[]>>(`${this.apiUrl}/lost-found/unclaimed`, { params })
       .pipe(catchError(this.handleError.bind(this)));
   }
 

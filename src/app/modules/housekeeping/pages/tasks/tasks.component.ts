@@ -1,5 +1,5 @@
 // src/app/modules/housekeeping/pages/tasks/tasks.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -81,7 +81,7 @@ export class TasksComponent implements OnInit, OnDestroy {
   };
 
   private refreshInterval: any;
-
+cdr = inject(ChangeDetectorRef);
   constructor(private housekeepingService: HousekeepingService) {}
 
   ngOnInit(): void {
@@ -124,15 +124,18 @@ export class TasksComponent implements OnInit, OnDestroy {
 
     this.housekeepingService.getTasks(filter).subscribe({
       next: (response: any) => {
-        this.tasks = response.data;
-        this.totalItems = response.pagination.totalItems;
-        this.totalPages = response.pagination.totalPages;
+        console.log('Tasks response:', response);
+        this.tasks = response.items;
+        this.totalItems = response.totalCount;
+        this.totalPages = response.totalPages;
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (error: any) => {
         console.error('Error loading tasks:', error);
         this.errorMessage = 'Failed to load tasks. Please try again.';
-        this.isLoading = false;
+         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -140,12 +143,13 @@ export class TasksComponent implements OnInit, OnDestroy {
   loadStatistics(): void {
     this.housekeepingService.getTaskStatistics().subscribe({
       next: (response: any) => {
+      //  console.log('Statistics response:', response);
         if (response.success) {
           this.statistics = response.data;
         }
       },
       error: (error: any) => {
-        console.error('Error loading statistics:', error);
+        console.error('Error loading :', error);
       }
     });
   }

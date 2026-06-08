@@ -1,6 +1,6 @@
 // src/app/core/auth/auth.service.ts
 import { inject, Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, tap, map } from 'rxjs/operators';
 import { Router } from '@angular/router';
@@ -104,12 +104,25 @@ export class AuthService {
   }
 
   logout(): void {
-    sessionStorage.removeItem(this.tokenKey);
+ const token = this.getToken(); // or however you store it
+  const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    this.http.post<any>(`${this.apiUrl}/auth/logout`,{}, { headers }).pipe(
+      tap(response => {
+     //   console.log('Logout response:', response);
+         sessionStorage.removeItem(this.tokenKey);
     sessionStorage.removeItem(this.userKey);
     this.currentUserSubject.next(null);
     this.isLoggedInSubject.next(false);
     this.toastr.info('You have been logged out.', 'Goodbye!');
     this.router.navigate(['/auth/login']);
+      }),
+      catchError(error => {
+        console.error('Logout error:', error);
+        this.toastr.error('An error occurred during logout. Please try again.', 'Logout Failed');
+        return throwError(() => error);
+      })
+    ).subscribe();
   }
 
   // ==================== TOKEN METHODS ====================
@@ -186,6 +199,7 @@ export class AuthService {
     if (token) {
       try {
         const decoded = this.jwtHelper.decodeToken(token);
+        console.log('Decoded JWT:', decoded['userId']);
         return decoded['userId'] || decoded['nameid'] || null;
       } catch {
         return null;

@@ -141,6 +141,7 @@ private searchService: SearchService = inject(SearchService);
   }
 
 toggleSidebar(): void {
+ //alert('Toggle sidebar'); // Placeholder for actual toggle logic
     this.menuToggle.emit();
   }
 

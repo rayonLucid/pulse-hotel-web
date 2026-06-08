@@ -1,0 +1,29 @@
+<div class="guest-layout">
+  <!-- Header -->
+  <header class="guest-header">
+    <div class="logo">
+      <a routerLink="/guest/dashboard">🏨 Pulse Hotel</a>
+    </div>
+    <button class="mobile-menu-btn" (click)="toggleMobileMenu()">
+      <i class="fas fa-bars"></i>
+    </button>
+    <nav [class.mobile-open]="isMobileMenuOpen">
+      <a routerLink="/guest/dashboard" (click)="isMobileMenuOpen = false">Dashboard</a>
+      <a routerLink="/guest/bookings/new" (click)="isMobileMenuOpen = false">Book a Room</a>
+      <a routerLink="/guest/my-bookings" (click)="isMobileMenuOpen = false">My Bookings</a>
+      <a routerLink="/guest/service-requests" (click)="isMobileMenuOpen = false">Service Requests</a>
+      <a routerLink="/guest/profile" (click)="isMobileMenuOpen = false">Profile</a>
+      <a (click)="logout()">Logout</a>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main class="guest-main">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Footer -->
+  <footer class="guest-footer">
+    <p>&copy; {{ currentYear }} Pulse Hotel. All rights reserved.</p>
+  </footer>
+</div>

@@ -1,0 +1,94 @@
+<div class="service-requests">
+  <div class="header">
+    <h1>Service Requests</h1>
+    <button class="btn-primary" (click)="openRequestForm()">+ New Request</button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Loading your requests...</p>
+  </div>
+
+  <!-- Requests List -->
+  <div *ngIf="!loading && requests.length === 0" class="empty-message">
+    <i class="fas fa-concierge-bell"></i>
+    <p>You haven't made any service requests yet.</p>
+    <button class="btn-primary" (click)="openRequestForm()">Request a Service</button>
+  </div>
+
+  <div *ngIf="!loading && requests.length > 0" class="requests-list">
+    <div *ngFor="let req of requests" class="request-card">
+      <div class="request-header">
+        <div class="request-type">
+          <i class="fas" [class.fa-broom]="req.requestType === 'Housekeeping'"
+                       [class.fa-wrench]="req.requestType === 'Maintenance'"
+                       [class.fa-utensils]="req.requestType === 'RoomService'"
+                       [class.fa-tshirt]="req.requestType === 'Laundry'"
+                       [class.fa-question]="req.requestType === 'Other'"></i>
+          <span>{{ req.requestType }}</span>
+        </div>
+        <span class="status-badge {{ getStatusClass(req.status) }}">{{ req.status }}</span>
+      </div>
+      <div class="request-details">
+        <div class="detail-item">
+          <strong>Booking:</strong> {{ req.bookingReference }}
+        </div>
+        <div class="detail-item" *ngIf="req.requestDetails">
+          <strong>Details:</strong> {{ req.requestDetails }}
+        </div>
+        <div class="detail-item">
+          <strong>Requested:</strong> {{ req.createdAt | date:'medium' }}
+        </div>
+        <div class="detail-item" *ngIf="req.completedAt">
+          <strong>Completed:</strong> {{ req.completedAt | date:'medium' }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Request Form Modal -->
+  <div class="modal-overlay" *ngIf="showRequestForm" (click)="closeRequestForm()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>New Service Request</h3>
+        <button class="close-btn" (click)="closeRequestForm()">×</button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="requestForm">
+          <div class="form-group">
+            <label>Select Booking *</label>
+            <select formControlName="bookingId" class="form-control">
+              <option [value]="null">-- Select a booking --</option>
+              <option *ngFor="let booking of bookings" [value]="booking.bookingId">
+                {{ booking.bookingReference }} ({{ booking.checkInDate | date }} – {{ booking.checkOutDate | date }})
+              </option>
+            </select>
+            <div class="error" *ngIf="requestForm.get('bookingId')?.invalid && requestForm.get('bookingId')?.touched">
+              Please select a booking
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Request Type *</label>
+            <select formControlName="requestType" class="form-control">
+              <option *ngFor="let type of requestTypes" [value]="type.value">{{ type.label }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Details (optional)</label>
+            <textarea formControlName="requestDetails" rows="3" class="form-control"
+                      placeholder="Please provide any additional details..."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeRequestForm()">Cancel</button>
+        <button class="btn-primary" (click)="submitRequest()" [disabled]="submitting || requestForm.invalid">
+          {{ submitting ? 'Submitting...' : 'Submit Request' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

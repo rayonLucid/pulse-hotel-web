@@ -12,7 +12,7 @@ export const HOUSEKEEPING_ROUTES: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: 'dashboard', component: HouseKeepingDashboardComponent },
   { path: 'tasks', component: TasksComponent },
-  { path: 'room-status', component: RoomStatusComponent },
+  { path: 'rooms', component: RoomStatusComponent },
   { path: 'inspections', component: InspectionsComponent },
   { path: 'lost-found', component: LostFoundComponent },
   { path: '**', redirectTo: 'dashboard' }

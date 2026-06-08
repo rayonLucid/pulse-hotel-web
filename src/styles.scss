@@ -1031,3 +1031,14 @@ input[type="number"] {
     cursor: not-allowed;
   }
 }
+
+
+
+
+  @media (min-width: 768px) {
+   .dashboard-container {
+      padding: 24px;
+      width: 100%;
+    }
+  }
+

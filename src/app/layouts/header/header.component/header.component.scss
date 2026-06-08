@@ -1,195 +1,300 @@
-// src/app/layouts/header/header.component.scss
-.app-header {
-  background: white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  padding: 0 24px;
-  height: 70px;
+// ==========================================
+// VARIABLES (adjust once)
+// ==========================================
+$primary: #c49a6c;
+$primary-dark: #a87b4e;
+$text-dark: #1f2937;
+$text-muted: #6b7280;
+$text-light: #666;
+$border: #e5e7eb;
+$bg-light: #f5f5f5;
+$bg-page: #f5f7fa;
+$white: #ffffff;
+$danger: #e74c3c;
+
+$breakpoint-sm: 480px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+
+// ==========================================
+// MIXINS
+// ==========================================
+@mixin flex-center {
   display: flex;
   align-items: center;
+}
+@mixin shadow-sm {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+@mixin card-shadow {
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+// ==========================================
+// HEADER
+// ==========================================
+.app-header {
+  background: $white;
+  @include shadow-sm;
+  padding: 24px;
+  height: 70px;
+  @include flex-center;
   justify-content: space-between;
   position: sticky;
   top: 0;
   z-index: 100;
-
-  @media (max-width: 768px) {
-    padding: 0 16px;
+  @media (max-width: $breakpoint-md) {
+    padding: 16px;
   }
 }
 
 .header-left {
-  display: flex;
-  align-items: center;
+  @include flex-center;
   gap: 20px;
-
   .mobile-menu-btn {
     display: none;
     background: none;
     border: none;
     font-size: 20px;
     cursor: pointer;
-    color: #666;
-
-    @media (max-width: 768px) {
+    color: $text-light;
+    @media (max-width: $breakpoint-md) {
       display: block;
     }
   }
-
-  .page-title {
-    h1 {
-      font-size: 20px;
-      font-weight: 600;
-      color: #333;
-      margin: 0;
-
-      @media (max-width: 768px) {
-        font-size: 16px;
-      }
+  .page-title h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+    @media (max-width: $breakpoint-md) {
+      font-size: 16px;
     }
   }
 }
 
 .header-right {
-  display: flex;
-  align-items: center;
+  @include flex-center;
   gap: 20px;
+}
 
+// Search container (complex component)
+.search-container {
+  position: relative;
   .search-bar {
-    display: flex;
-    align-items: center;
-    background: #f5f5f5;
+    @include flex-center;
+    background: $bg-light;
     border-radius: 8px;
     padding: 8px 12px;
     gap: 8px;
-
-    i {
-      color: #999;
+    transition: all 0.3s ease;
+    min-width: 250px;
+    @media (max-width: $breakpoint-md) {
+      min-width: auto;
+      width: 200px;
     }
-
+    &.active {
+      background: $white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border: 1px solid $primary;
+    }
+    i { color: #999; }
     input {
+      flex: 1;
       border: none;
       background: none;
       outline: none;
-      width: 200px;
-
-      &::placeholder {
-        color: #999;
-      }
-
-      @media (max-width: 768px) {
-        width: 150px;
-      }
-    }
-  }
-
-  .notifications {
-    position: relative;
-    cursor: pointer;
-
-    i {
-      font-size: 18px;
-      color: #666;
-    }
-
-    .badge {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background: #e74c3c;
-      color: white;
-      border-radius: 50%;
-      width: 16px;
-      height: 16px;
-      font-size: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-  }
-
-  .user-menu {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    position: relative;
-    padding: 8px 0;
-
-    .user-avatar {
-      width: 36px;
-      height: 36px;
-      background: #c49a6c;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      span {
-        color: white;
-        font-weight: 600;
-        font-size: 14px;
-      }
-    }
-
-    .user-name {
       font-size: 14px;
-      font-weight: 500;
-      color: #333;
-
-      @media (max-width: 768px) {
-        display: none;
-      }
+      &::placeholder { color: #999; }
     }
-
-    i {
-      font-size: 12px;
+    .clear-search {
+      background: none;
+      border: none;
+      cursor: pointer;
       color: #999;
+      padding: 0 4px;
+      &:hover { color: $text-light; }
     }
-
-    .dropdown-menu {
-      position: absolute;
-      top: 100%;
-      right: 0;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-      min-width: 200px;
-      padding: 8px 0;
-      margin-top: 12px;
-      z-index: 101;
-
-      a {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 10px 16px;
-        color: #333;
-        text-decoration: none;
-        transition: background 0.2s;
-
-        i {
-          width: 18px;
-          font-size: 14px;
-          color: #666;
-        }
-
-        &:hover {
-          background: #f5f5f5;
-        }
+    .search-shortcut {
+      background: $border;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      color: $text-light;
+      font-family: monospace;
+    }
+  }
+  // Shared dropdown styles
+  .search-results,
+  .recent-searches {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background: $white;
+    border-radius: 12px;
+    @include card-shadow;
+    min-width: 350px;
+    max-width: 450px;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1000;
+    @media (max-width: $breakpoint-md) {
+      position: fixed;
+      top: auto;
+      left: 16px;
+      right: 16px;
+      width: auto;
+      min-width: auto;
+    }
+    .search-loading,
+    .no-results {
+      padding: 30px;
+      text-align: center;
+      color: #999;
+      i { font-size: 32px; margin-bottom: 12px; display: block; }
+      span { font-size: 14px; }
+    }
+    .results-header {
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: $text-light;
+      border-bottom: 1px solid #eee;
+      text-transform: uppercase;
+    }
+    .search-result-item {
+      @include flex-center;
+      gap: 12px;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+      &:hover { background: #f9fafb; }
+      .result-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        @include flex-center;
+        justify-content: center;
+        i { font-size: 16px; color: $white; }
       }
-
-      .divider {
-        height: 1px;
-        background: #eee;
-        margin: 8px 0;
+      .result-info {
+        flex: 1;
+        .result-title { font-weight: 600; color: $text-dark; margin-bottom: 2px; }
+        .result-subtitle { font-size: 11px; color: $text-muted; }
       }
-
-      .logout-item {
-        color: #e74c3c;
-
-        i {
-          color: #e74c3c;
-        }
+      .result-type .type-badge {
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 12px;
+        background: $bg-light;
+        color: #4b5563;
+        text-transform: capitalize;
       }
+    }
+  }
+  .recent-searches {
+    .recent-header {
+      @include flex-center;
+      gap: 8px;
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: $text-light;
+      border-bottom: 1px solid #eee;
+      i { font-size: 12px; }
+    }
+    .recent-item {
+      @include flex-center;
+      gap: 12px;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+      &:hover { background: #f9fafb; }
+      i { font-size: 12px; color: #999; }
+      span { font-size: 13px; color: #4b5563; }
+    }
+    .clear-recent {
+      @include flex-center;
+      gap: 12px;
+      padding: 12px 16px;
+      cursor: pointer;
+      border-top: 1px solid #eee;
+      transition: background 0.2s;
+      &:hover { background: #fef2f2; }
+      i { font-size: 12px; color: $danger; }
+      span { font-size: 12px; color: $danger; }
+    }
+  }
+}
+
+// Notifications & User Menu
+.notifications {
+  position: relative;
+  cursor: pointer;
+  i { font-size: 18px; color: $text-light; }
+  .badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: $danger;
+    color: $white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+    @include flex-center;
+    justify-content: center;
+  }
+}
+
+.user-menu {
+  @include flex-center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+  padding: 8px 0;
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    background: $primary;
+    border-radius: 50%;
+    @include flex-center;
+    justify-content: center;
+    span { color: $white; font-weight: 600; font-size: 14px; }
+  }
+  .user-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    @media (max-width: $breakpoint-md) { display: none; }
+  }
+  i { font-size: 12px; color: #999; }
+  .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: $white;
+    border-radius: 8px;
+    @include card-shadow;
+    min-width: 200px;
+    padding: 8px 0;
+    margin-top: 12px;
+    z-index: 101;
+    a {
+      @include flex-center;
+      gap: 12px;
+      padding: 10px 16px;
+      color: #333;
+      text-decoration: none;
+      transition: background 0.2s;
+      i { width: 18px; font-size: 14px; color: $text-light; }
+      &:hover { background: $bg-light; }
+    }
+    .divider { height: 1px; background: #eee; margin: 8px 0; }
+    .logout-item {
+      color: $danger;
+      i { color: $danger; }
     }
   }
 }
@@ -200,324 +305,74 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 1040;
   display: none;
-
-  @media (max-width: 768px) {
-    display: block;
-  }
+  @media (max-width: $breakpoint-md) { display: block; }
 }
 
-
-// Add to header.component.scss
-
-.search-container {
-  position: relative;
-
-  .search-bar {
-    display: flex;
-    align-items: center;
-    background: #f5f5f5;
-    border-radius: 8px;
-    padding: 8px 12px;
-    gap: 8px;
-    transition: all 0.3s ease;
-    min-width: 250px;
-
-    @media (max-width: 768px) {
-      min-width: auto;
-      width: 200px;
-    }
-
-    &.active {
-      background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      border: 1px solid #c49a6c;
-    }
-
-    i {
-      color: #999;
-    }
-
-    input {
-      flex: 1;
-      border: none;
-      background: none;
-      outline: none;
-      font-size: 14px;
-
-      &::placeholder {
-        color: #999;
-      }
-    }
-
-    .clear-search {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #999;
-      padding: 0 4px;
-
-      &:hover {
-        color: #666;
-      }
-    }
-
-    .search-shortcut {
-      background: #e5e7eb;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 11px;
-      color: #666;
-      font-family: monospace;
-    }
-  }
-
-  .search-results,
-  .recent-searches {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    margin-top: 8px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    min-width: 350px;
-    max-width: 450px;
-    max-height: 400px;
-    overflow-y: auto;
-    z-index: 1000;
-
-    @media (max-width: 768px) {
-      position: fixed;
-      top: auto;
-      left: 16px;
-      right: 16px;
-      width: auto;
-      min-width: auto;
-    }
-
-    .search-loading,
-    .no-results {
-      padding: 30px;
-      text-align: center;
-      color: #999;
-
-      i {
-        font-size: 32px;
-        margin-bottom: 12px;
-        display: block;
-      }
-
-      span {
-        font-size: 14px;
-      }
-    }
-
-    .results-header {
-      padding: 12px 16px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #666;
-      border-bottom: 1px solid #eee;
-      text-transform: uppercase;
-    }
-
-    .search-result-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      cursor: pointer;
-      transition: background 0.2s;
-
-      &:hover {
-        background: #f9fafb;
-      }
-
-      .result-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        i {
-          font-size: 16px;
-          color: white;
-        }
-      }
-
-      .result-info {
-        flex: 1;
-
-        .result-title {
-          font-weight: 600;
-          color: #1f2937;
-          margin-bottom: 2px;
-        }
-
-        .result-subtitle {
-          font-size: 11px;
-          color: #6b7280;
-        }
-      }
-
-      .result-type {
-        .type-badge {
-          font-size: 10px;
-          padding: 2px 8px;
-          border-radius: 12px;
-          background: #f3f4f6;
-          color: #4b5563;
-          text-transform: capitalize;
-        }
-      }
-    }
-  }
-
-  .recent-searches {
-    .recent-header {
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #666;
-      border-bottom: 1px solid #eee;
-
-      i {
-        font-size: 12px;
-      }
-    }
-
-    .recent-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 16px;
-      cursor: pointer;
-      transition: background 0.2s;
-
-      &:hover {
-        background: #f9fafb;
-      }
-
-      i {
-        font-size: 12px;
-        color: #999;
-      }
-
-      span {
-        font-size: 13px;
-        color: #4b5563;
-      }
-    }
-
-    .clear-recent {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      cursor: pointer;
-      border-top: 1px solid #eee;
-      transition: background 0.2s;
-
-      &:hover {
-        background: #fef2f2;
-      }
-
-      i {
-        font-size: 12px;
-        color: #ef4444;
-      }
-
-      span {
-        font-size: 12px;
-        color: #ef4444;
-      }
-    }
-  }
+// Result background variants (gradients)
+@mixin result-bg($color1, $color2) {
+  background: linear-gradient(135deg, $color1, $color2);
 }
+.result-bg-blue   { @include result-bg(#3b82f6, #1d4ed8); }
+.result-bg-green  { @include result-bg(#10b981, #047857); }
+.result-bg-red    { @include result-bg(#ef4444, #b91c1c); }
+.result-bg-yellow { @include result-bg(#f59e0b, #d97706); }
+.result-bg-purple { @include result-bg(#8b5cf6, #6d28d9); }
+.result-bg-pink   { @include result-bg(#ec4899, #be185d); }
+.result-bg-indigo { @include result-bg(#6366f1, #4338ca); }
+.result-bg-teal   { @include result-bg(#14b8a6, #0f766e); }
+.result-bg-orange { @include result-bg(#f97316, #ea580c); }
+.result-bg-gray   { @include result-bg(#6b7280, #4b5563); }
 
-// Add to header.component.scss
-
-.result-bg-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
-.result-bg-green { background: linear-gradient(135deg, #10b981, #047857); }
-.result-bg-red { background: linear-gradient(135deg, #ef4444, #b91c1c); }
-.result-bg-yellow { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.result-bg-purple { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
-.result-bg-pink { background: linear-gradient(135deg, #ec4899, #be185d); }
-.result-bg-indigo { background: linear-gradient(135deg, #6366f1, #4338ca); }
-.result-bg-teal { background: linear-gradient(135deg, #14b8a6, #0f766e); }
-.result-bg-orange { background: linear-gradient(135deg, #f97316, #ea580c); }
-.result-bg-gray { background: linear-gradient(135deg, #6b7280, #4b5563); }
-
-
-
+// ==========================================
+// BREADCRUMB (optimized)
+// ==========================================
 .breadcrumb-container {
   width: 100%;
-  overflow-x: auto; // Enables horizontal scrolling on mobile if breadcrumbs are deep
-  white-space: nowrap; // Prevents items from wrapping into an ugly multi-line block
+  overflow-x: auto;
+  white-space: nowrap;
   margin-bottom: 20px;
-
-  // Custom subtle scrollbar cleanup for a sleek mobile presentation
-  &::-webkit-scrollbar {
-    display: none; // Hides visible scrollbars on mobile to keep things looking clean
-  }
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-
+  &::-webkit-scrollbar { display: none; }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
   @media (max-width: 767.98px) {
     margin-bottom: 16px;
-    // Creates a minor padding offset on mobile so text doesn't clip hard at the screen edge
     padding: 4px 0;
   }
+    @media (max-width: $breakpoint-md) { // hides only on mobile (<768px)
+    display: none;
+  }
 }
-
 .breadcrumb {
   list-style: none;
-  display: inline-flex; // Switches to inline-flex to work smoothly with container's white-space rule
+  display: inline-flex;
   align-items: center;
   padding: 0;
   margin: 0;
   gap: 8px;
-
   .breadcrumb-item {
     color: #000;
-    font-size: 14px; // Refined baseline for modern, balanced typography
-    display: flex;
+    font-size: 14px;
+    display: inline-flex;
     align-items: center;
     font-weight: bold;
     gap: 8px;
     user-select: none;
-
     a {
-      color: #6b7280;
+      color: $text-muted;
       text-decoration: none;
       transition: color 0.2s ease;
       display: inline-block;
-
-      // Expands the functional tapping area on touch screens without visually sizing up the text
-      @media (max-width: 991.98px) {
-        padding: 6px 2px;
-      }
-
-      &:hover {
-        color: #c49a6c;
-      }
+      @media (max-width: 991.98px) { padding: 6px 2px; }
+      &:hover { color: $primary; }
     }
-
     &.active {
-      color: #1f2937;
+      color: $text-dark;
       font-weight: 500;
-      pointer-events: none; // Stops needless user tap events on the page they are currently visiting
+      pointer-events: none;
     }
-
-    // Separator styling using flex order logic to protect the layout structure
     &:not(:last-child)::after {
       content: '/';
       color: #9ca3af;
@@ -525,22 +380,12 @@
       line-height: 1;
     }
   }
-
-  // ==========================================
-  // RESPONSIVE BREAKPOINTS
-  // ==========================================
-
-  // Mobile View (< 768px)
   @media (max-width: 767.98px) {
     gap: 6px;
-
     .breadcrumb-item {
-      font-size: 13px; // Dropping below 13px hinders WCAG mobile readability guidelines
+      font-size: 13px;
       gap: 6px;
-
-      &:not(:last-child)::after {
-        font-size: 11px;
-      }
+      &:not(:last-child)::after { font-size: 11px; }
     }
   }
 }

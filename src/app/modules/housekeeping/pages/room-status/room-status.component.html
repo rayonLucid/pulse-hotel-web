@@ -103,7 +103,8 @@
 
   <!-- Grid View -->
   <div class="rooms-grid" *ngIf="!isLoading && viewMode === 'grid' && filteredRooms.length > 0">
-    <div *ngFor="let room of filteredRooms" class="room-card" [class]="getStatusClass(room.status)">
+      <div *ngFor="let room of filteredRooms | paginate: { itemsPerPage: itemsPerPage, currentPage: currentPage }" class="room-card" [class]="getStatusClass(room.status)">
+    <!-- <div *ngFor="let room of filteredRooms" class="room-card" [class]="getStatusClass(room.status)"> -->
       <div class="card-header">
         <div class="room-number">{{ room.roomNumber }}</div>
         <div class="room-floor">Floor {{ room.floorNumber }}</div>
@@ -154,6 +155,15 @@
         <button class="btn-update" (click)="openUpdateModal(room)">Update Status</button>
       </div>
     </div>
+
+    <div class="pagination-wrapper" *ngIf="filteredRooms.length > itemsPerPage">
+  <pagination-controls
+    (pageChange)="currentPage = $event"
+    previousLabel="Prev"
+    nextLabel="Next"
+    [responsive]="true"
+  ></pagination-controls>
+</div>
   </div>
 
   <!-- List View -->
@@ -167,8 +177,8 @@
       <div class="col-last">Last Cleaned</div>
       <div class="col-actions">Actions</div>
     </div>
-
-    <div *ngFor="let room of filteredRooms" class="list-row" [class]="getStatusClass(room.status)">
+  <div *ngFor="let room of filteredRooms | paginate: { itemsPerPage: itemsPerPage, currentPage: currentPage }" class="list-row">
+    <!-- <div *ngFor="let room of filteredRooms" class="list-row" [class]="getStatusClass(room.status)"> -->
       <div class="col-room">
         <strong>{{ room.roomNumber }}</strong>
       </div>
@@ -196,6 +206,9 @@
         </div>
       </div>
     </div>
+    <div class="pagination-wrapper" *ngIf="filteredRooms.length > itemsPerPage && viewMode === 'list'">
+  <pagination-controls (pageChange)="currentPage = $event" previousLabel="Prev" nextLabel="Next"></pagination-controls>
+</div>
   </div>
 
   <!-- Empty State -->

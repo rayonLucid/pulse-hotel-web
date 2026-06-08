@@ -1,0 +1,66 @@
+@use '../../../shared/appStyleVariables.scss' as *;
+    .register-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #f5f7fa;
+      padding: 1rem;
+       background: linear-gradient(135deg, $secondary-900 0%, $secondary-800 50%, $primary-900 100%)
+    }
+    .register-card {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    h2 {
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      color: #1f2937;
+    }
+    .form-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      @media (max-width: 480px) { flex-direction: column; gap: 0; }
+    }
+    .form-group {
+      flex: 1;
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+    }
+    .form-control {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+    }
+    .error {
+      color: #dc2626;
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+    }
+    .btn-primary {
+      width: 100%;
+      background: #c49a6c;
+      color: white;
+      border: none;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      cursor: pointer;
+      &:disabled { opacity: 0.6; cursor: not-allowed; }
+    }
+    .login-link {
+      text-align: center;
+      margin-top: 1rem;
+      a { color: #c49a6c; text-decoration: none; &:hover { text-decoration: underline; };cursor: pointer; }
+    }

@@ -1,0 +1,205 @@
+.my-bookings {
+  max-width: 1200px;
+  margin: 0 auto;
+
+  h1 {
+    margin-bottom: 1.5rem;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #1f2937;
+  }
+}
+
+.section {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+  }
+}
+
+.bookings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.booking-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  transition: all 0.2s;
+
+  &:hover {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+
+  &.past {
+    background: #f9fafb;
+    opacity: 0.8;
+  }
+
+  .booking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+
+    .ref {
+      font-weight: 600;
+      color: #1f2937;
+    }
+    .status {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 1rem;
+      background: #f3f4f6;
+      color: #6b7280;
+
+      &.confirmed {
+        background: #d1fae5;
+        color: #065f46;
+      }
+    }
+  }
+
+  .booking-dates {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+
+    i {
+      margin-right: 0.5rem;
+    }
+  }
+
+  .booking-amount {
+    font-weight: 600;
+    color: #c49a6c;
+    margin-bottom: 0.75rem;
+  }
+
+  .booking-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+
+    button {
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+    .btn-details {
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      &:hover { background: #e5e7eb; }
+    }
+    .btn-cancel {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      &:hover { background: #fecaca; }
+    }
+  }
+}
+
+.empty-message {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+  i { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+  a { color: #c49a6c; text-decoration: none; &:hover { text-decoration: underline; } }
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 2rem;
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #c49a6c;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 1rem;
+  }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// Modal styles
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-container {
+  background: white;
+  border-radius: 1rem;
+  width: 500px;
+  max-width: 90%;
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+}
+.modal-body {
+  padding: 1rem;
+  .form-group {
+    margin-top: 1rem;
+    label { display: block; margin-bottom: 0.25rem; }
+    .form-control {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+    }
+  }
+}
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-top: 1px solid #e5e7eb;
+  .btn-secondary {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+  }
+  .btn-danger {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+}

@@ -1,0 +1,62 @@
+<div class="profile-container">
+  <h1>My Profile</h1>
+
+  <div *ngIf="loading" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Loading profile...</p>
+  </div>
+
+  <div *ngIf="!loading" class="profile-card">
+    <form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
+      <div class="form-row">
+        <div class="form-group">
+          <label>First Name *</label>
+          <input type="text" formControlName="firstName" class="form-control">
+          <div class="error" *ngIf="profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched">
+            First name is required
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Last Name *</label>
+          <input type="text" formControlName="lastName" class="form-control">
+          <div class="error" *ngIf="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched">
+            Last name is required
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Phone Number *</label>
+          <input type="tel" formControlName="phoneNumber" class="form-control" placeholder="e.g., +1234567890">
+          <div class="error" *ngIf="profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched">
+            Valid phone number is required (8-15 digits, +, -, space allowed)
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" formControlName="email" class="form-control" [disabled]="true">
+          <small class="help-text">Email cannot be changed. Contact support if needed.</small>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Loyalty Points</label>
+          <input type="text" formControlName="loyaltyPoints" class="form-control" [disabled]="true">
+          <small class="help-text">Earn points with every stay. Redeem for discounts.</small>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="goToChangePassword()">Change Password</button>
+        <button type="submit" class="btn-primary" [disabled]="updating || profileForm.invalid">
+          {{ updating ? 'Saving...' : 'Save Changes' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

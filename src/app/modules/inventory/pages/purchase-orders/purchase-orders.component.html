@@ -83,9 +83,11 @@
               <button class="btn-view" (click)="openEditModal(po)" title="View/Edit">
                 <i class="fas fa-eye"></i>
               </button>
-               <button class="btn-print" (click)="printPO(po.poNumber)">🖨️ Print</button>
+
+
 
               @if (po.status === 'Approved') {
+                 <button class="btn-print" (click)="printPO(po.poNumber)">🖨️ Print</button>
                 <button class="btn-receive" (click)="openReceiveModal(po)" title="Receive Goods">
                   <i class="fas fa-boxes"></i>
                 </button>

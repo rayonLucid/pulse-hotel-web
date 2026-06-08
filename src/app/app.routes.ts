@@ -4,6 +4,7 @@ import { AuthGuard } from './core/auth/auth.guard';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component/main-layout.component';
 import { SingleTabGuard } from './core/auth/single-tab.guard';
 import { RoleGuard } from './core/auth/role.guard-guard';
+import { GuestAuthGuard } from './core/auth/guest-auth.guard';
 
 
 export const routes: Routes = [
@@ -14,8 +15,11 @@ export const routes: Routes = [
     path: 'auth',
     loadChildren: () => import('./modules/auth/auth.routes').then(m => m.AUTH_ROUTES)
   },
-
-  // Protected routes with main layout
+{ path: 'guest/login', loadComponent: () => import('./modules/guest/guest-login/guest-login.component').then(m => m.GuestLoginComponent) },
+{ path: 'guest/register', loadComponent: () => import('./modules/guest/guest-register/guest-register.component').then(m => m.GuestRegisterComponent) },
+{ path: 'guest', loadChildren: () => import('./modules/guest/guest.routes').then(m => m.GUEST_ROUTES), canActivate: [GuestAuthGuard] },
+{ path: 'bookings/new', loadComponent: () => import('./modules/guest/booking-wizard/booking-wizard.component').then(m => m.BookingWizardComponent) },
+// Protected routes with main layout
   {
     path: '',
     component: MainLayoutComponent,

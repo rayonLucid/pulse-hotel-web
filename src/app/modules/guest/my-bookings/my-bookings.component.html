@@ -1,0 +1,90 @@
+<div class="my-bookings">
+  <h1>My Bookings</h1>
+
+  <div *ngIf="loading" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Loading your bookings...</p>
+  </div>
+
+  <div *ngIf="!loading">
+    <!-- Upcoming Bookings -->
+    <div class="section">
+      <h2>Upcoming Stays</h2>
+      <div *ngIf="upcomingBookings.length === 0" class="empty-message">
+        <i class="fas fa-calendar-plus"></i>
+        <p>No upcoming bookings. <a routerLink="/guest/bookings/new">Book a room</a></p>
+      </div>
+      <div class="bookings-list" *ngIf="upcomingBookings.length > 0">
+        <div *ngFor="let booking of upcomingBookings" class="booking-card">
+          <div class="booking-header">
+            <span class="ref">{{ booking.bookingReference }}</span>
+            <span class="status" [class.confirmed]="booking.bookingStatus === 'Confirmed'">
+              {{ booking.bookingStatus }}
+            </span>
+          </div>
+          <div class="booking-dates">
+            <i class="fas fa-calendar-alt"></i>
+            {{ booking.checkInDate | date }} – {{ booking.checkOutDate | date }}
+          </div>
+          <div class="booking-amount">
+            Total: {{ booking.totalAmount | currency:'NGN':'symbol':'1.0-0' }}
+          </div>
+          <div class="booking-actions">
+            <button class="btn-details" (click)="viewBookingDetails(booking)">View Details</button>
+            <button class="btn-cancel" *ngIf="isCancellable(booking)" (click)="openCancelModal(booking)">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Past Bookings -->
+    <div class="section">
+      <h2>Past Stays</h2>
+      <div *ngIf="pastBookings.length === 0" class="empty-message">
+        <i class="fas fa-history"></i>
+        <p>No past stays yet.</p>
+      </div>
+      <div class="bookings-list" *ngIf="pastBookings.length > 0">
+        <div *ngFor="let booking of pastBookings" class="booking-card past">
+          <div class="booking-header">
+            <span class="ref">{{ booking.bookingReference }}</span>
+            <span class="status">{{ booking.bookingStatus }}</span>
+          </div>
+          <div class="booking-dates">
+            <i class="fas fa-calendar-alt"></i>
+            {{ booking.checkInDate | date }} – {{ booking.checkOutDate | date }}
+          </div>
+          <div class="booking-amount">
+            Total: {{ booking.totalAmount | currency:'NGN':'symbol':'1.0-0' }}
+          </div>
+          <div class="booking-actions">
+            <button class="btn-details" (click)="viewBookingDetails(booking)">View Details</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancel Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showCancelModal" (click)="closeCancelModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Cancel Booking</h3>
+        <button class="close-btn" (click)="closeCancelModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to cancel booking <strong>{{ selectedBooking?.bookingReference }}</strong>?</p>
+        <div class="form-group">
+          <label>Reason (optional)</label>
+          <textarea [(ngModel)]="cancelReason" rows="2" class="form-control" placeholder="Why are you cancelling?"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeCancelModal()">No, Keep It</button>
+        <button class="btn-danger" (click)="confirmCancel()" [disabled]="isCancelling">
+          {{ isCancelling ? 'Cancelling...' : 'Yes, Cancel Booking' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

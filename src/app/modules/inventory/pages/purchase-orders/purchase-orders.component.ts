@@ -91,6 +91,7 @@ Math =Math
       next: (response) => {
         if (response.success) {
           this.purchaseOrders = response.data;
+        //  console.log('Purchase orders loaded:', this.purchaseOrders);
           this.applyFilters();
         }
         this.isLoading = false;
@@ -122,6 +123,7 @@ Math =Math
   loadItems(): void {
     this.inventoryService.getItems({ page: 1, pageSize: 100 }).subscribe({
       next: (response:any) => {
+      //  console.log('Items loaded:', response.data);
         if (response.success) {
           this.items = response.data;
           this.availableItems = response.data.map((item:any) => ({
@@ -191,6 +193,7 @@ Math =Math
 
   openEditModal(po: PurchaseOrder): void {
     this.editingPO = po;
+    console.log('Editing PO:', po);
     this.poForm.patchValue({
       supplierId: po.supplierId,
       expectedDeliveryDate: new Date(po.expectedDeliveryDate).toISOString().split('T')[0],
@@ -494,7 +497,7 @@ Math =Math
     }
     ,(error) => {
       console.error('Error printing PO:', error);
-      this.toastr.error('Failed to print purchase order', 'Error');
+      this.toastr.error(error|| 'Failed to print purchase order', 'Error');
     }
   );
 }

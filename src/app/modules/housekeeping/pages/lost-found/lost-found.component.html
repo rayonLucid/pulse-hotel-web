@@ -250,12 +250,17 @@
       <div class="form-row">
         <div class="form-group">
           <label>Room Number</label>
-          <select [(ngModel)]="newItem.roomId" class="form-control">
+          <!-- <select [(ngModel)]="newItem.roomId" class="form-control">
             <option [value]="null">Select room (optional)</option>
             <option *ngFor="let room of availableRooms" [value]="room.roomId">
               Room {{ room.roomNumber }} - {{ room.roomType }}
             </option>
-          </select>
+          </select> -->
+          <angular-multiselect
+  [data]="dropdownList"
+  [(ngModel)]="newItem.roomId"
+  [settings]="dropdownSettings">
+</angular-multiselect>
         </div>
         <div class="form-group">
           <label>Room Number Display</label>

@@ -1,12 +1,13 @@
 // dashboard.component.scss - Mobile Optimized
 
 .dashboard-container {
-  padding: 16px;
+  padding: 24px;
   background: linear-gradient(135deg, #f5f7fa 0%, #f0f2f5 100%);
   min-height: 100vh;
 
   @media (min-width: 768px) {
-    padding: 24px;
+    padding: 16px;
+    width: 100%;
   }
 }
 

@@ -9,9 +9,7 @@
         <i class="fas fa-bars"></i>
       </button>
     }
-    <!-- <div class="page-title">
-      <h1>{{ router.url | titlecase }}</h1>
-    </div> -->
+
 
       <div class="breadcrumb-container">
         <nav aria-label="breadcrumb">
@@ -47,7 +45,9 @@
         <button class="clear-search" *ngIf="searchControl.value" (click)="clearSearch()">
           <i class="fas fa-times"></i>
         </button>
+        @if(!isMobile) {
         <kbd class="search-shortcut">Ctrl+K</kbd>
+        }
       </div>
 
       <!-- Search Results Dropdown -->

@@ -1,9 +1,10 @@
 // src/app/modules/housekeeping/pages/dashboard/dashboard.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HousekeepingService } from '../../../../core/services/housekeeping.service';
 import { DashboardStats, RoomStatus, HousekeepingTask } from '../../../../core/models/housekeeping.model';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-housekeeping-dashboard',
@@ -22,7 +23,8 @@ export class HouseKeepingDashboardComponent implements OnInit, OnDestroy {
   currentTime = new Date();
   private refreshInterval: any;
   private timeInterval: any;
-
+toastr = inject(ToastrService);
+cdr = inject(ChangeDetectorRef);
   constructor(private housekeepingService: HousekeepingService) {}
 
   ngOnInit(): void {
@@ -53,8 +55,10 @@ export class HouseKeepingDashboardComponent implements OnInit, OnDestroy {
       this.loadPendingTasks(),
       this.loadUrgentTasks(),
       this.loadRecentInspections()
+
     ]).finally(() => {
       this.isLoading = false;
+      this.cdr.detectChanges(); // Ensure view updates after loading
     });
   }
 
@@ -65,8 +69,10 @@ export class HouseKeepingDashboardComponent implements OnInit, OnDestroy {
     return new Promise((resolve) => {
       this.housekeepingService.getDashboardStats().subscribe({
         next: (response:any) => {
+         // console.log('Dashboard stats response:', response);
           if (response && response.success) {
             this.stats = response.data;
+            this.cdr.detectChanges(); // Ensure view updates with new stats
           } else if (response && !response.success) {
             console.error('Failed to load stats:', response.message);
             this.stats = this.getDefaultStats();
@@ -75,6 +81,7 @@ export class HouseKeepingDashboardComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error loading dashboard stats:', error);
+this.toastr.error(error.message || 'Failed to load dashboard statistics. Please try again later.', 'Error');
           this.stats = this.getDefaultStats();
           resolve();
         }
@@ -117,11 +124,14 @@ export class HouseKeepingDashboardComponent implements OnInit, OnDestroy {
         pageSize: 5
       }).subscribe({
         next: (response:any) => {
-          if (response && response.success) {
-            this.pendingTasks = response.data || [];
-          } else if (response && !response.success) {
-            console.error('Failed to load pending tasks:', response.message);
+        //  console.log('Pending tasks response:', response);
+          if (response.totalCount > 0) {
+            this.pendingTasks = response.items;
+             this.cdr.detectChanges();
+          } else if (response.totalCount === 0) {
+           // this.toastr.error('Failed to load pending tasks');
             this.pendingTasks = [];
+             this.cdr.detectChanges();
           }
           resolve();
         },
@@ -169,12 +179,16 @@ export class HouseKeepingDashboardComponent implements OnInit, OnDestroy {
         next: (response:any) => {
           if (response && response.success) {
             this.recentInspections = response.data || [];
+            this.isLoading = false;
+            this.cdr.detectChanges();
           }
           resolve();
         },
         error: (error:any) => {
-          console.error('Error loading recent inspections:', error);
+          console.error('Error loading recent inspection:', error);
           this.recentInspections = [];
+          this.isLoading = false;
+            this.cdr.detectChanges();
           resolve();
         }
       });
@@ -224,6 +238,7 @@ export class HouseKeepingDashboardComponent implements OnInit, OnDestroy {
    * Calculate occupancy rate
    */
   getOccupancyRate(): number {
+    console.log('Calculating occupancy rate with stats:', this.stats);
     if (!this.stats || this.stats.totalRooms === 0) return 0;
     const occupied = this.stats.totalRooms - this.stats.availableRooms - this.stats.outOfService;
     return Math.round((occupied / this.stats.totalRooms) * 100);

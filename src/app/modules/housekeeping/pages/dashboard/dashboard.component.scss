@@ -1,152 +1,168 @@
+// ==========================================
+// 1. VARIABLES (adjust once)
+// ==========================================
+$primary: #c49a6c;
+$primary-dark: #a87b4e;
+$text-dark: #1f2937;
+$text-muted: #6b7280;
+$border: #e5e7eb;
+$bg-light: #f3f4f6;
+$bg-page: #f5f7fa;
+$white: #ffffff;
 
-.dashboard-container {
-  padding: 24px;
-  background: #f5f7fa;
-  min-height: 100vh;
+$breakpoint-sm: 480px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
 
-  @media (max-width: 768px) {
-    padding: 16px;
-  }
+// Status colors
+$status: (
+  dirty: #ef4444,
+  cleaning: #f59e0b,
+  clean: #10b981,
+  inspected: #3b82f6,
+  available: #8b5cf6,
+  outofservice: #6b7280
+);
+
+// ==========================================
+// 2. MIXINS (reusable patterns)
+// ==========================================
+@mixin card {
+  background: $white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.page-header {
+@mixin flex-between {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+}
+
+@mixin status-bg($color) {
+  background: rgba($color, 0.1);
+  .room-number, .room-status-text { color: $color; }
+}
+
+// ==========================================
+// 3. MAIN CONTAINER
+// ==========================================
+.dashboard-container {
+  padding: 24px;
+  background: $bg-page;
+  min-height: 100vh;
+  @media (max-width: $breakpoint-md) { padding: 16px; }
+}
+
+// ==========================================
+// 4. PAGE HEADER
+// ==========================================
+.page-header {
+  @include flex-between;
   flex-wrap: wrap;
   gap: 16px;
+  margin-bottom: 24px;
 
   .page-title {
     font-size: 28px;
     font-weight: 700;
-    color: #1f2937;
+    color: $text-dark;
     margin-bottom: 8px;
-
-    @media (max-width: 768px) {
-      font-size: 22px;
-    }
+    @media (max-width: $breakpoint-md) { font-size: 22px; }
   }
-
   .page-subtitle {
     font-size: 14px;
-    color: #6b7280;
+    color: $text-muted;
   }
-
   .btn-refresh {
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 10px 20px;
-    background: white;
-    border: 1px solid #e5e7eb;
+    background: $white;
+    border: 1px solid $border;
     border-radius: 8px;
-    color: #4b5563;
+    color: $text-muted;
     cursor: pointer;
     transition: all 0.2s;
-
     &:hover {
-      background: #f3f4f6;
-      border-color: #c49a6c;
-      color: #c49a6c;
+      background: $bg-light;
+      border-color: $primary;
+      color: $primary;
     }
   }
 }
 
+// ==========================================
+// 5. LOADING STATE
+// ==========================================
 .loading-state {
   text-align: center;
   padding: 60px;
-
   .spinner {
     width: 48px;
     height: 48px;
-    border: 3px solid #e5e7eb;
-    border-top-color: #c49a6c;
+    border: 3px solid $border;
+    border-top-color: $primary;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     margin: 0 auto 16px;
   }
+  p { color: $text-muted; }
+}
 
-  p {
-    color: #6b7280;
-  }
+// ==========================================
+// 6. STATS & METRICS (grid + cards)
+// ==========================================
+.stats-grid, .metrics-grid {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 .stats-grid {
-  display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-
   .stat-card {
-    background: white;
-    border-radius: 16px;
+    @include card;
     padding: 16px;
     display: flex;
     align-items: center;
     gap: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     border-left: 4px solid;
-
-    &.dirty { border-left-color: #ef4444; }
-    &.cleaning { border-left-color: #f59e0b; }
-    &.clean { border-left-color: #10b981; }
-    &.inspected { border-left-color: #3b82f6; }
-    &.available { border-left-color: #8b5cf6; }
-    &.outofservice { border-left-color: #6b7280; }
-
+    @each $name, $color in $status {
+      &.#{$name} { border-left-color: $color; }
+    }
     .stat-icon {
       width: 48px;
       height: 48px;
       border-radius: 12px;
+      background: $bg-light;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #f3f4f6;
-
       i {
         font-size: 24px;
-
-        .dirty & { color: #ef4444; }
-        .cleaning & { color: #f59e0b; }
-        .clean & { color: #10b981; }
-        .inspected & { color: #3b82f6; }
-        .available & { color: #8b5cf6; }
-        .outofservice & { color: #6b7280; }
+        @each $name, $color in $status {
+          .#{$name} & { color: $color; }
+        }
       }
     }
-
     .stat-info {
-      h3 {
-        font-size: 12px;
-        color: #6b7280;
-        margin-bottom: 4px;
-      }
-
-      p {
-        font-size: 24px;
-        font-weight: 700;
-        color: #1f2937;
-      }
+      h3 { font-size: 12px; color: $text-muted; margin-bottom: 4px; }
+      p { font-size: 24px; font-weight: 700; color: $text-dark; }
     }
   }
 }
 
 .metrics-grid {
-  display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-
   .metric-card {
-    background: white;
-    border-radius: 16px;
+    @include card;
     padding: 16px;
     display: flex;
     align-items: center;
     gap: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-
     .metric-icon {
       width: 48px;
       height: 48px;
@@ -155,176 +171,83 @@
       display: flex;
       align-items: center;
       justify-content: center;
-
-      i {
-        font-size: 24px;
-        color: #c49a6c;
-      }
+      i { font-size: 24px; color: $primary; }
     }
-
     .metric-info {
       display: flex;
       flex-direction: column;
-
-      .metric-value {
-        font-size: 20px;
-        font-weight: 700;
-        color: #1f2937;
-      }
-
-      .metric-label {
-        font-size: 12px;
-        color: #6b7280;
-      }
+      .metric-value { font-size: 20px; font-weight: 700; color: $text-dark; }
+      .metric-label { font-size: 12px; color: $text-muted; }
     }
   }
 }
 
+// ==========================================
+// 7. BOTTOM SECTION (two columns)
+// ==========================================
 .bottom-section {
   display: grid;
   grid-template-columns: 1.5fr 1fr;
   gap: 24px;
-
-  @media (max-width: 1024px) {
-    grid-template-columns: 1fr;
-  }
+  @media (max-width: $breakpoint-lg) { grid-template-columns: 1fr; }
 }
 
 .room-status-section, .pending-tasks-section {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-
+  @include card;
   .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    @include flex-between;
     margin-bottom: 16px;
-
-    h3 {
-      font-size: 16px;
-      font-weight: 600;
-      color: #1f2937;
-    }
-
+    h3 { font-size: 16px; font-weight: 600; color: $text-dark; }
     .view-all {
       font-size: 12px;
-      color: #c49a6c;
+      color: $primary;
       text-decoration: none;
-
-      &:hover {
-        text-decoration: underline;
-      }
+      &:hover { text-decoration: underline; }
     }
   }
 }
 
+// ==========================================
+// 8. ROOM STATUS GRID
+// ==========================================
 .room-status-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   gap: 12px;
-
   .room-card {
     padding: 12px 8px;
     border-radius: 10px;
     text-align: center;
     transition: all 0.2s;
-
-    .room-number {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .room-status-text {
-      font-size: 10px;
-      font-weight: 500;
-    }
-
-    &.status-dirty {
-      background: #fee2e2;
-      .room-number { color: #dc2626; }
-      .room-status-text { color: #dc2626; }
-    }
-
-    &.status-cleaning {
-      background: #fef3c7;
-      .room-number { color: #d97706; }
-      .room-status-text { color: #d97706; }
-    }
-
-    &.status-clean {
-      background: #d1fae5;
-      .room-number { color: #059669; }
-      .room-status-text { color: #059669; }
-    }
-
-    &.status-inspected {
-      background: #dbeafe;
-      .room-number { color: #2563eb; }
-      .room-status-text { color: #2563eb; }
-    }
-
-    &.status-available {
-      background: #e9d5ff;
-      .room-number { color: #7e22ce; }
-      .room-status-text { color: #7e22ce; }
-    }
-
-    &.status-outofservice {
-      background: #f3f4f6;
-      .room-number { color: #6b7280; }
-      .room-status-text { color: #6b7280; }
+    .room-number { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .room-status-text { font-size: 10px; font-weight: 500; }
+    @each $name, $color in $status {
+      &.status-#{$name} { @include status-bg($color); }
     }
   }
 }
 
+// ==========================================
+// 9. TASKS LIST
+// ==========================================
 .tasks-list {
   .task-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    @include flex-between;
     padding: 12px 0;
     border-bottom: 1px solid #f0f0f0;
-
-    &:last-child {
-      border-bottom: none;
-    }
-
+    &:last-child { border-bottom: none; }
     .task-info {
-      .task-room {
-        font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 4px;
-      }
-
-      .task-type {
-        font-size: 12px;
-        color: #6b7280;
-      }
+      .task-room { font-weight: 600; color: $text-dark; margin-bottom: 4px; }
+      .task-type { font-size: 12px; color: $text-muted; }
     }
-
     .task-priority {
       padding: 4px 10px;
       border-radius: 20px;
       font-size: 11px;
       font-weight: 600;
-
-      &.high {
-        background: #fee2e2;
-        color: #dc2626;
-      }
-
-      &.normal {
-        background: #dbeafe;
-        color: #2563eb;
-      }
-
-      &.low {
-        background: #d1fae5;
-        color: #059669;
-      }
+      &.high { background: rgba(#ef4444, 0.1); color: #dc2626; }
+      &.normal { background: rgba(#3b82f6, 0.1); color: #2563eb; }
+      &.low { background: rgba(#10b981, 0.1); color: #059669; }
     }
   }
 }
@@ -333,17 +256,13 @@
   text-align: center;
   padding: 30px;
   color: #9ca3af;
-
-  i {
-    font-size: 32px;
-    margin-bottom: 8px;
-  }
-
-  p {
-    font-size: 13px;
-  }
+  i { font-size: 32px; margin-bottom: 8px; }
+  p { font-size: 13px; }
 }
 
+// ==========================================
+// 10. KEYFRAMES
+// ==========================================
 @keyframes spin {
   to { transform: rotate(360deg); }
 }

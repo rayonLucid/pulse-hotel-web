@@ -1,0 +1,28 @@
+ 
+    .modal-overlay {
+      position: fixed; top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1100;
+    }
+    .modal-container {
+      background: white; border-radius: 1rem; width: 400px; max-width: 90%;
+    }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1rem; border-bottom: 1px solid #e5e7eb;
+    }
+    .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+    .modal-body { padding: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+    .form-control {
+      width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.5rem;
+    }
+    .btn-primary {
+      width: 100%; background: #c49a6c; color: white; border: none;
+      padding: 0.5rem; border-radius: 0.5rem; cursor: pointer;
+    }
+    .register-link { text-align: center; margin-top: 1rem; }
+    .register-link a { color: #c49a6c; cursor: pointer; text-decoration: underline; }
+

@@ -6,7 +6,7 @@ import { FooterComponent } from '../../footer/footer.component/footer.component'
 import { HeaderComponent } from '../../header/header.component/header.component';
 import { SidebarComponent } from '../../sidebar/sidebar.component/sidebar.component';
 import { Breadcrumb } from '../../../core/models/auth.models';
-
+import { BreakpointObserver } from '@angular/cdk/layout';
 
 
 
@@ -17,7 +17,7 @@ import { Breadcrumb } from '../../../core/models/auth.models';
     CommonModule,
     RouterOutlet,
     RouterLink,
-    RouterLinkActive,
+
     SidebarComponent,
     HeaderComponent,
     FooterComponent
@@ -34,7 +34,16 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
   private resizeObserver: ResizeObserver | null = null;
 
-  constructor(private router: Router) {}
+  //constructor(private router: Router) {}
+  constructor(private breakpointObserver: BreakpointObserver,private router: Router) {
+  this.breakpointObserver.observe(['(max-width: 768px)']).subscribe(result => {
+    this.isMobile = result.matches;
+    if (!this.isMobile) {
+      this.isMobileMenuOpen = false; // close menu on desktop resize
+    }
+  });
+}
+
 
   ngOnInit(): void {
     this.checkScreenSize();
@@ -121,7 +130,9 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   }
 
   onSidebarToggle(collapsed: boolean): void {
+  //  console.log("Sidebar collapsed:", collapsed);
     if (this.isMobile) {
+     //  this.isSidebarCollapsed = collapsed;
       this.toggleMobileMenu();
     } else {
       this.isSidebarCollapsed = collapsed;
@@ -129,19 +140,21 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   }
 
   toggleMobileMenu(): void {
-    this.isMobileMenuOpen = !this.isMobileMenuOpen;
-
+    if (this.isMobile)  this.isMobileMenuOpen = !this.isMobileMenuOpen;
+//console.log( this.isMobileMenuOpen); // Debug log to verify toggle state
     // Prevent body scroll when mobile menu is open
     if (this.isMobileMenuOpen) {
+     // console.log('Disabling body scroll'); // Debug log to verify scroll prevention
       document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = '';
+      // console.log('Enabling body scroll'); // Debug log to verify scroll enabling
+      document.body.style.overflow = 'scroll';
     }
   }
 
   closeMobileMenu(): void {
     this.isMobileMenuOpen = false;
-    document.body.style.overflow = '';
+    document.body.style.overflow = 'scroll';
   }
 
   scrollToTop(): void {

@@ -1,8 +1,11 @@
-// src/app/layouts/main-layout/main-layout.component.scss
+// ==========================================
+// APP CONTAINER & MAIN LAYOUT
+// ==========================================
 .app-container {
   display: flex;
   min-height: 100vh;
   background-color: #f5f5f5;
+
 }
 
 .main-content {
@@ -12,55 +15,89 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-
+width: 100%;
   &.sidebar-collapsed {
     margin-left: 70px;
+  }
+&.sidebar-expanded{
+    margin-left: 260px;
+  }
+  &.sidebar-open {
+    margin-left: 0;
+  }
+  // Tablet breakpoint
+  @media (max-width: 1024px) {
+    margin-left: 240px;
+    &.sidebar-collapsed {
+      margin-left: 70px;
+    }
+  }
+
+  // Mobile breakpoint
+  @media (max-width: 768px) {
+    margin-left: 0; // full width on mobile, sidebar overlays or collapses
+    &.sidebar-collapsed {
+      margin-left: 0;
+    }
   }
 }
 
 .content-wrapper {
   flex: 1;
   padding: 20px;
-
+ box-sizing: border-box;
+width: 100%;
   @media (max-width: 768px) {
-    padding: 16px;
+    padding: 16px 12px;  // reduce horizontal padding on small screens
+
+     box-sizing: border-box;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px 10px;
+    width: 100%; // ensure it takes full viewport width on mobile
+     box-sizing: border-box;
+
+
   }
 }
-// Fixed Breadcrumb Styles
-// src/app/layouts/breadcrumb/breadcrumb.component.scss
 
+// ==========================================
+// BREADCRUMB – MOBILE & TABLET OPTIMIZED
+// ==========================================
 .breadcrumb-container {
   width: 100%;
-  overflow-x: auto; // Enables horizontal scrolling on mobile if breadcrumbs are deep
-  white-space: nowrap; // Prevents items from wrapping into an ugly multi-line block
+  overflow-x: auto;
+  white-space: nowrap;
   margin-bottom: 20px;
+  -webkit-overflow-scrolling: touch; // smooth scrolling on iOS
 
-  // Custom subtle scrollbar cleanup for a sleek mobile presentation
+  // Hide scrollbar but keep functionality
   &::-webkit-scrollbar {
-    display: none; // Hides visible scrollbars on mobile to keep things looking clean
+    display: none;
   }
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 
-  @media (max-width: 767.98px) {
+  @media (max-width: 768px) {
     margin-bottom: 16px;
-    // Creates a minor padding offset on mobile so text doesn't clip hard at the screen edge
     padding: 4px 0;
   }
 }
 
 .breadcrumb {
   list-style: none;
-  display: inline-flex; // Switches to inline-flex to work smoothly with container's white-space rule
+  display: inline-flex;
   align-items: center;
   padding: 0;
   margin: 0;
   gap: 8px;
+  flex-wrap: nowrap; // ensures horizontal scroll works
 
   .breadcrumb-item {
     color: #888;
-    font-size: 14px; // Refined baseline for modern, balanced typography
-    display: flex;
+    font-size: 14px;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
     user-select: none;
@@ -69,12 +106,7 @@
       color: #6b7280;
       text-decoration: none;
       transition: color 0.2s ease;
-      display: inline-block;
-
-      // Expands the functional tapping area on touch screens without visually sizing up the text
-      @media (max-width: 991.98px) {
-        padding: 6px 2px;
-      }
+      padding: 6px 2px;   // bigger tap area on touch devices
 
       &:hover {
         color: #c49a6c;
@@ -84,33 +116,54 @@
     &.active {
       color: #1f2937;
       font-weight: 500;
-      pointer-events: none; // Stops needless user tap events on the page they are currently visiting
+      pointer-events: none;
     }
 
-    // Separator styling using flex order logic to protect the layout structure
+    // Separator
     &:not(:last-child)::after {
       content: '/';
       color: #9ca3af;
       font-size: 13px;
       line-height: 1;
+      margin-left: 2px;
     }
   }
 
-  // ==========================================
-  // RESPONSIVE BREAKPOINTS
-  // ==========================================
-
-  // Mobile View (< 768px)
-  @media (max-width: 767.98px) {
+  // ========== TABLET OPTIMIZATION ==========
+  @media (max-width: 1024px) and (min-width: 769px) {
     gap: 6px;
-
     .breadcrumb-item {
-      font-size: 13px; // Dropping below 13px hinders WCAG mobile readability guidelines
-      gap: 6px;
-
+      font-size: 13px;
+      a {
+        padding: 6px 4px;
+      }
       &:not(:last-child)::after {
-        font-size: 11px;
+        font-size: 12px;
       }
     }
   }
+
+  // ========== MOBILE OPTIMIZATION ==========
+  @media (max-width: 768px) {
+    gap: 4px;
+    .breadcrumb-item {
+      font-size: 12px;
+      a {
+        padding: 8px 4px; // larger tap target on mobile
+      }
+      &:not(:last-child)::after {
+        font-size: 11px;
+        margin-left: 0;
+      }
+    }
+    .page-content{
+      padding: 12px 0;
+    }
+    .app-container {
+      overflow-x: scroll;
+       width: 100%;
+
+    }
+  }
 }
+

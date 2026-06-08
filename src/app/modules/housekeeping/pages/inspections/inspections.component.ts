@@ -1,5 +1,5 @@
 // src/app/modules/housekeeping/pages/inspections/inspections.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -45,7 +45,7 @@ export class InspectionsComponent implements OnInit, OnDestroy {
   // Modal visibility
   showCreateModal = false;
   showDetailsModal = false;
-
+cdr = inject(ChangeDetectorRef);
   // Form data for new inspection
   newInspection: any = {
     taskId: null,
@@ -92,8 +92,9 @@ export class InspectionsComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
 
     // Use getInspections method (not getAllInspections)
-    this.housekeepingService.getInspections().subscribe({
+    this.housekeepingService.getInspections(0).subscribe({
       next: (response: any) => {
+        console.log('Inspections loaded:', response);
         if (response.success && response.data) {
           this.inspections = response.data;
           this.totalItems = response.totalCount || response.data.length;
@@ -106,6 +107,7 @@ export class InspectionsComponent implements OnInit, OnDestroy {
           this.filteredInspections = [];
         }
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (error: any) => {
         console.error('Error loading inspections:', error);
@@ -113,6 +115,7 @@ export class InspectionsComponent implements OnInit, OnDestroy {
         this.inspections = [];
         this.filteredInspections = [];
         this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -144,6 +147,7 @@ export class InspectionsComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         console.error('Error loading statistics:', error);
+        this.cdr.detectChanges();
       }
     });
   }
